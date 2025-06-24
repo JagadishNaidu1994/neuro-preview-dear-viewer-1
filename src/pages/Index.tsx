@@ -72,30 +72,30 @@ const Index = () => {
             {/* Navigation */}
             <div className="bg-[rgba(237,236,235,0.85)] rounded-xl px-4 py-2 flex flex-row flex-wrap text-center mx-auto">
               <div className="flex items-center gap-4">
-                <a
-                  href="#"
+                <Link
+                  to="/shop-all"
                   className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
                 >
                   Shop All
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  to="/the-science"
                   className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
                 >
                   The Science
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  to="/ethos"
                   className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
                 >
                   Our Ethos
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  to="/herbal-index"
                   className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
                 >
                   Herbal Index
-                </a>
+                </Link>
               </div>
             </div>
           </div>
