@@ -393,13 +393,7 @@ const Index = () => {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-16 mb-16">
             {/* Logo Section */}
             <div className="lg:col-span-1">
-              <div className="mb-6">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/01be464a5b2cfcd30d76742d63777178622703e0"
-                  alt="NOON Logo"
-                  className="h-[166px] max-w-[659px]"
-                />
-              </div>
+              <div className="mb-6"></div>
             </div>
 
             {/* Navigation Links */}
