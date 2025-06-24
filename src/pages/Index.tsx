@@ -120,9 +120,9 @@ const Index = () => {
       <main className="max-w-[1905px] mx-auto px-8 pt-[70px]">
         <div className="space-y-[90px]">
           {/* Hero Section */}
-          <section className="h-[783px] relative">
+          <section className="h-[783px] relative flex flex-col">
             <div
-              className="w-full h-full rounded-[30px] relative overflow-hidden"
+              className="w-auto h-full rounded-[30px] relative overflow-hidden self-stretch"
               style={{
                 backgroundImage: `url('https://cdn.builder.io/api/v1/image/assets/TEMP/3a491d54b7a9463c5b5e6a73fa396ab8f6d1a91e')`,
                 backgroundSize: "cover",
