@@ -9,7 +9,26 @@ const ShopAll = () => {
           Discover our complete collection of functional mushroom products
           designed for cognitive wellness.
         </p>
-        {/* Add your shop all content here */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="bg-white rounded-[20px] p-6 shadow-sm">
+            <h3 className="text-lg font-medium text-[#161616] mb-4">
+              Chill Mushroom Gummy Delights
+            </h3>
+            <p className="text-sm text-[#B2AFAB] mb-4">
+              For Happy Calm & Less Stress
+            </p>
+            <p className="text-[#161616] font-medium">$32</p>
+          </div>
+          <div className="bg-white rounded-[20px] p-6 shadow-sm">
+            <h3 className="text-lg font-medium text-[#161616] mb-4">
+              Matcha Chocolate Delights
+            </h3>
+            <p className="text-sm text-[#B2AFAB] mb-4">
+              For Clean Energy, Calm Focus & Good Mood
+            </p>
+            <p className="text-[#161616] font-medium">$23</p>
+          </div>
+        </div>
       </div>
     </div>
   );
