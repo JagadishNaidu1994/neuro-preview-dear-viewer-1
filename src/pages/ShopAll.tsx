@@ -124,33 +124,112 @@ const ShopAll = () => {
           <div className="space-y-4">
             {/* First Row - 4 Products Grid */}
             <div className="grid grid-cols-4 gap-4 h-[782px]">
-              <div className="rounded-[24px] overflow-hidden relative">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fffeb5804f7194b42aa08533263b01ce4"
-                  alt="NOON Focus Product"
-                  className="w-full h-full object-cover"
-                />
+              {/* FOCUS Product */}
+              <div className="bg-[#F5F5F5] rounded-[24px] overflow-hidden relative flex flex-col">
+                <div className="flex-1 flex items-center justify-center p-6">
+                  <img
+                    src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fe61d0a85b1064b0991d96b698c24ae3d"
+                    alt="FOCUS - Daily Cognitive Support Capsules"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="p-4 bg-white">
+                  <h3 className="text-sm font-medium text-[#161616] mb-1">
+                    Focus Mushroom Gummy Delights
+                  </h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i} className="text-yellow-400 text-xs">
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <span className="text-xs text-gray-500">(8)</span>
+                  </div>
+                  <div className="text-sm font-medium text-[#161616]">$52</div>
+                </div>
               </div>
-              <div className="rounded-[24px] overflow-hidden relative">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2F99a98a2523c1490ab57e1b995ef5ed63"
-                  alt="Chocolate lollipop"
-                  className="w-full h-full object-cover"
-                />
+
+              {/* FLUSH Product */}
+              <div className="bg-[#F5F5F5] rounded-[24px] overflow-hidden relative flex flex-col">
+                <div className="flex-1 flex items-center justify-center p-6">
+                  <img
+                    src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fe4a7d6da6ecd4578a20efc399984fe53"
+                    alt="FLUSH - Daily Gut Health Support Capsules"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="p-4 bg-white">
+                  <h3 className="text-sm font-medium text-[#161616] mb-1">
+                    Flush Mushroom Gummy Delights
+                  </h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i} className="text-yellow-400 text-xs">
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <span className="text-xs text-gray-500">(4)</span>
+                  </div>
+                  <div className="text-sm font-medium text-[#161616]">$52</div>
+                </div>
               </div>
-              <div className="rounded-[24px] overflow-hidden relative">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2F6d8b82897a344e628efe4604f58c9a16"
-                  alt="Chocolate pieces"
-                  className="w-full h-full object-cover"
-                />
+
+              {/* CALM Product */}
+              <div className="bg-[#F5F5F5] rounded-[24px] overflow-hidden relative flex flex-col">
+                <div className="flex-1 flex items-center justify-center p-6">
+                  <img
+                    src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fc5e3e9341b774f6e880638f8920c75dd"
+                    alt="CALM - Daily Mood Support Capsules"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="p-4 bg-white">
+                  <h3 className="text-sm font-medium text-[#161616] mb-1">
+                    Calm Mushroom Gummy Delights
+                  </h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i} className="text-yellow-400 text-xs">
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <span className="text-xs text-gray-500">(3)</span>
+                  </div>
+                  <div className="text-sm font-medium text-[#161616]">$52</div>
+                </div>
               </div>
-              <div className="rounded-[24px] overflow-hidden relative">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fbc4797cef429416e9499f81d1f3048d8"
-                  alt="Matcha capsules"
-                  className="w-full h-full object-cover"
-                />
+
+              {/* SLEEP Product */}
+              <div className="bg-[#F5F5F5] rounded-[24px] overflow-hidden relative flex flex-col">
+                <div className="flex-1 flex items-center justify-center p-6">
+                  <img
+                    src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2F27bb006dba66428da19d49f300c856bf"
+                    alt="SLEEP - Daily Rest Support Capsules"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="p-4 bg-white">
+                  <h3 className="text-sm font-medium text-[#161616] mb-1">
+                    Sleep Mushroom Gummy Delights
+                  </h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i} className="text-yellow-400 text-xs">
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <span className="text-xs text-gray-500">(9)</span>
+                  </div>
+                  <div className="text-sm font-medium text-[#161616]">$52</div>
+                </div>
               </div>
             </div>
 
