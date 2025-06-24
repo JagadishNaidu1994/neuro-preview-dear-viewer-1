@@ -400,30 +400,30 @@ const Index = () => {
             {/* Navigation Links */}
             <div className="lg:col-span-2 grid grid-cols-2 gap-20">
               <div className="space-y-3">
-                <a
-                  href="#"
+                <Link
+                  to="/shop-all"
                   className="block text-xs text-black hover:underline"
                 >
                   Shop All
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  to="/the-science"
                   className="block text-xs text-black hover:underline"
                 >
                   The Science
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  to="/ethos"
                   className="block text-xs text-black hover:underline"
                 >
                   Our Ethos
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  to="/herbal-index"
                   className="block text-xs text-black hover:underline"
                 >
                   Herbal Index
-                </a>
+                </Link>
                 <div className="pt-10">
                   <a
                     href="#"
