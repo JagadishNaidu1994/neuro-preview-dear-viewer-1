@@ -26,7 +26,7 @@ const Index = () => {
         </div>
 
         {/* Main Header */}
-        <div className="flex items-center justify-between px-8 py-6 max-w-[1905px] mx-auto">
+        <div className="flex items-center justify-between px-8 py-6 max-w-[1905px] mx-auto gap-[169px]">
           {/* Logo */}
           <div className="flex items-center w-[500px]">
             <div className="w-[90px] h-6">
@@ -69,7 +69,7 @@ const Index = () => {
             </div>
 
             {/* Navigation */}
-            <div className="ml-12 bg-[rgba(237,236,235,0.85)] rounded-xl px-4 py-2">
+            <div className="bg-[rgba(237,236,235,0.85)] rounded-xl px-4 py-2 flex flex-row flex-wrap text-center mx-auto">
               <div className="flex items-center gap-4">
                 <a
                   href="#"
