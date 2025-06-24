@@ -118,87 +118,101 @@ const ShopAll = () => {
       </header>
 
       {/* Main Content */}
-      <main className="px-20 py-[110px]">
+      <main className="px-7 py-[110px] bg-white">
         <div className="max-w-full mx-auto">
-          {/* Product Grid */}
+          {/* Product Grid - Matching Figma Layout */}
           <div className="space-y-4">
-            {/* First Product Row - Focus Product */}
-            <div className="h-[782px] rounded-[24px] overflow-hidden relative">
-              <img
-                src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fffeb5804f7194b42aa08533263b01ce4"
-                alt="NOON Focus Product - Couple with matcha supplement"
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            {/* Second Product Row - Two Column Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[889px]">
-              {/* Left Column - Chocolate Product */}
-              <div className="bg-white rounded-[24px] overflow-hidden relative">
+            {/* First Row - 4 Products Grid */}
+            <div className="grid grid-cols-4 gap-4 h-[782px]">
+              <div className="rounded-[24px] overflow-hidden relative">
+                <img
+                  src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fffeb5804f7194b42aa08533263b01ce4"
+                  alt="NOON Focus Product"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="rounded-[24px] overflow-hidden relative">
                 <img
                   src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2F99a98a2523c1490ab57e1b995ef5ed63"
-                  alt="NOON Chocolate Delights"
+                  alt="Chocolate lollipop"
                   className="w-full h-full object-cover"
                 />
               </div>
-
-              {/* Right Column - Chocolate Pieces */}
-              <div className="bg-white rounded-[24px] overflow-hidden relative">
+              <div className="rounded-[24px] overflow-hidden relative">
                 <img
                   src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2F6d8b82897a344e628efe4604f58c9a16"
-                  alt="Artisanal chocolate pieces with floral patterns"
+                  alt="Chocolate pieces"
                   className="w-full h-full object-cover"
                 />
               </div>
-            </div>
-
-            {/* Third Product Row - Two Column Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[807px]">
-              {/* Left Column - Matcha Supplements */}
-              <div className="bg-white rounded-[24px] overflow-hidden relative">
+              <div className="rounded-[24px] overflow-hidden relative">
                 <img
                   src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fbc4797cef429416e9499f81d1f3048d8"
-                  alt="Matcha powder and capsules"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              {/* Right Column - Clear Supplements */}
-              <div className="bg-white rounded-[24px] overflow-hidden relative">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fedbf7eae95b04ed8979240b3095670a2"
-                  alt="Clear supplement capsules"
+                  alt="Matcha capsules"
                   className="w-full h-full object-cover"
                 />
               </div>
             </div>
 
-            {/* Fourth Product Row - Two Column Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[882px]">
-              {/* Left Column - Gel Supplements */}
-              <div className="bg-white rounded-[24px] overflow-hidden relative">
+            {/* Second Row - 2 Column Layout */}
+            <div className="grid grid-cols-2 gap-4 h-[889px]">
+              <div className="rounded-[24px] overflow-hidden relative">
+                <img
+                  src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fedbf7eae95b04ed8979240b3095670a2"
+                  alt="Clear supplements"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="rounded-[24px] overflow-hidden relative">
                 <img
                   src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2F35be7d1ab9db43f988096ebe14342643"
                   alt="White gel supplements"
                   className="w-full h-full object-cover"
                 />
               </div>
+            </div>
 
-              {/* Right Column - Another product view */}
-              <div className="bg-white rounded-[24px] overflow-hidden relative">
+            {/* Third Row - 2 Column Layout with different heights */}
+            <div className="grid grid-cols-2 gap-4 h-[807px]">
+              <div className="rounded-[24px] overflow-hidden relative">
                 <img
                   src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fffeb5804f7194b42aa08533263b01ce4"
-                  alt="NOON Focus Product lifestyle"
+                  alt="NOON couple lifestyle"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="rounded-[24px] overflow-hidden relative">
+                <img
+                  src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2F99a98a2523c1490ab57e1b995ef5ed63"
+                  alt="Chocolate lollipop detail"
                   className="w-full h-full object-cover"
                 />
               </div>
             </div>
 
-            {/* Fifth Product Row */}
+            {/* Fourth Row - 2 Column Layout */}
+            <div className="grid grid-cols-2 gap-4 h-[882px]">
+              <div className="rounded-[24px] overflow-hidden relative">
+                <img
+                  src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2F6d8b82897a344e628efe4604f58c9a16"
+                  alt="Artisanal chocolate grid"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="rounded-[24px] overflow-hidden relative">
+                <img
+                  src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fbc4797cef429416e9499f81d1f3048d8"
+                  alt="Matcha powder and capsules"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+
+            {/* Fifth Row - Full Width */}
             <div className="h-[888px] rounded-[24px] overflow-hidden relative">
               <img
-                src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fffeb5804f7194b42aa08533263b01ce4"
-                alt="NOON Product showcase"
+                src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2F35be7d1ab9db43f988096ebe14342643"
+                alt="Final product showcase"
                 className="w-full h-full object-cover"
               />
             </div>
