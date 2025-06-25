@@ -2,10 +2,9 @@ import Header from "@/components/Header";
 
 const Ethos = () => {
   return (
-    <div className="min-h-screen bg-[#F8F8F5]">
-    <Header />
-      <main className="max-w-[1905px] mx-auto px-4 md:px-8 pt-8">
-      
+    <div className="min-h-screen bg-[#F8F8F5] p-8">
+                <Header />
+      <div className="max-w-[1905px] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="rounded-[20px] overflow-hidden">
             <img
