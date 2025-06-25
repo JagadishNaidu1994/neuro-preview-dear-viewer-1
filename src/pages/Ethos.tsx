@@ -1,3 +1,5 @@
+import Header from "@/components/Header";
+
 const Ethos = () => {
   return (
     <div className="min-h-screen bg-[#F8F8F5] p-8">
