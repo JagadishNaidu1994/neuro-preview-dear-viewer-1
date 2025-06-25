@@ -222,8 +222,6 @@ const Header = () => {
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
       />
-
-     
     </>
   );
 };
