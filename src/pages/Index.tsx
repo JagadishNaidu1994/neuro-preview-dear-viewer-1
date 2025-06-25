@@ -1,8 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import AuthModal from "@/components/AuthModal";
 
 const Index = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  const handleAccountClick = () => {
+    setIsAuthModalOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-[#F8F8F5]">
@@ -109,7 +115,10 @@ const Index = () => {
           {/* Right Side - Account */}
           <div className="flex items-center">
             {/* Account Section */}
-            <button className="flex items-center gap-2 bg-[rgba(237,236,235,0.60)] rounded-xl px-3 py-2 hover:bg-[rgba(237,236,235,0.80)] transition-colors">
+            <button 
+              className="flex items-center gap-2 bg-[rgba(237,236,235,0.60)] rounded-xl px-3 py-2 hover:bg-[rgba(237,236,235,0.80)] transition-colors"
+              onClick={handleAccountClick}
+            >
               <svg
                 width="16"
                 height="16"
@@ -176,7 +185,13 @@ const Index = () => {
                 Herbal Index
               </a>
               <div className="pt-4 border-t border-gray-200">
-                <div className="flex items-center gap-2">
+                <button 
+                  className="flex items-center gap-2 w-full text-left"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleAccountClick();
+                  }}
+                >
                   <svg
                     width="16"
                     height="16"
@@ -203,12 +218,18 @@ const Index = () => {
                     />
                   </svg>
                   <span className="text-sm text-black">Account (0)</span>
-                </div>
+                </button>
               </div>
             </div>
           </div>
         )}
       </header>
+
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+      />
 
       {/* Main Content */}
       <main className="max-w-[1905px] mx-auto px-4 md:px-[15px] pt-[18px]">
