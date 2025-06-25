@@ -46,8 +46,9 @@ const ProductDetail = () => {
 
   return (
     <div className="bg-[#F8F8F5] min-h-screen">
-                <Header />
       <div className="max-w-[1300px] mx-auto px-4 md:px-8 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                        <Header />
+
         <div>
           <img
             src={product.image}
