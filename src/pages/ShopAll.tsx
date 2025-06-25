@@ -9,7 +9,7 @@ const ShopAll = () => {
         <div className="flex items-center justify-between px-8 py-4 max-w-[1920px] mx-auto">
           {/* Logo */}
           <Link to="/" className="text-2xl font-bold text-black">
-            NOON
+            DearNeuro
           </Link>
 
           {/* Navigation */}
