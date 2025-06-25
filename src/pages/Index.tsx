@@ -32,7 +32,7 @@ const Index = () => {
         </div>
 
         {/* Main Header */}
-        <div className="flex items-center px-4 md:px-8 max-w-[1905px] mx-auto">
+        <div className="flex items-center px-4 md:px-8 max-w-[1905px] mx-auto mt-1.5">
           {/* Left Side - Mobile Hamburger & Desktop Logo */}
           <div className="flex items-center">
             {/* Mobile Hamburger Menu */}
