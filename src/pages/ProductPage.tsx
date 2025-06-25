@@ -4,39 +4,39 @@ import Header from "../components/Header";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
-  "https://bptuqhvcsfgjohguykct.supabase.co", // replace with your Supabase URL
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwdHVxaHZjc2Znam9oZ3V5a2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4Nzc5NTcsImV4cCI6MjA2NjQ1Mzk1N30.YxxoYtnV8kmL55DNz3htu0AcGcf9V3B50HuRgDYyEZM" // replace with your Supabase anon/public key
+  "https://bptuqhvcsfgjohguykct.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwdHVxaHZjc2Znam9oZ3V5a2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4Nzc5NTcsImV4cCI6MjA2NjQ1Mzk1N30.YxxoYtnV8kmL55DNz3htu0AcGcf9V3B50HuRgDYyEZM" // replace with your actual Supabase anon key
 );
 
 const ProductPage = () => {
   const [searchParams] = useSearchParams();
-  const productId = searchParams.get("id");
+  const id = searchParams.get("id");
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProduct = async () => {
-      if (!productId) return;
+      if (!id) return;
       const { data, error } = await supabase
         .from("all_products")
         .select("*")
-        .eq("id", Number(productId))
+        .eq("id", id)
         .single();
 
       if (error) {
         console.error("Error fetching product:", error);
+      } else {
+        setProduct(data);
       }
-      setProduct(data);
       setLoading(false);
     };
-
     fetchProduct();
-  }, [productId]);
+  }, [id]);
 
   if (loading) {
     return (
-      <div className="bg-[#F8F8F5] min-h-screen text-center py-24 text-2xl text-gray-500">
-        Loading...
+      <div className="bg-[#F8F8F5] min-h-screen text-center py-24 text-xl text-gray-500">
+        Loading product...
       </div>
     );
   }
@@ -67,7 +67,9 @@ const ProductPage = () => {
           <p className="text-lg md:text-xl text-[#231F20]">
             {product.description}
           </p>
-          <div className="text-3xl text-[#161616] font-bold">${product.price}</div>
+          <div className="text-3xl text-[#161616] font-bold">
+            ${product.price}
+          </div>
           <button className="mt-6 px-6 py-3 bg-[#161616] text-white rounded-2xl text-sm hover:bg-[#333] transition-all">
             Add to Cart
           </button>
