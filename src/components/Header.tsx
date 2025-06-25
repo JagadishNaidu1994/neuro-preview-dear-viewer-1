@@ -59,7 +59,7 @@ const Header = () => {
             {/* Desktop Logo - Left Side */}
             <div className="hidden lg:block">
               <h1 className="text-3xl font-bold text-[#161616] tracking-normal leading-5">
-                <a href="/index">DearNeuro</a>
+                <a href="/">DearNeuro</a>
               </h1>
             </div>
           </div>
