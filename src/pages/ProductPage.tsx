@@ -70,6 +70,15 @@ const ProductPage = () => {
           <div className="text-3xl text-[#161616] font-bold">
             ${product.price}
           </div>
+          <div className="flex items-center gap-2">
+  <div className="flex">
+    {[...Array(product.rating)].map((_, i) => (
+      <span key={i} className="text-yellow-400 text-xl">★</span>
+    ))}
+  </div>
+  <span className="text-sm text-gray-600">({product.reviews} reviews)</span>
+</div>
+
           <button className="mt-6 px-6 py-3 bg-[#161616] text-white rounded-2xl text-sm hover:bg-[#333] transition-all">
             Add to Cart
           </button>
