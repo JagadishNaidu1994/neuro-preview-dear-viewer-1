@@ -2,7 +2,7 @@ import Header from "@/components/Header";
 
 const TheScience = () => {
   return (
-    <div className="min-h-screen bg-[#F8F8F5] p-8">
+    <div className="min-h-screen bg-[#F8F8F5]">
       <Header />
       <div className="max-w-[1905px] mx-auto">
         
