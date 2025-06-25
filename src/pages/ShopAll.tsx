@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import AuthModal from "@/components/AuthModal";
 import Header from "@/components/Header";
+import { Link } from "react-router-dom";
+
 
 
 const ShopAll = () => {
