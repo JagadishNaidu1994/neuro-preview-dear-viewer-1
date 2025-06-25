@@ -6,7 +6,7 @@ import Header from "@/components/Header";
 // Setup Supabase client
 const supabase = createClient(
   "https://bptuqhvcsfgjohguykct.supabase.co",
-  "YOUR_PUBLIC_ANON_KEY" // Replace with your real anon key
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwdHVxaHZjc2Znam9oZ3V5a2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4Nzc5NTcsImV4cCI6MjA2NjQ1Mzk1N30.YxxoYtnV8kmL55DNz3htu0AcGcf9V3B50HuRgDYyEZM" // Replace with your real anon key
 );
 
 const ProductPage = () => {
