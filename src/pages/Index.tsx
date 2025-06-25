@@ -103,7 +103,7 @@ const Index = () => {
                   Our Ethos
                 </a>
                 <a
-                  href="#"
+                  href="/herbal-index"
                   className="text-xs text-[#1E1E1E] hover:underline transition-all"
                 >
                   Herbal Index
@@ -178,7 +178,7 @@ const Index = () => {
                 Our Ethos
               </a>
               <a
-                href="#"
+                href="/herbal-index"
                 className="block text-sm text-[#1E1E1E] hover:text-[#514B3D] transition-colors py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -538,7 +538,7 @@ const Index = () => {
                   Our Ethos
                 </a>
                 <a
-                  href="#"
+                  href="/herbal-index"
                   className="block text-xs text-black hover:underline"
                 >
                   Herbal Index
