@@ -89,7 +89,7 @@ const Header = () => {
                   The Science
                 </a>
                 <a
-                  href="#"
+                  href="/ethos"
                   className="text-xs text-[#1E1E1E] hover:underline transition-all"
                 >
                   Our Ethos
