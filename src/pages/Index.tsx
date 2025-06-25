@@ -54,7 +54,7 @@ const Index = () => {
 
             {/* Desktop Logo - Left Side */}
             <div className="hidden lg:block">
-              <h1 className="text-3xl font-bold text-[#161616] tracking-normal">
+              <h1 className="text-3xl font-bold text-[#161616] tracking-normal leading-5">
                 DearNeuro
               </h1>
             </div>
