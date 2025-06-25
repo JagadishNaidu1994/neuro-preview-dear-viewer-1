@@ -76,6 +76,12 @@ const Index = () => {
                   href="#"
                   className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
                 >
+                  Home
+                </a>
+                <a
+                  href="#"
+                  className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
+                >
                   Shop All
                 </a>
                 <a
