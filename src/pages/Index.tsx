@@ -79,7 +79,7 @@ const Index = () => {
             <div className="hidden lg:flex bg-[#f8f8f5] rounded-xl mx-auto pt-6 pb-2.5 px-4 font-medium">
               <div className="flex items-center gap-14">
                 <a
-                  href="#"
+                  href="/shop-all"
                   className="text-xs text-[#1E1E1E] hover:underline transition-all"
                 >
                   Shop All
@@ -151,7 +151,7 @@ const Index = () => {
           <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
             <div className="px-4 py-4 space-y-4">
               <a
-                href="#"
+                href="/shop-all"
                 className="block text-sm text-[#1E1E1E] hover:text-[#514B3D] transition-colors py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -514,7 +514,7 @@ const Index = () => {
             <div className="lg:col-span-2 grid grid-cols-2 gap-8 md:gap-20">
               <div className="space-y-3">
                 <a
-                  href="#"
+                  href="/shop-all"
                   className="block text-xs text-black hover:underline"
                 >
                   Shop All
