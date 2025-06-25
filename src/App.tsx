@@ -9,6 +9,8 @@ import ShopAll from "./pages/ShopAll";
 import TheScience from "./pages/TheScience";
 import Ethos from "./pages/Ethos";
 import HerbalIndex from "./pages/HerbalIndex";
+import ProductPage from "@/pages/ProductPage"; // <-- new page
+
 
 const queryClient = new QueryClient();
 
