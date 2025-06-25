@@ -1,264 +1,389 @@
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 const ShopAll = () => {
-  return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-100">
-        <div className="flex items-center justify-between px-8 py-4 max-w-[1920px] mx-auto">
-          {/* Logo */}
-          <Link to="/" className="text-2xl font-bold text-black">
-            DearNeuro
-          </Link>
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-          {/* Navigation */}
-          <div className="flex items-center space-x-8">
-            <Link
-              to="/shop-all"
-              className="text-sm text-black hover:text-gray-600 transition-colors"
+  const products = [
+    {
+      id: 1,
+      name: "Focus Mushroom Gummy Delights",
+      price: "$52",
+      rating: 5,
+      reviews: 8,
+      image:
+        "https://cdn.builder.io/api/v1/image/assets/TEMP/8040d28d4a7ffcb143c97e6d28e82cbe1ee0a7da",
+      description: "For Enhanced Focus & Mental Clarity",
+    },
+    {
+      id: 2,
+      name: "Calm Mushroom Gummy Delights",
+      price: "$32",
+      rating: 5,
+      reviews: 12,
+      image:
+        "https://cdn.builder.io/api/v1/image/assets/TEMP/8040d28d4a7ffcb143c97e6d28e82cbe1ee0a7da",
+      description: "For Happy Calm & Less Stress",
+    },
+    {
+      id: 3,
+      name: "Sleep Mushroom Gummy Delights",
+      price: "$48",
+      rating: 5,
+      reviews: 15,
+      image:
+        "https://cdn.builder.io/api/v1/image/assets/TEMP/8040d28d4a7ffcb143c97e6d28e82cbe1ee0a7da",
+      description: "For Deep Rest & Recovery",
+    },
+    {
+      id: 4,
+      name: "Matcha Chocolate Delights",
+      price: "$23",
+      rating: 5,
+      reviews: 6,
+      image:
+        "https://cdn.builder.io/api/v1/image/assets/TEMP/d0995167772a5034c3deecba822595a5b4ac0b48",
+      description: "For Clean Energy, Calm Focus & Good Mood",
+    },
+    {
+      id: 5,
+      name: "Energy Mushroom Blend",
+      price: "$45",
+      rating: 5,
+      reviews: 9,
+      image:
+        "https://cdn.builder.io/api/v1/image/assets/TEMP/8040d28d4a7ffcb143c97e6d28e82cbe1ee0a7da",
+      description: "For Natural Energy & Vitality",
+    },
+    {
+      id: 6,
+      name: "Immunity Mushroom Complex",
+      price: "$55",
+      rating: 5,
+      reviews: 11,
+      image:
+        "https://cdn.builder.io/api/v1/image/assets/TEMP/8040d28d4a7ffcb143c97e6d28e82cbe1ee0a7da",
+      description: "For Immune System Support",
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#F8F8F5]">
+      {/* Header */}
+      <header className="relative z-50">
+        {/* Subscription Banner */}
+        <div className="fixed bottom-4 right-4 z-50">
+          <button
+            className="bg-[#514B3D] rounded-2xl px-3 py-3 md:px-4 md:py-4 shadow-lg hover:bg-[#5a5147] transition-colors cursor-pointer"
+            onClick={() => console.log("Join the DearNeuro CLUB clicked")}
+          >
+            <div className="flex items-center gap-2 md:gap-3 text-white">
+              <div className="text-center">
+                <span className="text-[10px] md:text-xs font-normal tracking-tight uppercase">
+                  Join DearNeuro · SAVE 15%
+                </span>
+              </div>
+              <div className="w-2 h-2 md:w-3 md:h-3">
+                <img
+                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/51f9ff1ba94976d6bae764c50356071e5febf861"
+                  alt="Snowflake"
+                  className="w-full h-full"
+                />
+              </div>
+            </div>
+          </button>
+        </div>
+
+        {/* Main Header */}
+        <div className="flex items-center px-4 py-4 md:px-8 md:py-6 max-w-[1905px] mx-auto">
+          {/* Left Side - Mobile Hamburger & Desktop Logo */}
+          <div className="flex items-center">
+            {/* Mobile Hamburger Menu */}
+            <button
+              className="lg:hidden flex flex-col items-center justify-center w-8 h-8 space-y-1 bg-[rgba(237,236,235,0.85)] rounded-lg p-1"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle menu"
             >
-              Shop All
-            </Link>
-            <Link
-              to="/the-science"
-              className="text-sm text-black hover:text-gray-600 transition-colors"
-            >
-              The Science
-            </Link>
-            <Link
-              to="/ethos"
-              className="text-sm text-black hover:text-gray-600 transition-colors"
-            >
-              Our Ethos
-            </Link>
-            <Link
-              to="/herbal-index"
-              className="text-sm text-black hover:text-gray-600 transition-colors"
-            >
-              Herbal Index
-            </Link>
+              <div
+                className={`w-5 h-0.5 bg-[#161616] transition-all duration-300 ${isMenuOpen ? "rotate-45 translate-y-1.5" : ""}`}
+              ></div>
+              <div
+                className={`w-5 h-0.5 bg-[#161616] transition-all duration-300 ${isMenuOpen ? "opacity-0" : ""}`}
+              ></div>
+              <div
+                className={`w-5 h-0.5 bg-[#161616] transition-all duration-300 ${isMenuOpen ? "-rotate-45 -translate-y-1.5" : ""}`}
+              ></div>
+            </button>
+
+            {/* Desktop Logo - Left Side */}
+            <div className="hidden lg:block">
+              <Link to="/">
+                <h1 className="text-2xl font-bold text-[#161616] tracking-tight">
+                  DearNeuro
+                </h1>
+              </Link>
+            </div>
           </div>
 
-          {/* Account Section */}
-          <div className="flex items-center space-x-2">
-            <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
-              <span className="text-xs">👤</span>
+          {/* Center - Mobile Logo & Desktop Navigation */}
+          <div className="flex-1 flex justify-center items-center">
+            {/* Mobile Logo - Centered */}
+            <div className="lg:hidden">
+              <Link to="/">
+                <h1 className="text-xl font-bold text-[#161616] tracking-tight">
+                  DearNeuro
+                </h1>
+              </Link>
             </div>
-            <span className="text-sm text-black">Account</span>
-            <span className="text-sm text-black">(0)</span>
+
+            {/* Desktop Navigation - Centered */}
+            <div className="hidden lg:flex bg-[rgba(237,236,235,0.85)] rounded-xl px-4 py-2">
+              <div className="flex items-center gap-4">
+                <Link
+                  to="/shop-all"
+                  className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
+                >
+                  Shop All
+                </Link>
+                <Link
+                  to="/the-science"
+                  className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
+                >
+                  The Science
+                </Link>
+                <Link
+                  to="/ethos"
+                  className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
+                >
+                  Our Ethos
+                </Link>
+                <Link
+                  to="/herbal-index"
+                  className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
+                >
+                  Herbal Index
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side - Account */}
+          <div className="flex items-center">
+            {/* Account Section */}
+            <button className="flex items-center gap-2 bg-[rgba(237,236,235,0.60)] rounded-xl px-3 py-2 hover:bg-[rgba(237,236,235,0.80)] transition-colors">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4"
+              >
+                <path
+                  d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <circle
+                  cx="12"
+                  cy="7"
+                  r="4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span className="hidden md:inline text-xs text-black">
+                Account
+              </span>
+              <span className="hidden md:inline text-xs text-black">(0)</span>
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
+            <div className="px-4 py-4 space-y-4">
+              <Link
+                to="/shop-all"
+                className="block text-sm text-[#1E1E1E] hover:text-[#514B3D] transition-colors py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Shop All
+              </Link>
+              <Link
+                to="/the-science"
+                className="block text-sm text-[#1E1E1E] hover:text-[#514B3D] transition-colors py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                The Science
+              </Link>
+              <Link
+                to="/ethos"
+                className="block text-sm text-[#1E1E1E] hover:text-[#514B3D] transition-colors py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Our Ethos
+              </Link>
+              <Link
+                to="/herbal-index"
+                className="block text-sm text-[#1E1E1E] hover:text-[#514B3D] transition-colors py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Herbal Index
+              </Link>
+              <div className="pt-4 border-t border-gray-200">
+                <div className="flex items-center gap-2">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-4 h-4"
+                  >
+                    <path
+                      d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle
+                      cx="12"
+                      cy="7"
+                      r="4"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className="text-sm text-black">Account (0)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
-      <main className="px-7 py-[110px] bg-white">
-        <div className="max-w-full mx-auto">
-          {/* Product Grid - Matching Figma Layout */}
-          <div className="space-y-4">
-            {/* First Row - 4 Products Grid */}
-            <div className="grid grid-cols-4 gap-4 h-[782px]">
-              {/* FOCUS Product */}
-              <div className="bg-[#F5F5F5] rounded-[24px] overflow-hidden relative flex flex-col">
-                <div className="flex-1 flex items-center justify-center p-6">
-                  <img
-                    src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fe61d0a85b1064b0991d96b698c24ae3d"
-                    alt="FOCUS - Daily Cognitive Support Capsules"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <div className="p-4 bg-white">
-                  <h3 className="text-sm font-medium text-[#161616] mb-1">
-                    Focus Mushroom Gummy Delights
-                  </h3>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <span key={i} className="text-yellow-400 text-xs">
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                    <span className="text-xs text-gray-500">(8)</span>
-                  </div>
-                  <div className="text-sm font-medium text-[#161616]">$52</div>
-                </div>
-              </div>
+      <main className="max-w-[1905px] mx-auto px-4 md:px-8 pt-8">
+        {/* Page Title */}
+        <div className="text-center py-12 md:py-16">
+          <h1 className="text-[#1E1E1E] text-4xl md:text-5xl lg:text-6xl font-normal leading-tight tracking-[-2px] md:tracking-[-3px]">
+            Shop All Products
+          </h1>
+          <p className="text-[#231F20] text-lg md:text-xl font-normal mt-6 max-w-[600px] mx-auto">
+            Discover our complete collection of premium mushroom-based wellness
+            products
+          </p>
+        </div>
 
-              {/* FLUSH Product */}
-              <div className="bg-[#F5F5F5] rounded-[24px] overflow-hidden relative flex flex-col">
-                <div className="flex-1 flex items-center justify-center p-6">
-                  <img
-                    src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fe4a7d6da6ecd4578a20efc399984fe53"
-                    alt="FLUSH - Daily Gut Health Support Capsules"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <div className="p-4 bg-white">
-                  <h3 className="text-sm font-medium text-[#161616] mb-1">
-                    Flush Mushroom Gummy Delights
-                  </h3>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <span key={i} className="text-yellow-400 text-xs">
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                    <span className="text-xs text-gray-500">(4)</span>
-                  </div>
-                  <div className="text-sm font-medium text-[#161616]">$52</div>
-                </div>
+        {/* Product Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 pb-16">
+          {products.map((product) => (
+            <div
+              key={product.id}
+              className="bg-[#EEEEEA] rounded-[20px] overflow-hidden hover:shadow-lg transition-all duration-300 group"
+            >
+              <div className="aspect-square p-6 flex items-center justify-center bg-[#EEEEEA]">
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
               </div>
-
-              {/* CALM Product */}
-              <div className="bg-[#F5F5F5] rounded-[24px] overflow-hidden relative flex flex-col">
-                <div className="flex-1 flex items-center justify-center p-6">
-                  <img
-                    src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fc5e3e9341b774f6e880638f8920c75dd"
-                    alt="CALM - Daily Mood Support Capsules"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <div className="p-4 bg-white">
-                  <h3 className="text-sm font-medium text-[#161616] mb-1">
-                    Calm Mushroom Gummy Delights
-                  </h3>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <span key={i} className="text-yellow-400 text-xs">
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                    <span className="text-xs text-gray-500">(3)</span>
+              <div className="p-6 bg-white">
+                <h3 className="text-[#161616] text-lg font-medium mb-2">
+                  {product.name}
+                </h3>
+                <p className="text-[#B2AFAB] text-sm mb-4">
+                  {product.description}
+                </p>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="flex">
+                    {[...Array(product.rating)].map((_, i) => (
+                      <span key={i} className="text-yellow-400 text-sm">
+                        ★
+                      </span>
+                    ))}
                   </div>
-                  <div className="text-sm font-medium text-[#161616]">$52</div>
+                  <span className="text-sm text-gray-500">
+                    ({product.reviews})
+                  </span>
                 </div>
-              </div>
-
-              {/* SLEEP Product */}
-              <div className="bg-[#F5F5F5] rounded-[24px] overflow-hidden relative flex flex-col">
-                <div className="flex-1 flex items-center justify-center p-6">
-                  <img
-                    src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2F27bb006dba66428da19d49f300c856bf"
-                    alt="SLEEP - Daily Rest Support Capsules"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <div className="p-4 bg-white">
-                  <h3 className="text-sm font-medium text-[#161616] mb-1">
-                    Sleep Mushroom Gummy Delights
-                  </h3>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <span key={i} className="text-yellow-400 text-xs">
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                    <span className="text-xs text-gray-500">(9)</span>
-                  </div>
-                  <div className="text-sm font-medium text-[#161616]">$52</div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#161616] text-xl font-semibold">
+                    {product.price}
+                  </span>
+                  <Button
+                    variant="outline"
+                    className="border-2 border-[#161616] text-[#161616] bg-transparent hover:bg-[#161616] hover:text-white rounded-2xl px-4 py-2 text-sm"
+                  >
+                    Add to Cart
+                  </Button>
                 </div>
               </div>
             </div>
+          ))}
+        </div>
 
-            {/* Second Row - 2 Column Layout */}
-            <div className="grid grid-cols-2 gap-4 h-[889px]">
-              <div className="rounded-[24px] overflow-hidden relative">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fedbf7eae95b04ed8979240b3095670a2"
-                  alt="Clear supplements"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="rounded-[24px] overflow-hidden relative">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2F35be7d1ab9db43f988096ebe14342643"
-                  alt="White gel supplements"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
+        {/* Featured Images Section */}
+        <div className="space-y-6 pb-16">
+          <h2 className="text-[#1E1E1E] text-3xl md:text-4xl font-normal text-center mb-12">
+            Experience DearNeuro
+          </h2>
 
-            {/* Third Row - 2 Column Layout with different heights */}
-            <div className="grid grid-cols-2 gap-4 h-[807px]">
-              <div className="rounded-[24px] overflow-hidden relative">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fffeb5804f7194b42aa08533263b01ce4"
-                  alt="NOON couple lifestyle"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="rounded-[24px] overflow-hidden relative">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2F99a98a2523c1490ab57e1b995ef5ed63"
-                  alt="Chocolate lollipop detail"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-
-            {/* Fourth Row - 2 Column Layout */}
-            <div className="grid grid-cols-2 gap-4 h-[882px]">
-              <div className="rounded-[24px] overflow-hidden relative">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2F6d8b82897a344e628efe4604f58c9a16"
-                  alt="Artisanal chocolate grid"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="rounded-[24px] overflow-hidden relative">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fbc4797cef429416e9499f81d1f3048d8"
-                  alt="Matcha powder and capsules"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-
-            {/* Fifth Row - Full Width */}
-            <div className="h-[888px] rounded-[24px] overflow-hidden relative">
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[400px] md:h-[500px]">
+            <div className="rounded-[20px] overflow-hidden">
               <img
-                src="https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2F35be7d1ab9db43f988096ebe14342643"
-                alt="Final product showcase"
+                src="https://cdn.builder.io/api/v1/image/assets/TEMP/acc73dfe007e772951581d91e62c6a9de4c7bbb4"
+                alt="DearNeuro lifestyle"
                 className="w-full h-full object-cover"
               />
             </div>
+            <div className="rounded-[20px] overflow-hidden">
+              <img
+                src="https://cdn.builder.io/api/v1/image/assets/TEMP/51ae52ca24602470e69283533a66972c73f4a355"
+                alt="Product in hand"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+
+          {/* Single Large Image */}
+          <div className="rounded-[20px] overflow-hidden h-[300px] md:h-[400px]">
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets/TEMP/5bf61355202313d21636053ee5780caa87b95552"
+              alt="DearNeuro experience"
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-white pt-[26px] pb-8 px-[76px]">
-        <div className="max-w-full mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-16 mb-16">
+      <footer className="bg-[#F8F8F5] pt-8 md:pt-16 pb-8">
+        <div className="max-w-[1905px] mx-auto px-4 md:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-16 mb-8 md:mb-16">
             {/* Logo Section */}
             <div className="lg:col-span-1">
-              <div className="mb-6 relative">
-                <div className="w-[330px] h-[277px] relative">
-                  <img
-                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/3d43223fd607c0f870e1388e1e92759ccce86cbc"
-                    alt="NOON Logo Mark"
-                    className="w-[330px] h-[359px] absolute top-0 left-0"
-                  />
-                </div>
-                <div className="mt-[277px]">
-                  <img
-                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/01be464a5b2cfcd30d76742d63777178622703e0"
-                    alt="NOON Logo Text"
-                    className="w-[659px] h-[166px]"
-                  />
-                </div>
+              <div className="mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold text-[#161616] tracking-tight">
+                  DearNeuro
+                </h2>
               </div>
             </div>
 
             {/* Navigation Links */}
-            <div className="lg:col-span-2 grid grid-cols-2 gap-20">
+            <div className="lg:col-span-2 grid grid-cols-2 gap-8 md:gap-20">
               <div className="space-y-3">
                 <Link
                   to="/shop-all"
@@ -284,7 +409,7 @@ const ShopAll = () => {
                 >
                   Herbal Index
                 </Link>
-                <div className="pt-10">
+                <div className="pt-6 md:pt-10">
                   <a
                     href="#"
                     className="block text-[9px] text-black hover:underline"
@@ -318,7 +443,7 @@ const ShopAll = () => {
                 >
                   Contact Us
                 </a>
-                <div className="pt-10">
+                <div className="pt-6 md:pt-10">
                   <a
                     href="#"
                     className="block text-[9px] text-black hover:underline"
@@ -330,7 +455,7 @@ const ShopAll = () => {
             </div>
 
             {/* Social & Legal */}
-            <div className="lg:col-span-1 space-y-8">
+            <div className="lg:col-span-1 space-y-6 md:space-y-8">
               <div className="flex gap-3">
                 <a href="#" className="w-[18px] h-[18px]">
                   <svg
