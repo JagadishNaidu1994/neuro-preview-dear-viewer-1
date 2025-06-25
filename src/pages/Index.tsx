@@ -70,8 +70,8 @@ const Index = () => {
             </div>
 
             {/* Desktop Navigation - Centered */}
-            <div className="hidden lg:flex bg-[rgba(237,236,235,0.85)] rounded-xl px-4 py-2">
-              <div className="flex items-center gap-4">
+            <div className="hidden lg:flex bg-[#f8f8f5] rounded-xl mx-auto py-6 px-4 font-extrabold">
+              <div className="flex items-center gap-14">
                 <a
                   href="#"
                   className="text-xs text-[#1E1E1E] hover:underline transition-all"
