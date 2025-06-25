@@ -21,7 +21,7 @@ const ProductPage = () => {
       supabase
         .from("all_products")
         .select("*")
-        .eq("id", productId)
+        .eq("id", Number(productId))
         .single()
         .then(({ data, error }) => {
           if (error) {
