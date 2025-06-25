@@ -74,31 +74,31 @@ const Index = () => {
               <div className="flex items-center gap-4">
                 <a
                   href="#"
-                  className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
+                  className="text-xs text-[#1E1E1E] hover:underline transition-all"
                 >
                   Home
                 </a>
                 <a
                   href="#"
-                  className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
+                  className="text-xs text-[#1E1E1E] hover:underline transition-all"
                 >
                   Shop All
                 </a>
                 <a
                   href="#"
-                  className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
+                  className="text-xs text-[#1E1E1E] hover:underline transition-all"
                 >
                   The Science
                 </a>
                 <a
                   href="#"
-                  className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
+                  className="text-xs text-[#1E1E1E] hover:underline transition-all"
                 >
                   Our Ethos
                 </a>
                 <a
                   href="#"
-                  className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
+                  className="text-xs text-[#1E1E1E] hover:underline transition-all"
                 >
                   Herbal Index
                 </a>
