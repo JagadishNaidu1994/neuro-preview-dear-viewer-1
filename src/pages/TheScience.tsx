@@ -5,14 +5,7 @@ const TheScience = () => {
     <div className="min-h-screen bg-[#F8F8F5] p-8">
       <Header />
       <div className="max-w-[1905px] mx-auto">
-        <h1 className="text-6xl font-normal text-[#1E1E1E] mb-8">
-          The Science
-        </h1>
-        <p className="text-xl text-[#231F20] mb-16">
-          A new era of wellbeing made by a team of neuroscientists and
-          functional health doctors harnessing plant technology into powerful,
-          delightful rituals.
-        </p>
+        
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-4xl font-normal text-[#1E1E1E] mb-6">
