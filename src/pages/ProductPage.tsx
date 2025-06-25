@@ -1,98 +1,73 @@
 import { useParams } from "react-router-dom";
-import Header from "@/components/Header";
 
-const productData = {
- {
-    id: 1,
-    slug: "focusmushroomgummies",
-    name: "Focus Mushroom Gummy Delights",
+const products = {
+  focusmushroomgummies: {
+    title: "Focus Mushroom Gummy Delights",
+    image: "https://cdn.builder.io/api/v1/image/assets/TEMP/focus.png",
+    description:
+      "Enhance your cognitive clarity and maintain focus all day with our natural mushroom blend, featuring Lion's Mane and L-Theanine.",
     price: "$52",
-    rating: 5,
-    reviews: 8,
-    image: "https://cdn.builder.io/api/v1/image/assets/TEMP/8040d28d4a7ffcb143c97e6d28e82cbe1ee0a7da",
-    description: "For Enhanced Focus & Mental Clarity",
   },
-  {
-    id: 2,
-    slug: "calmmushroomgummies",
-    name: "Calm Mushroom Gummy Delights",
+  calmmushroomgummies: {
+    title: "Calm Mushroom Gummy Delights",
+    image: "https://cdn.builder.io/api/v1/image/assets/TEMP/calm.png",
+    description:
+      "De-stress and find calm in chaos with our relaxing blend of Reishi, Ashwagandha, and Magnesium.",
     price: "$32",
-    rating: 5,
-    reviews: 12,
-    image: "https://cdn.builder.io/api/v1/image/assets/TEMP/8040d28d4a7ffcb143c97e6d28e82cbe1ee0a7da",
-    description: "For Happy Calm & Less Stress",
   },
-  {
-    id: 3,
-    slug: "sleepmushroomgummies",
-    name: "Sleep Mushroom Gummy Delights",
+  sleepmushroomgummies: {
+    title: "Sleep Mushroom Gummy Delights",
+    image: "https://cdn.builder.io/api/v1/image/assets/TEMP/sleep.png",
+    description:
+      "Fall asleep faster and wake up refreshed with our sleep support formula of Melatonin, Chamomile, and Jatamansi.",
     price: "$48",
-    rating: 5,
-    reviews: 15,
-    image: "https://cdn.builder.io/api/v1/image/assets/TEMP/8040d28d4a7ffcb143c97e6d28e82cbe1ee0a7da",
-    description: "For Deep Rest & Recovery",
   },
-  {
-    id: 4,
-    slug: "matchachocolatedelights",
-    name: "Matcha Chocolate Delights",
+  matchachocolatedelights: {
+    title: "Matcha Chocolate Delights",
+    image: "https://cdn.builder.io/api/v1/image/assets/TEMP/matcha.png",
+    description:
+      "Enjoy clean energy and a good mood with ceremonial-grade matcha, L-Theanine, and adaptogenic cacao.",
     price: "$23",
-    rating: 5,
-    reviews: 6,
-    image: "https://cdn.builder.io/api/v1/image/assets/TEMP/d0995167772a5034c3deecba822595a5b4ac0b48",
-    description: "For Clean Energy, Calm Focus & Good Mood",
-  },
-  {
-    id: 5,
-    slug: "energymushroomblend",
-    name: "Energy Mushroom Blend",
-    price: "$45",
-    rating: 5,
-    reviews: 9,
-    image: "https://cdn.builder.io/api/v1/image/assets/TEMP/8040d28d4a7ffcb143c97e6d28e82cbe1ee0a7da",
-    description: "For Natural Energy & Vitality",
-  },
-  {
-    id: 6,
-    slug: "immunitymushroomcomplex",
-    name: "Immunity Mushroom Complex",
-    price: "$55",
-    rating: 5,
-    reviews: 11,
-    image: "https://cdn.builder.io/api/v1/image/assets/TEMP/8040d28d4a7ffcb143c97e6d28e82cbe1ee0a7da",
-    description: "For Immune System Support",
   },
 };
 
-const ProductPage = () => {
-  const { productId } = useParams();
-  const product = productData[productId as keyof typeof productData];
+const ProductDetail = () => {
+  const { slug } = useParams();
+  const product = products[slug as keyof typeof products];
 
-  if (!product) return <div>Product not found.</div>;
+  if (!product) {
+    return (
+      <div className="bg-[#F8F8F5] min-h-screen text-center py-24 text-2xl text-gray-500">
+        Product not found.
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#F8F8F5]">
-      <Header />
-
-      <div className="max-w-[1905px] mx-auto p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+    <div className="bg-[#F8F8F5] min-h-screen">
+      <div className="max-w-[1300px] mx-auto px-4 md:px-8 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div>
           <img
             src={product.image}
-            alt={product.name}
-            className="rounded-[20px] w-full h-auto object-cover"
+            alt={product.title}
+            className="w-full rounded-2xl shadow-lg object-cover"
           />
-          <div>
-            <h1 className="text-4xl font-bold text-[#1E1E1E] mb-4">{product.name}</h1>
-            <p className="text-[#231F20] text-lg mb-4">{product.description}</p>
-            <span className="text-xl font-semibold text-[#161616] mb-6 block">{product.price}</span>
-            <button className="bg-[#161616] text-white rounded-xl px-6 py-3 hover:bg-[#333]">
-              Add to Cart
-            </button>
-          </div>
+        </div>
+        <div className="space-y-6">
+          <h1 className="text-4xl md:text-5xl text-[#1E1E1E] font-semibold">
+            {product.title}
+          </h1>
+          <p className="text-lg md:text-xl text-[#231F20]">
+            {product.description}
+          </p>
+          <div className="text-3xl text-[#161616] font-bold">{product.price}</div>
+          <button className="mt-6 px-6 py-3 bg-[#161616] text-white rounded-2xl text-sm hover:bg-[#333] transition-all">
+            Add to Cart
+          </button>
         </div>
       </div>
     </div>
   );
 };
 
-export default ProductPage;
+export default ProductDetail;
