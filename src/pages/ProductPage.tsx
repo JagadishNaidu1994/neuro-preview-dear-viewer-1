@@ -1,29 +1,29 @@
-import { useParams } from "react-router-dom";
-import Header from "@/components/Header";
+import { useSearchParams } from "react-router-dom";
+import Header from "../components/Header";
 
 const products = {
-  focusmushroomgummies: {
+  1: {
     title: "Focus Mushroom Gummy Delights",
     image: "https://cdn.builder.io/api/v1/image/assets/TEMP/focus.png",
     description:
       "Enhance your cognitive clarity and maintain focus all day with our natural mushroom blend, featuring Lion's Mane and L-Theanine.",
     price: "$52",
   },
-  calmmushroomgummies: {
+  2: {
     title: "Calm Mushroom Gummy Delights",
     image: "https://cdn.builder.io/api/v1/image/assets/TEMP/calm.png",
     description:
       "De-stress and find calm in chaos with our relaxing blend of Reishi, Ashwagandha, and Magnesium.",
     price: "$32",
   },
-  sleepmushroomgummies: {
+  3: {
     title: "Sleep Mushroom Gummy Delights",
     image: "https://cdn.builder.io/api/v1/image/assets/TEMP/sleep.png",
     description:
       "Fall asleep faster and wake up refreshed with our sleep support formula of Melatonin, Chamomile, and Jatamansi.",
     price: "$48",
   },
-  matchachocolatedelights: {
+  4: {
     title: "Matcha Chocolate Delights",
     image: "https://cdn.builder.io/api/v1/image/assets/TEMP/matcha.png",
     description:
@@ -33,8 +33,9 @@ const products = {
 };
 
 const ProductDetail = () => {
-  const { slug } = useParams();
-  const product = products[slug as keyof typeof products];
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get("id") as keyof typeof products;
+  const product = products[id];
 
   if (!product) {
     return (
@@ -46,9 +47,8 @@ const ProductDetail = () => {
 
   return (
     <div className="bg-[#F8F8F5] min-h-screen">
+      <Header />
       <div className="max-w-[1300px] mx-auto px-4 md:px-8 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                        <Header />
-
         <div>
           <img
             src={product.image}
