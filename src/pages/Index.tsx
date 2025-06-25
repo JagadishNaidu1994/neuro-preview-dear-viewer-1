@@ -117,7 +117,7 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-[1905px] mx-auto px-8 pt-[70px]">
+      <main className="max-w-[1905px] mx-auto px-[15px] pt-[18px]">
         <div className="space-y-[90px]">
           {/* Hero Section */}
           <section className="h-[783px] relative">
