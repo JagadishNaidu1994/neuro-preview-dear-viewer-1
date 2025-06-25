@@ -218,9 +218,10 @@ const Index = () => {
             <div
               className="w-full h-full rounded-[20px] md:rounded-[30px] relative overflow-hidden"
               style={{
-                backgroundImage: `url('https://cdn.builder.io/api/v1/image/assets/TEMP/3a491d54b7a9463c5b5e6a73fa396ab8f6d1a91e')`,
+                backgroundImage: `url('https://cdn.builder.io/api/v1/image/assets%2F51479f966515486a9935c0b0ada1db3f%2Fa01fc8006bac4571b568086c6ecf7141')`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
               }}
             >
               <div className="absolute bottom-6 left-6 md:bottom-10 md:left-10 w-[calc(100%-48px)] md:w-[470px]">
