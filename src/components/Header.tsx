@@ -69,7 +69,7 @@ const Header = () => {
             {/* Mobile Logo - Centered */}
             <div className="lg:hidden">
               <h1 className="text-xl font-bold text-[#161616] tracking-tight">
-                DearNeuro
+                <a href="/">DearNeuro</a>
               </h1>
             </div>
 
