@@ -1,59 +1,6 @@
 const Ethos = () => {
   return (
     <div className="min-h-screen bg-[#F8F8F5] p-8">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-100">
-        <div className="flex items-center justify-between px-8 py-4 max-w-[1920px] mx-auto">
-          {/* Logo */}
-          <Link to="/" className="text-2xl font-bold text-black">
-            NOON
-          </Link>
-
-          {/* Navigation */}
-          <div className="flex items-center space-x-8">
-            <Link
-              to="/"
-              className="text-sm text-black hover:text-gray-600 transition-colors"
-            >
-              Home
-            </Link>
-            <Link
-              to="/shop-all"
-              className="text-sm text-black hover:text-gray-600 transition-colors"
-            >
-              Shop All
-            </Link>
-            <Link
-              to="/the-science"
-              className="text-sm text-black hover:text-gray-600 transition-colors"
-            >
-              The Science
-            </Link>
-            <Link
-              to="/ethos"
-              className="text-sm text-black hover:text-gray-600 transition-colors"
-            >
-              Our Ethos
-            </Link>
-            <Link
-              to="/herbal-index"
-              className="text-sm text-black hover:text-gray-600 transition-colors"
-            >
-              Herbal Index
-            </Link>
-          </div>
-
-          {/* Account Section */}
-          <div className="flex items-center space-x-2">
-            <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
-              <span className="text-xs">👤</span>
-            </div>
-            <span className="text-sm text-black">Account</span>
-            <span className="text-sm text-black">(0)</span>
-          </div>
-        </div>
-      </header>
-
       <div className="max-w-[1905px] mx-auto">
         <h1 className="text-6xl font-normal text-[#1E1E1E] mb-8">Our Ethos</h1>
         <p className="text-xl text-[#231F20] mb-16">
