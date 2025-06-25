@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import Header from "@/components/Header";
 
 const products = {
   focusmushroomgummies: {
