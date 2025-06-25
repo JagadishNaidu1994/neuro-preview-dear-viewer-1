@@ -163,7 +163,7 @@ const Header = () => {
                 The Science
               </a>
               <a
-                href="#"
+                href="/ethos"
                 className="block text-sm text-[#1E1E1E] hover:text-[#514B3D] transition-colors py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
