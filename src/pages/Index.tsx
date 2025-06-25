@@ -6,7 +6,7 @@ const Index = () => {
       {/* Header */}
       <header className="relative z-50">
         {/* Subscription Banner */}
-        <div className="fixed top-0 right-0 z-50 p-4">
+        <div className="fixed top-0 right-0 z-50 px-4 pb-4 pt-5">
           <div className="bg-[#514B3D] rounded-2xl px-4 py-4 shadow-lg">
             <div className="flex items-center gap-3 text-white">
               <div className="text-center">
