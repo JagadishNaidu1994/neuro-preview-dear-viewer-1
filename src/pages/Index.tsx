@@ -1,9 +1,5 @@
 import { Button } from "@/components/ui/button";
-<<<<<<< HEAD
 import { useState } from "react";
-=======
-import { Link } from "react-router-dom";
->>>>>>> 22ee65e4dcd8f8dd011fa5307b50debb1032554c
 
 const Index = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,7 +7,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-[#F8F8F5]">
       {/* Header */}
-<<<<<<< HEAD
       <header className="relative z-50">
         {/* Subscription Banner */}
         <div className="fixed bottom-4 right-4 z-50">
@@ -109,50 +104,6 @@ const Index = () => {
               </span>
               <span className="hidden md:inline text-xs text-black">(0)</span>
             </button>
-=======
-      <header className="bg-white border-b border-gray-100">
-        <div className="flex items-center justify-between px-8 py-4 max-w-[1920px] mx-auto">
-          {/* Logo */}
-          <Link to="/" className="text-2xl font-bold text-black">
-            DearNeuro
-          </Link>
-
-          {/* Navigation */}
-          <div className="flex items-center space-x-8">
-            <Link
-              to="/shop-all"
-              className="text-sm text-black hover:text-gray-600 transition-colors"
-            >
-              Shop All
-            </Link>
-            <Link
-              to="/the-science"
-              className="text-sm text-black hover:text-gray-600 transition-colors"
-            >
-              The Science
-            </Link>
-            <Link
-              to="/ethos"
-              className="text-sm text-black hover:text-gray-600 transition-colors"
-            >
-              Our Ethos
-            </Link>
-            <Link
-              to="/herbal-index"
-              className="text-sm text-black hover:text-gray-600 transition-colors"
-            >
-              Herbal Index
-            </Link>
-          </div>
-
-          {/* Account Section */}
-          <div className="flex items-center space-x-2">
-            <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
-              <span className="text-xs">👤</span>
-            </div>
-            <span className="text-sm text-black">Account</span>
-            <span className="text-sm text-black">(0)</span>
->>>>>>> 22ee65e4dcd8f8dd011fa5307b50debb1032554c
           </div>
         </div>
 
@@ -207,15 +158,9 @@ const Index = () => {
       <main className="max-w-[1905px] mx-auto px-4 md:px-[15px] pt-[18px]">
         <div className="space-y-[60px] md:space-y-[90px]">
           {/* Hero Section */}
-<<<<<<< HEAD
           <section className="h-[400px] md:h-[600px] lg:h-[783px] relative">
             <div
               className="w-full h-full rounded-[20px] md:rounded-[30px] relative overflow-hidden"
-=======
-          <section className="h-[783px] relative flex flex-col">
-            <div
-              className="w-auto h-full rounded-[30px] relative overflow-hidden self-stretch"
->>>>>>> 22ee65e4dcd8f8dd011fa5307b50debb1032554c
               style={{
                 backgroundImage: `url('https://cdn.builder.io/api/v1/image/assets/TEMP/3a491d54b7a9463c5b5e6a73fa396ab8f6d1a91e')`,
                 backgroundSize: "cover",
@@ -486,50 +431,41 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-16 mb-8 md:mb-16">
             {/* Logo Section */}
             <div className="lg:col-span-1">
-<<<<<<< HEAD
               <div className="mb-6">
                 <h2 className="text-2xl md:text-3xl font-bold text-[#161616] tracking-tight">
                   DearNeuro
                 </h2>
               </div>
-=======
-              <div className="mb-6"></div>
->>>>>>> 22ee65e4dcd8f8dd011fa5307b50debb1032554c
             </div>
 
             {/* Navigation Links */}
             <div className="lg:col-span-2 grid grid-cols-2 gap-8 md:gap-20">
               <div className="space-y-3">
-                <Link
-                  to="/shop-all"
+                <a
+                  href="#"
                   className="block text-xs text-black hover:underline"
                 >
                   Shop All
-                </Link>
-                <Link
-                  to="/the-science"
+                </a>
+                <a
+                  href="#"
                   className="block text-xs text-black hover:underline"
                 >
                   The Science
-                </Link>
-                <Link
-                  to="/ethos"
+                </a>
+                <a
+                  href="#"
                   className="block text-xs text-black hover:underline"
                 >
                   Our Ethos
-                </Link>
-                <Link
-                  to="/herbal-index"
+                </a>
+                <a
+                  href="#"
                   className="block text-xs text-black hover:underline"
                 >
                   Herbal Index
-<<<<<<< HEAD
                 </a>
                 <div className="pt-6 md:pt-10">
-=======
-                </Link>
-                <div className="pt-10">
->>>>>>> 22ee65e4dcd8f8dd011fa5307b50debb1032554c
                   <a
                     href="#"
                     className="block text-[9px] text-black hover:underline"
@@ -649,7 +585,7 @@ const Index = () => {
         </div>
       </footer>
 
-      <style>{`
+      <style jsx>{`
         @keyframes scroll {
           0% {
             transform: translateX(0);
