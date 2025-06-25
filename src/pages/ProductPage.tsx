@@ -19,7 +19,7 @@ const ProductPage = () => {
   useEffect(() => {
     if (productId) {
       supabase
-        .from("all-products")
+        .from("all_products")
         .select("*")
         .eq("id", productId)
         .single()
