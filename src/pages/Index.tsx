@@ -32,15 +32,28 @@ const Index = () => {
         </div>
 
         {/* Main Header */}
-        <div className="flex items-center justify-between px-4 py-4 md:px-8 md:py-6 max-w-[1905px] mx-auto">
-          {/* Logo */}
+        <div className="relative flex items-center px-4 py-4 md:px-8 md:py-6 max-w-[1905px] mx-auto">
+          {/* Left Side - Hamburger Menu & Desktop Navigation */}
           <div className="flex items-center">
-            <h1 className="text-xl md:text-2xl font-bold text-[#161616] tracking-tight">
-              DearNeuro
-            </h1>
+            {/* Mobile Hamburger Menu */}
+            <button
+              className="lg:hidden flex flex-col items-center justify-center w-8 h-8 space-y-1 bg-[rgba(237,236,235,0.85)] rounded-lg p-1"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              <div
+                className={`w-5 h-0.5 bg-[#161616] transition-all duration-300 ${isMenuOpen ? "rotate-45 translate-y-1.5" : ""}`}
+              ></div>
+              <div
+                className={`w-5 h-0.5 bg-[#161616] transition-all duration-300 ${isMenuOpen ? "opacity-0" : ""}`}
+              ></div>
+              <div
+                className={`w-5 h-0.5 bg-[#161616] transition-all duration-300 ${isMenuOpen ? "-rotate-45 -translate-y-1.5" : ""}`}
+              ></div>
+            </button>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex ml-12 bg-[rgba(237,236,235,0.85)] rounded-xl px-4 py-2">
+            <div className="hidden lg:flex ml-4 bg-[rgba(237,236,235,0.85)] rounded-xl px-4 py-2">
               <div className="flex items-center gap-4">
                 <a
                   href="#"
@@ -70,37 +83,26 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Account Section - Hidden on small screens */}
-            <div className="hidden md:flex w-[137px] bg-[rgba(237,236,235,0.60)] rounded-xl px-3 py-2">
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2">
-                  <img
-                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/188f87c04d559086b018316cd8f419654422bb5a"
-                    alt="Account"
-                    className="w-3 h-4"
-                  />
-                  <span className="text-xs text-black">Account</span>
-                </div>
-                <span className="text-xs text-black">(0)</span>
-              </div>
-            </div>
+          {/* Center - Logo */}
+          <div className="absolute left-1/2 transform -translate-x-1/2">
+            <h1 className="text-xl md:text-2xl font-bold text-[#161616] tracking-tight">
+              DearNeuro
+            </h1>
+          </div>
 
-            {/* Mobile Hamburger Menu */}
-            <button
-              className="lg:hidden flex flex-col items-center justify-center w-8 h-8 space-y-1 bg-[rgba(237,236,235,0.85)] rounded-lg p-1"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              <div
-                className={`w-5 h-0.5 bg-[#161616] transition-all duration-300 ${isMenuOpen ? "rotate-45 translate-y-1.5" : ""}`}
-              ></div>
-              <div
-                className={`w-5 h-0.5 bg-[#161616] transition-all duration-300 ${isMenuOpen ? "opacity-0" : ""}`}
-              ></div>
-              <div
-                className={`w-5 h-0.5 bg-[#161616] transition-all duration-300 ${isMenuOpen ? "-rotate-45 -translate-y-1.5" : ""}`}
-              ></div>
+          {/* Right Side - Account */}
+          <div className="ml-auto flex items-center">
+            {/* Account Section */}
+            <button className="flex items-center gap-2 bg-[rgba(237,236,235,0.60)] rounded-xl px-3 py-2 hover:bg-[rgba(237,236,235,0.80)] transition-colors">
+              <img
+                src="https://cdn.builder.io/api/v1/image/assets/TEMP/188f87c04d559086b018316cd8f419654422bb5a"
+                alt="Account"
+                className="w-3 h-4"
+              />
+              <span className="hidden md:inline text-xs text-black">
+                Account
+              </span>
+              <span className="hidden md:inline text-xs text-black">(0)</span>
             </button>
           </div>
         </div>
