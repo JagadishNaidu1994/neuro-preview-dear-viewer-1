@@ -7,7 +7,8 @@ const Index = () => {
       <header className="relative z-50">
         {/* Subscription Banner */}
         <div className="fixed bottom-4 right-4 z-50">
-          <div className="bg-[#514B3D] rounded-2xl px-4 py-4 shadow-lg">
+          <button className="bg-[#514B3D] rounded-2xl px-4 py-4 shadow-lg hover:bg-[#5a5147] transition-colors cursor-pointer"
+                  onClick={() => console.log('Join the NOON CLUB clicked')}>
             <div className="flex items-center gap-3 text-white">
               <div className="text-center">
                 <span className="text-xs font-normal tracking-tight uppercase">
