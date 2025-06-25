@@ -1,6 +1,6 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import AuthModal from "@/components/AuthModal";
 import Header from "@/components/Header";
 
@@ -78,9 +78,7 @@ const ShopAll = () => {
   return (
     <div className="min-h-screen bg-[#F8F8F5]">
       <Header />
-      {/* Main Content */}
       <main className="max-w-[1905px] mx-auto px-4 md:px-8 pt-8">
-        {/* Page Title */}
         <div className="text-center py-12 md:py-16">
           <h1 className="text-[#1E1E1E] text-4xl md:text-5xl lg:text-6xl font-normal leading-tight tracking-[-2px] md:tracking-[-3px]">
             Shop All Products
@@ -91,12 +89,11 @@ const ShopAll = () => {
           </p>
         </div>
 
-        {/* Product Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 pb-16">
           {products.map((product) => (
             <Link
+              to={`/product?id=${product.id}`}
               key={product.id}
-              to={`/products?id=${product.id}`}
               className="bg-[#EEEEEA] rounded-[20px] overflow-hidden hover:shadow-lg transition-all duration-300 group"
             >
               <div className="aspect-square p-6 flex items-center justify-center bg-[#EEEEEA]">
