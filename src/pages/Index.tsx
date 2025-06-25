@@ -91,7 +91,7 @@ const Index = () => {
                   Shop All
                 </a>
                 <a
-                  href="#"
+                  href="/the-science"
                   className="text-xs text-[#1E1E1E] hover:underline transition-all"
                 >
                   The Science
@@ -164,7 +164,7 @@ const Index = () => {
                 Shop All
               </a>
               <a
-                href="#"
+                href="/the-science"
                 className="block text-sm text-[#1E1E1E] hover:text-[#514B3D] transition-colors py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -526,7 +526,7 @@ const Index = () => {
                   Shop All
                 </a>
                 <a
-                  href="#"
+                  href="/the-science"
                   className="block text-xs text-black hover:underline"
                 >
                   The Science
