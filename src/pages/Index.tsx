@@ -5,59 +5,54 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-[#F8F8F5]">
       {/* Header */}
-      <header className="relative z-50 bg-white border-b border-gray-100">
-        {/* Main Header */}
-        <div className="flex items-center justify-between px-8 py-6 max-w-[1905px] mx-auto gap-[169px]">
+      <header className="bg-white border-b border-gray-100">
+        <div className="flex items-center justify-between px-8 py-4 max-w-[1920px] mx-auto">
           {/* Logo */}
-          <div className="flex items-center w-[500px]">
-            <Link to="/" className="text-2xl font-bold text-black">
-              NOON
-            </Link>
+          <Link to="/" className="text-2xl font-bold text-black">
+            NOON
+          </Link>
 
-            {/* Navigation */}
-            <div className="bg-[rgba(237,236,235,0.85)] rounded-xl px-4 py-2 flex flex-row flex-wrap text-center mx-auto">
-              <div className="flex items-center gap-4">
-                <Link
-                  to="/shop-all"
-                  className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
-                >
-                  Shop All
-                </Link>
-                <Link
-                  to="/the-science"
-                  className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
-                >
-                  The Science
-                </Link>
-                <Link
-                  to="/ethos"
-                  className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
-                >
-                  Our Ethos
-                </Link>
-                <Link
-                  to="/herbal-index"
-                  className="text-xs text-[#1E1E1E] underline hover:no-underline transition-all"
-                >
-                  Herbal Index
-                </Link>
-              </div>
-            </div>
+          {/* Navigation */}
+          <div className="flex items-center space-x-8">
+            <Link
+              to="/"
+              className="text-sm text-black hover:text-gray-600 transition-colors"
+            >
+              Home
+            </Link>
+            <Link
+              to="/shop-all"
+              className="text-sm text-black hover:text-gray-600 transition-colors"
+            >
+              Shop All
+            </Link>
+            <Link
+              to="/the-science"
+              className="text-sm text-black hover:text-gray-600 transition-colors"
+            >
+              The Science
+            </Link>
+            <Link
+              to="/ethos"
+              className="text-sm text-black hover:text-gray-600 transition-colors"
+            >
+              Our Ethos
+            </Link>
+            <Link
+              to="/herbal-index"
+              className="text-sm text-black hover:text-gray-600 transition-colors"
+            >
+              Herbal Index
+            </Link>
           </div>
 
           {/* Account Section */}
-          <div className="w-[137px] bg-[rgba(237,236,235,0.60)] rounded-xl px-3 py-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/188f87c04d559086b018316cd8f419654422bb5a"
-                  alt="Account"
-                  className="w-3 h-4"
-                />
-                <span className="text-xs text-black">Account</span>
-              </div>
-              <span className="text-xs text-black">(0)</span>
+          <div className="flex items-center space-x-2">
+            <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
+              <span className="text-xs">👤</span>
             </div>
+            <span className="text-sm text-black">Account</span>
+            <span className="text-sm text-black">(0)</span>
           </div>
         </div>
       </header>
