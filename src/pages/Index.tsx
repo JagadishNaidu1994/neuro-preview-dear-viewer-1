@@ -5,27 +5,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-[#F8F8F5]">
       {/* Header */}
-      <header className="relative z-50">
-        {/* Subscription Banner */}
-        <div className="fixed top-0 right-0 z-50 p-4">
-          <div className="bg-[#514B3D] rounded-2xl px-4 py-4 shadow-lg">
-            <div className="flex items-center gap-3 text-white">
-              <div className="text-center">
-                <span className="text-xs font-normal tracking-tight uppercase">
-                  Join the NOON CLUB · SAVE 15%
-                </span>
-              </div>
-              <div className="w-3 h-3">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/51f9ff1ba94976d6bae764c50356071e5febf861"
-                  alt="Snowflake"
-                  className="w-full h-full"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
+      <header className="relative z-50 bg-white border-b border-gray-100">
         {/* Main Header */}
         <div className="flex items-center justify-between px-8 py-6 max-w-[1905px] mx-auto gap-[169px]">
           {/* Logo */}
