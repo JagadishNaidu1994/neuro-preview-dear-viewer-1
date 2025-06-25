@@ -70,7 +70,7 @@ const Index = () => {
             </div>
 
             {/* Desktop Navigation - Centered */}
-            <div className="hidden lg:flex bg-[#f8f8f5] rounded-xl mx-auto py-6 px-4 font-extrabold">
+            <div className="hidden lg:flex bg-[#f8f8f5] rounded-xl mx-auto pt-6 pb-2.5 px-4 font-extrabold">
               <div className="flex items-center gap-14">
                 <a
                   href="#"
