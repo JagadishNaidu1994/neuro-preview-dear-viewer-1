@@ -15,12 +15,6 @@ const Index = () => {
           {/* Navigation */}
           <div className="flex items-center space-x-8">
             <Link
-              to="/"
-              className="text-sm text-black hover:text-gray-600 transition-colors"
-            >
-              Home
-            </Link>
-            <Link
               to="/shop-all"
               className="text-sm text-black hover:text-gray-600 transition-colors"
             >
