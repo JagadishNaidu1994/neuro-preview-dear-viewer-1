@@ -32,8 +32,8 @@ const Index = () => {
         </div>
 
         {/* Main Header */}
-        <div className="relative flex items-center px-4 py-4 md:px-8 md:py-6 max-w-[1905px] mx-auto">
-          {/* Left Side - Hamburger Menu & Desktop Navigation */}
+        <div className="flex items-center px-4 py-4 md:px-8 md:py-6 max-w-[1905px] mx-auto">
+          {/* Left Side - Mobile Hamburger & Desktop Logo */}
           <div className="flex items-center">
             {/* Mobile Hamburger Menu */}
             <button
@@ -52,8 +52,25 @@ const Index = () => {
               ></div>
             </button>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex ml-4 bg-[rgba(237,236,235,0.85)] rounded-xl px-4 py-2">
+            {/* Desktop Logo - Left Side */}
+            <div className="hidden lg:block">
+              <h1 className="text-2xl font-bold text-[#161616] tracking-tight">
+                DearNeuro
+              </h1>
+            </div>
+          </div>
+
+          {/* Center - Mobile Logo & Desktop Navigation */}
+          <div className="flex-1 flex justify-center items-center">
+            {/* Mobile Logo - Centered */}
+            <div className="lg:hidden">
+              <h1 className="text-xl font-bold text-[#161616] tracking-tight">
+                DearNeuro
+              </h1>
+            </div>
+
+            {/* Desktop Navigation - Centered */}
+            <div className="hidden lg:flex bg-[rgba(237,236,235,0.85)] rounded-xl px-4 py-2">
               <div className="flex items-center gap-4">
                 <a
                   href="#"
@@ -83,15 +100,8 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Center - Logo */}
-          <div className="absolute left-1/2 transform -translate-x-1/2">
-            <h1 className="text-xl md:text-2xl font-bold text-[#161616] tracking-tight">
-              DearNeuro
-            </h1>
-          </div>
-
           {/* Right Side - Account */}
-          <div className="ml-auto flex items-center">
+          <div className="flex items-center">
             {/* Account Section */}
             <button className="flex items-center gap-2 bg-[rgba(237,236,235,0.60)] rounded-xl px-3 py-2 hover:bg-[rgba(237,236,235,0.80)] transition-colors">
               <svg
