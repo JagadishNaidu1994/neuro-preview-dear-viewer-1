@@ -6,10 +6,7 @@ const Ethos = () => {
                 <Header />
 
       <div className="max-w-[1905px] mx-auto">
-        <p className="text-xl text-[#231F20] mb-16">
-          Connecting you to a new level of cognitive care - mind to the body -
-          with the everyday ritual of functional mushrooms.
-        </p>
+      
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="rounded-[20px] overflow-hidden">
             <img
