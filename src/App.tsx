@@ -12,6 +12,7 @@ import Ethos from "@/pages/Ethos";
 import HerbalIndex from "@/pages/HerbalIndex";
 import ProductPage from "@/pages/ProductPage";
 import AccountPage from "@/pages/AccountPage";
+import ResetPassword from "@/pages/ResetPassword";
 
 import { AuthProvider } from "@/context/AuthProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
