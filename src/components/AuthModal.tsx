@@ -130,11 +130,18 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   };
 
   const handleGoogleSignIn = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-    });
-    if (error) alert(error.message);
-  };
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  // Wait for session change to trigger useEffect (or handle it below if you want to insert immediately)
+};
+
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
