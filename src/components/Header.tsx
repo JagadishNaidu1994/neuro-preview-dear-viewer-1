@@ -22,7 +22,14 @@ const Header = () => {
       setIsAuthModalOpen(true);
     }
   };
-
+  // ✅ Handle scroll shadow
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   return (
     <>
       <header className="relative z-50">
