@@ -57,6 +57,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       if (isSignUp) {
         if (formData.password !== formData.confirmPassword) {
           alert("Passwords do not match.");
+          setLoading(false);
           return;
         }
 
@@ -68,27 +69,27 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
         if (signUpError) {
           alert(signUpError.message);
+          setLoading(false);
           return;
         }
 
-        const userId = signUpData.user?.id || signUpData.session?.user.id;
+        // Get current session
+        const { data: sessionData, error: sessionError } =
+          await supabase.auth.getSession();
+
+        const userId = sessionData?.session?.user?.id;
 
         if (userId) {
-          const { error: insertError } = await supabase
-            .from("users")
-            .insert([
-              {
-                id: userId,
-                first_name: formData.firstName,
-                last_name: formData.lastName,
-                email: formData.email,
-                created_at: new Date().toISOString(),
-              },
-            ]);
-
-          if (insertError) {
-            console.error("Insert Error:", insertError.message);
-          }
+          const { error: insertError } = await supabase.from("users").insert([
+            {
+              id: userId,
+              email: formData.email,
+              first_name: formData.firstName,
+              last_name: formData.lastName,
+              created_at: new Date().toISOString(),
+            },
+          ]);
+          if (insertError) console.error("Insert error:", insertError.message);
         }
 
         onClose();
@@ -100,26 +101,22 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
         if (signInError) {
           alert(signInError.message);
+          setLoading(false);
           return;
         }
 
         onClose();
       }
     } catch (err) {
-      console.error("Auth Error:", err);
+      console.error("Auth error:", err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-    });
-
-    if (error) {
-      alert(error.message);
-    }
+    const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
+    if (error) alert(error.message);
   };
 
   return (
@@ -142,9 +139,17 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             variant="outline"
             className="w-full border-2 border-gray-200 hover:bg-gray-50 rounded-xl py-3 h-auto"
           >
-            <span className="text-sm font-medium text-gray-700">
-              Continue with Google
-            </span>
+            <div className="flex items-center gap-3">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M22.56..." fill="#4285F4" />
+                <path d="M12 23..." fill="#34A853" />
+                <path d="M5.84..." fill="#FBBC05" />
+                <path d="M12 5.38..." fill="#EA4335" />
+              </svg>
+              <span className="text-sm font-medium text-gray-700">
+                Continue with Google
+              </span>
+            </div>
           </Button>
 
           <div className="relative">
@@ -233,9 +238,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
           <div className="text-center">
             <span className="text-sm text-[#B2AFAB]">
-              {isSignUp
-                ? "Already have an account?"
-                : "Don't have an account?"}
+              {isSignUp ? "Already have an account?" : "Don't have an account?"}
             </span>
             <button
               onClick={toggleMode}
