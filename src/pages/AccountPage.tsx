@@ -1,57 +1,83 @@
-// src/pages/AccountPage.tsx
-import { useAuth } from "@/context/AuthProvider";
-import Header from "@/components/Header";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import Header from "@/components/Header";
 
 const AccountPage = () => {
-  const { user, logout } = useAuth();
+  const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        navigate("/");
+      } else {
+        setUser(user);
+      }
+    };
+
+    fetchUser();
+  }, [navigate]);
+
   const handleLogout = async () => {
-    await logout();
+    await supabase.auth.signOut();
     navigate("/");
   };
 
   return (
-    <div className="bg-[#F8F8F5] min-h-screen">
+    <div className="min-h-screen bg-[#F8F8F5]">
       <Header />
-      <div className="max-w-[800px] mx-auto px-4 py-16">
-        <h1 className="text-4xl font-semibold text-[#161616] mb-6">Account</h1>
+      <div className="max-w-4xl mx-auto px-4 py-16 space-y-10">
+        <h1 className="text-4xl font-semibold text-[#161616]">My Account</h1>
 
-        <div className="space-y-6">
-          <section className="bg-white rounded-xl p-6 shadow">
-            <h2 className="text-xl font-medium text-[#1E1E1E] mb-2">Account Settings</h2>
-            <p className="text-sm text-[#666]">Email: {user?.email}</p>
-          </section>
+        <div className="space-y-8">
+          <Section title="Account Settings">
+            <p>Email: {user?.email}</p>
+          </Section>
 
-          <section className="bg-white rounded-xl p-6 shadow">
-            <h2 className="text-xl font-medium text-[#1E1E1E] mb-2">Subscriptions</h2>
-            <p className="text-sm text-[#666]">You don’t have any active subscriptions.</p>
-          </section>
+          <Section title="Subscriptions">
+            <p>No active subscriptions yet.</p>
+          </Section>
 
-          <section className="bg-white rounded-xl p-6 shadow">
-            <h2 className="text-xl font-medium text-[#1E1E1E] mb-2">Order History</h2>
-            <p className="text-sm text-[#666]">No orders found.</p>
-          </section>
+          <Section title="Order History">
+            <p>You haven't placed any orders yet.</p>
+          </Section>
 
-          <section className="bg-white rounded-xl p-6 shadow">
-            <h2 className="text-xl font-medium text-[#1E1E1E] mb-2">Contact Us</h2>
-            <p className="text-sm text-[#666]">Need help? <a href="mailto:support@dearneuro.com" className="text-[#514B3D] underline">Email support</a>.</p>
-          </section>
+          <Section title="Settings">
+            <p>Additional preferences coming soon.</p>
+          </Section>
 
-          <div>
-            <Button
-              onClick={handleLogout}
-              className="bg-[#514B3D] hover:bg-[#665847] text-white rounded-xl px-6 py-3"
-            >
-              Log Out
-            </Button>
-          </div>
+          <Section title="Contact Us">
+            <p>Need help? Reach out at support@dearneuro.com</p>
+          </Section>
+
+          <button
+            onClick={handleLogout}
+            className="bg-[#514B3D] text-white py-2 px-6 rounded-xl hover:bg-[#665c50] transition"
+          >
+            Log Out
+          </button>
         </div>
       </div>
     </div>
   );
 };
+
+const Section = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) => (
+  <div>
+    <h2 className="text-xl font-semibold mb-2 text-[#1E1E1E]">{title}</h2>
+    <div className="text-[#231F20] text-sm">{children}</div>
+  </div>
+);
 
 export default AccountPage;
