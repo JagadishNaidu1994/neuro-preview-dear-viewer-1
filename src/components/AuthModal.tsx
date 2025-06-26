@@ -48,77 +48,71 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
-  console.log("AuthModal: Submitting signup/signin", { isSignUp, formData });
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    if (isSignUp) {
-      if (formData.password !== formData.confirmPassword) {
-        alert("Passwords do not match.");
-        setLoading(false);
-        return;
-      }
+    try {
+      if (isSignUp) {
+        if (formData.password !== formData.confirmPassword) {
+          alert("Passwords do not match.");
+          return;
+        }
 
-      const { data: signUpData, error: signUpError } =
-        await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
         });
-      console.log("Supabase.signUp result:", signUpData, signUpError);
-      if (signUpError) {
-        alert(signUpError.message);
-        setLoading(false);
-        return;
-      }
 
-      const userId = signUpData.user?.id;
-      console.log("Signed up user ID:", userId);
-      if (userId) {
-        const insertPayload = {
-          id: userId,
-          email: formData.email,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-        };
-        console.log("Attempting insert:", insertPayload);
-        const { data: insertedRows, error: insertError } = await supabase
-          .from("users")
-          .insert([insertPayload])
-          .select();
-        console.log("Insert response:", insertedRows, insertError);
-      }
+        if (error) {
+          alert(error.message);
+          return;
+        }
 
-      onClose();
-    } else {
-      const { data: signInData, error: signInError } =
-        await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-      console.log("Supabase.signIn result:", signInData, signInError);
-      if (signInError) {
-        alert(signInError.message);
+        const user = data.user;
+
+        if (user) {
+          const { error: insertError } = await supabase.from("users").insert([
+            {
+              id: user.id,
+              first_name: formData.firstName,
+              last_name: formData.lastName,
+              email: formData.email,
+              created_at: new Date().toISOString(),
+            },
+          ]);
+
+          if (insertError) {
+            console.error("Insert Error:", insertError.message);
+          }
+        } else {
+          console.log("Signup successful, please verify email.");
+          alert("Please verify your email to activate your account.");
+        }
+
+        onClose();
       } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
         onClose();
       }
+    } catch (err) {
+      console.error("Auth Error:", err);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("AuthModal.handleSubmit unexpected error:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const handleGoogleSignIn = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-    });
-
-    if (error) {
-      alert(error.message);
-    }
+    const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
+    if (error) alert(error.message);
   };
 
   return (
@@ -142,12 +136,6 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             className="w-full border-2 border-gray-200 hover:bg-gray-50 rounded-xl py-3 h-auto"
           >
             <div className="flex items-center gap-3">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92..." fill="#4285F4" />
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66..." fill="#34A853" />
-                <path d="M5.84 14.09c-.22-.66-.35-1.36..." fill="#FBBC05" />
-                <path d="M12 5.38c1.62 0 3.06.56..." fill="#EA4335" />
-              </svg>
               <span className="text-sm font-medium text-gray-700">
                 Continue with Google
               </span>
@@ -188,7 +176,6 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                 </div>
               </div>
             )}
-
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -200,7 +187,6 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                 required
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -212,7 +198,6 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                 required
               />
             </div>
-
             {isSignUp && (
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
@@ -226,7 +211,6 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                 />
               </div>
             )}
-
             <Button
               type="submit"
               disabled={loading}
