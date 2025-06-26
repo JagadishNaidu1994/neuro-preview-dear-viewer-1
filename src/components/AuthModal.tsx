@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabaseClient";
 
 interface AuthModalProps {
   isOpen: boolean;
