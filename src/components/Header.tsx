@@ -12,7 +12,7 @@ const Header = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const firstName = user?.user_metadata?.given_name || user?.user_metadata?.first_name || "";
+  const firstName = user?.user_metadata?.first_name || user?.user_metadata?.first_name || "";
 
   const handleAccountClick = () => {
     if (user) {
