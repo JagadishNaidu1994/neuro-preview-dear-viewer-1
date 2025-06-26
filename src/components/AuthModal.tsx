@@ -88,22 +88,28 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         return;
       }
 
-      const { error: insertError } = await supabase.from("users").insert([
-        {
-          id: userId,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          email: formData.email,
-          created_at: new Date().toISOString(),
-        },
-      ]);
+      const { error: upsertError } = await supabase
+  .from("users")
+  .upsert(
+    [
+      {
+        id: userId,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        created_at: new Date().toISOString(),
+      },
+    ],
+    { onConflict: "id" } // Important to avoid duplicate key error
+);
 
-      if (insertError) {
-        console.error("Insert Error:", insertError.message);
-        alert("Failed to insert profile.");
-      } else {
-        console.log("User profile inserted successfully.");
-      }
+if (upsertError) {
+  console.error("Upsert Error:", upsertError.message);
+  alert("Failed to save profile.");
+} else {
+  console.log("User profile saved successfully.");
+}
+
 
       onClose();
     } else {
