@@ -30,6 +30,7 @@ const App = () => (
             <Route path="/product" element={<ProductPage />} />
             <Route path="/the-science" element={<TheScience />} />
             <Route path="/ethos" element={<Ethos />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/herbal-index" element={<HerbalIndex />} />
 
             <Route
@@ -40,7 +41,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route path="/reset-password" element={<ResetPassword />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
