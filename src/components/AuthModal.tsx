@@ -51,8 +51,6 @@ const handleSubmit = async (e: React.FormEvent) => {
 e.preventDefault();
 setLoading(true);
 
-php
-Copy code
 try {
   if (isSignUp) {
     if (formData.password !== formData.confirmPassword) {
@@ -129,9 +127,6 @@ return (
 : "Sign in to your DearNeuro account"}
 </DialogDescription>
 </DialogHeader>
-
-php-template
-Copy code
     <div className="space-y-6 py-4">
       <Button
         onClick={handleGoogleSignIn}
