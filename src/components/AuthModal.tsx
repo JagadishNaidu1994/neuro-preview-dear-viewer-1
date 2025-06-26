@@ -29,47 +29,47 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     firstName: "",
     lastName: "",
   });
-  useEffect(() => {
-  const syncGoogleUserProfile = async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (session?.user) {
-      const { id, email, user_metadata } = session.user;
-
-      const { given_name, family_name } = user_metadata || {};
-
-      if (!email) return;
-
-      const { error: upsertError } = await supabase
-        .from("users")
-        .upsert(
-          [
-            {
-              id,
-              email,
-              first_name: given_name || "",
-              last_name: family_name || "",
-              created_at: new Date().toISOString(),
-            },
-          ],
-          { onConflict: "id" }
-        );
-
-      if (upsertError) {
-        console.error("Google profile upsert error:", upsertError.message);
-      } else {
-        console.log("Google user profile synced to DB.");
-      }
-    }
-  };
-
-  syncGoogleUserProfile();
-}, []);
-
   const [resetEmail, setResetEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
+
+  useEffect(() => {
+    const syncGoogleUserProfile = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session?.user) {
+        const { id, email, user_metadata } = session.user;
+
+        const { given_name, family_name } = user_metadata || {};
+
+        if (!email) return;
+
+        const { error: upsertError } = await supabase
+          .from("users")
+          .upsert(
+            [
+              {
+                id,
+                email,
+                first_name: given_name || "",
+                last_name: family_name || "",
+                created_at: new Date().toISOString(),
+              },
+            ],
+            { onConflict: "id" }
+          );
+
+        if (upsertError) {
+          console.error("Google profile upsert error:", upsertError.message);
+        } else {
+          console.log("Google user profile synced to DB.");
+        }
+      }
+    };
+
+    syncGoogleUserProfile();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -169,19 +169,11 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   };
 
   const handleGoogleSignIn = async () => {
-  const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
-  if (error) alert(error.message);
-};
-
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  // Wait for session change to trigger useEffect (or handle it below if you want to insert immediately)
-};
-
+    const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
+    if (error) {
+      alert(error.message);
+    }
+  };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
