@@ -48,77 +48,85 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      if (isSignUp) {
-        if (formData.password !== formData.confirmPassword) {
-          alert("Passwords do not match.");
-          setLoading(false);
-          return;
-        }
-
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-        });
-
-        if (signUpError) {
-          alert(signUpError.message);
-          setLoading(false);
-          return;
-        }
-
-        // If auto-login is successful, get user ID
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-        }
-
-        const userId = session?.user?.id || signUpData.user?.id;
-
-        if (userId) {
-          const { error: insertError } = await supabase.from("users").insert([
-            {
-              id: userId,
-              first_name: formData.firstName,
-              last_name: formData.lastName,
-              email: formData.email,
-              created_at: new Date().toISOString(),
-            },
-          ]);
-
-          if (insertError) {
-            console.error("Insert Error:", insertError.message);
-          }
-        }
-
-        onClose();
-      } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-
-        if (signInError) {
-          alert(signInError.message);
-          setLoading(false);
-          return;
-        }
-
-        onClose();
+  try {
+    if (isSignUp) {
+      if (formData.password !== formData.confirmPassword) {
+        alert("Passwords do not match.");
+        setLoading(false);
+        return;
       }
-    } catch (err) {
-      console.error("Auth Error:", err);
-    } finally {
-      setLoading(false);
+
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      console.log("SignUp Data:", signUpData);
+
+      if (signUpError) {
+        alert(signUpError.message);
+        setLoading(false);
+        return;
+      }
+
+      // Wait briefly and try getting session
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      console.log("Session from getSession:", session);
+
+      const userId = session?.user?.id || signUpData.user?.id;
+
+      if (!userId) {
+        alert("User ID not available. Can't insert profile.");
+        setLoading(false);
+        return;
+      }
+
+      const { error: insertError } = await supabase.from("users").insert([
+        {
+          id: userId,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          email: formData.email,
+          created_at: new Date().toISOString(),
+        },
+      ]);
+
+      if (insertError) {
+        console.error("Insert Error:", insertError.message);
+        alert("Failed to insert profile.");
+      } else {
+        console.log("User profile inserted successfully.");
+      }
+
+      onClose();
+    } else {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (signInError) {
+        alert(signInError.message);
+        setLoading(false);
+        return;
+      }
+
+      onClose();
     }
-  };
+  } catch (err) {
+    console.error("Auth Error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleGoogleSignIn = async () => {
     const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
