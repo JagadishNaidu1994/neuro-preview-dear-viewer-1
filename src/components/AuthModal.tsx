@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +19,6 @@ interface AuthModalProps {
 
 const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [isSignUp, setIsSignUp] = useState(false);
-  const [showReset, setShowReset] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -29,47 +27,6 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     firstName: "",
     lastName: "",
   });
-  const [resetEmail, setResetEmail] = useState("");
-  const [resetSent, setResetSent] = useState(false);
-
-  useEffect(() => {
-    const syncGoogleUserProfile = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (session?.user) {
-        const { id, email, user_metadata } = session.user;
-
-        const { given_name, family_name } = user_metadata || {};
-
-        if (!email) return;
-
-        const { error: upsertError } = await supabase
-          .from("users")
-          .upsert(
-            [
-              {
-                id,
-                email,
-                first_name: given_name || "",
-                last_name: family_name || "",
-                created_at: new Date().toISOString(),
-              },
-            ],
-            { onConflict: "id" }
-          );
-
-        if (upsertError) {
-          console.error("Google profile upsert error:", upsertError.message);
-        } else {
-          console.log("Google user profile synced to DB.");
-        }
-      }
-    };
-
-    syncGoogleUserProfile();
-  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -102,11 +59,10 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           return;
         }
 
-        const { data: signUpData, error: signUpError } =
-          await supabase.auth.signUp({
-            email: formData.email,
-            password: formData.password,
-          });
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+        });
 
         if (signUpError) {
           alert(signUpError.message);
@@ -132,9 +88,9 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             [
               {
                 id: userId,
+                email: formData.email,
                 first_name: formData.firstName,
                 last_name: formData.lastName,
-                email: formData.email,
                 created_at: new Date().toISOString(),
               },
             ],
@@ -169,23 +125,15 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   };
 
   const handleGoogleSignIn = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
-    if (error) {
-      alert(error.message);
-    }
-  };
-
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: `${window.location.origin}/reset-password`,
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin, // ✅ Required for OAuth on Netlify
+      },
     });
 
     if (error) {
       alert(error.message);
-    } else {
-      setResetSent(true);
     }
   };
 
@@ -193,187 +141,137 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] bg-white">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#161616] text-center">
-            {showReset
-              ? "Reset Password"
-              : isSignUp
-              ? "Create Account"
-              : "Welcome Back"}
+          <DialogTitle className="text-2xl font-bold text-center text-[#161616]">
+            {isSignUp ? "Create Account" : "Welcome Back"}
           </DialogTitle>
           <DialogDescription className="text-center text-[#B2AFAB]">
-            {showReset
-              ? "We'll send a reset link to your email."
-              : isSignUp
+            {isSignUp
               ? "Join DearNeuro for exclusive benefits and personalized wellness"
               : "Sign in to your DearNeuro account"}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {showReset ? (
-            <>
-              {resetSent ? (
-                <p className="text-center text-green-600 text-sm">
-                  Reset link sent to your email.
-                </p>
-              ) : (
-                <form onSubmit={handleForgotPassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="resetEmail">Email</Label>
-                    <Input
-                      id="resetEmail"
-                      type="email"
-                      value={resetEmail}
-                      onChange={(e) => setResetEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-[#514B3D] text-white"
-                  >
-                    Send Reset Link
-                  </Button>
-                </form>
-              )}
-              <div className="text-center">
-                <button
-                  onClick={() => setShowReset(false)}
-                  className="text-sm text-[#514B3D] hover:underline"
-                >
-                  Back to login
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <Button
-                onClick={handleGoogleSignIn}
-                variant="outline"
-                className="w-full border-2 border-gray-200 hover:bg-gray-50 rounded-xl py-3 h-auto"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-700">
-                    Continue with Google
-                  </span>
-                </div>
-              </Button>
+          {/* Google Sign-In Button */}
+          <Button
+            onClick={handleGoogleSignIn}
+            variant="outline"
+            className="w-full border-2 border-gray-200 hover:bg-gray-50 rounded-xl py-3 h-auto"
+          >
+            <div className="flex items-center gap-3">
+              <img
+                src="https://www.svgrepo.com/show/475656/google-color.svg"
+                alt="Google"
+                width="20"
+                height="20"
+              />
+              <span className="text-sm font-medium text-gray-700">
+                Continue with Google
+              </span>
+            </div>
+          </Button>
 
-              <div className="relative">
-                <Separator />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="bg-white px-3 text-xs text-[#B2AFAB]">
-                    or continue with email
-                  </span>
-                </div>
-              </div>
+          <div className="relative">
+            <Separator />
+            <div className="absolute inset-0 flex justify-center items-center">
+              <span className="bg-white px-3 text-xs text-[#B2AFAB]">
+                or continue with email
+              </span>
+            </div>
+          </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {isSignUp && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input
-                        id="firstName"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input
-                        id="lastName"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                )}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="firstName">First Name</Label>
                   <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
+                    id="firstName"
+                    name="firstName"
+                    value={formData.firstName}
                     onChange={handleInputChange}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="lastName">Last Name</Label>
                   <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    value={formData.password}
+                    id="lastName"
+                    name="lastName"
+                    value={formData.lastName}
                     onChange={handleInputChange}
                     required
                   />
                 </div>
-                {isSignUp && (
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm Password</Label>
-                    <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                )}
-
-                {!isSignUp && (
-                  <div className="text-right">
-                    <button
-                      type="button"
-                      className="text-sm text-[#514B3D] hover:underline"
-                      onClick={() => {
-                        resetForm();
-                        setShowReset(true);
-                      }}
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-[#514B3D] hover:bg-[#5a5147] text-white rounded-xl py-3 h-auto"
-                >
-                  {loading
-                    ? isSignUp
-                      ? "Creating..."
-                      : "Signing in..."
-                    : isSignUp
-                    ? "Create Account"
-                    : "Sign In"}
-                </Button>
-              </form>
-
-              <div className="text-center">
-                <span className="text-sm text-[#B2AFAB]">
-                  {isSignUp
-                    ? "Already have an account?"
-                    : "Don't have an account?"}
-                </span>
-                <button
-                  onClick={toggleMode}
-                  className="ml-1 text-sm text-[#514B3D] hover:underline font-medium"
-                >
-                  {isSignUp ? "Sign In" : "Sign Up"}
-                </button>
               </div>
-            </>
-          )}
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#514B3D] hover:bg-[#5a5147] text-white rounded-xl py-3 h-auto"
+            >
+              {loading
+                ? isSignUp
+                  ? "Creating..."
+                  : "Signing in..."
+                : isSignUp
+                ? "Create Account"
+                : "Sign In"}
+            </Button>
+          </form>
+
+          <div className="text-center">
+            <span className="text-sm text-[#B2AFAB]">
+              {isSignUp
+                ? "Already have an account?"
+                : "Don't have an account?"}
+            </span>
+            <button
+              onClick={toggleMode}
+              className="ml-1 text-sm text-[#514B3D] hover:underline font-medium"
+            >
+              {isSignUp ? "Sign In" : "Sign Up"}
+            </button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
