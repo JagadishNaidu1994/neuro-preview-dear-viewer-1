@@ -48,70 +48,68 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
+  console.log("AuthModal: Submitting signup/signin", { isSignUp, formData });
 
-    try {
-      if (isSignUp) {
-        if (formData.password !== formData.confirmPassword) {
-          alert("Passwords do not match.");
-          return;
-        }
+  try {
+    if (isSignUp) {
+      if (formData.password !== formData.confirmPassword) {
+        alert("Passwords do not match.");
+        setLoading(false);
+        return;
+      }
 
-        const { data: signUpData, error: signUpError } =
-          await supabase.auth.signUp({
-            email: formData.email,
-            password: formData.password,
-          });
-
-        if (signUpError) {
-          alert(signUpError.message);
-          return;
-        }
-
-        // Listen for confirmed login to insert user profile
-        const { data: listener } = supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            if (event === "SIGNED_IN" && session?.user) {
-              const { error: insertError } = await supabase.from("users").insert([
-                {
-                  id: session.user.id,
-                  email: session.user.email,
-                  first_name: formData.firstName,
-                  last_name: formData.lastName,
-                  created_at: new Date().toISOString(),
-                },
-              ]);
-
-              if (insertError) {
-                console.error("Insert error:", insertError.message);
-              }
-
-              listener.subscription.unsubscribe(); // Clean up
-            }
-          }
-        );
-
-        onClose();
-      } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
         });
+      console.log("Supabase.signUp result:", signUpData, signUpError);
+      if (signUpError) {
+        alert(signUpError.message);
+        setLoading(false);
+        return;
+      }
 
-        if (signInError) {
-          alert(signInError.message);
-          return;
-        }
+      const userId = signUpData.user?.id;
+      console.log("Signed up user ID:", userId);
+      if (userId) {
+        const insertPayload = {
+          id: userId,
+          email: formData.email,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+        };
+        console.log("Attempting insert:", insertPayload);
+        const { data: insertedRows, error: insertError } = await supabase
+          .from("users")
+          .insert([insertPayload])
+          .select();
+        console.log("Insert response:", insertedRows, insertError);
+      }
 
+      onClose();
+    } else {
+      const { data: signInData, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+      console.log("Supabase.signIn result:", signInData, signInError);
+      if (signInError) {
+        alert(signInError.message);
+      } else {
         onClose();
       }
-    } catch (err) {
-      console.error("Auth Error:", err);
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (err) {
+    console.error("AuthModal.handleSubmit unexpected error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleGoogleSignIn = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
