@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -26,17 +26,25 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     firstName: "",
     lastName: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg("");
+    setLoading(true);
 
     if (isSignUp) {
       if (formData.password !== formData.confirmPassword) {
-        alert("Passwords do not match");
+        setErrorMsg("Passwords do not match.");
+        setLoading(false);
         return;
       }
 
@@ -46,10 +54,12 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       });
 
       if (error) {
-        alert(error.message);
+        setErrorMsg(error.message);
+        setLoading(false);
         return;
       }
 
+      // Save additional user profile info
       if (data.user) {
         await supabase.from("users").insert([
           {
@@ -59,10 +69,8 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             last_name: formData.lastName,
           },
         ]);
+        onClose(); // Close modal on success
       }
-
-      alert("Check your email for verification");
-      onClose();
     } else {
       const { error } = await supabase.auth.signInWithPassword({
         email: formData.email,
@@ -70,20 +78,25 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       });
 
       if (error) {
-        alert("Login failed: " + error.message);
-      } else {
-        onClose();
+        setErrorMsg(error.message);
+        setLoading(false);
+        return;
       }
+
+      onClose(); // Login successful
     }
+
+    setLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
-    if (error) alert(error.message);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+    });
+    if (error) setErrorMsg(error.message);
   };
 
-  const toggleMode = () => {
-    setIsSignUp(!isSignUp);
+  const resetForm = () => {
     setFormData({
       email: "",
       password: "",
@@ -91,6 +104,12 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       firstName: "",
       lastName: "",
     });
+    setErrorMsg("");
+  };
+
+  const toggleMode = () => {
+    setIsSignUp(!isSignUp);
+    resetForm();
   };
 
   return (
@@ -114,7 +133,15 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             className="w-full border-2 border-gray-200 hover:bg-gray-50 rounded-xl py-3 h-auto"
           >
             <div className="flex items-center gap-3">
-              <img src="/google.svg" alt="Google" className="w-5 h-5" />
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {/* Google icon paths here */}
+              </svg>
               <span className="text-sm font-medium text-gray-700">
                 Continue with Google
               </span>
@@ -134,26 +161,20 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             {isSignUp && (
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-sm text-[#161616]">
-                    First Name
-                  </Label>
+                  <Label htmlFor="firstName">First Name</Label>
                   <Input
                     id="firstName"
                     name="firstName"
-                    type="text"
                     value={formData.firstName}
                     onChange={handleInputChange}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-sm text-[#161616]">
-                    Last Name
-                  </Label>
+                  <Label htmlFor="lastName">Last Name</Label>
                   <Input
                     id="lastName"
                     name="lastName"
-                    type="text"
                     value={formData.lastName}
                     onChange={handleInputChange}
                     required
@@ -163,63 +184,67 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm text-[#161616]">
-                Email Address
-              </Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                placeholder="your@email.com"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm text-[#161616]">
-                Password
-              </Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 name="password"
                 type="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                placeholder="••••••••"
                 required
               />
             </div>
 
             {isSignUp && (
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-sm text-[#161616]">
-                  Confirm Password
-                </Label>
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
                   type="password"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  placeholder="••••••••"
                   required
                 />
               </div>
             )}
 
+            {errorMsg && (
+              <div className="text-sm text-red-500 font-medium">{errorMsg}</div>
+            )}
+
             <Button
               type="submit"
+              disabled={loading}
               className="w-full bg-[#514B3D] hover:bg-[#5a5147] text-white rounded-xl py-3 h-auto"
             >
-              {isSignUp ? "Create Account" : "Sign In"}
+              {loading
+                ? isSignUp
+                  ? "Creating..."
+                  : "Signing in..."
+                : isSignUp
+                ? "Create Account"
+                : "Sign In"}
             </Button>
           </form>
 
           <div className="text-center">
             <span className="text-sm text-[#B2AFAB]">
-              {isSignUp ? "Already have an account?" : "Don't have an account?"}
+              {isSignUp
+                ? "Already have an account?"
+                : "Don't have an account?"}
             </span>
             <button
               onClick={toggleMode}
