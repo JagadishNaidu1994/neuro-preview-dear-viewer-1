@@ -1,30 +1,52 @@
+// src/context/AuthProvider.tsx
 import { createContext, useContext, useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { Session, User } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabaseClient";
 
-const supabase = createClient("https://bptuqhvcsfgjohguykct.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwdHVxaHZjc2Znam9oZ3V5a2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4Nzc5NTcsImV4cCI6MjA2NjQ1Mzk1N30.YxxoYtnV8kmL55DNz3htu0AcGcf9V3B50HuRgDYyEZM");
+interface AuthContextType {
+  user: User | null;
+  session: Session | null;
+  loading: boolean;
+}
 
-export const SupabaseContext = createContext({ session: null, supabase });
-
-export const useSupabase = () => useContext(SupabaseContext);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  session: null,
+  loading: true,
+});
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data?.session ?? null));
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const init = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    };
+
+    init();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
   }, []);
 
   return (
-    <SupabaseContext.Provider value={{ session, supabase }}>
+    <AuthContext.Provider value={{ user, session, loading }}>
       {children}
-    </SupabaseContext.Provider>
+    </AuthContext.Provider>
   );
 };
+
 export const useAuth = () => useContext(AuthContext);
