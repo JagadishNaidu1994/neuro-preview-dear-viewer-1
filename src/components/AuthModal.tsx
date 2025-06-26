@@ -169,9 +169,10 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   };
 
   const handleGoogleSignIn = async () => {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-  });
+  const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
+  if (error) alert(error.message);
+};
+
 
   if (error) {
     alert(error.message);
