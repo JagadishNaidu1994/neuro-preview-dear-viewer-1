@@ -10,6 +10,10 @@ import TheScience from "./pages/TheScience";
 import Ethos from "./pages/Ethos";
 import HerbalIndex from "./pages/HerbalIndex";
 import ProductPage from "@/pages/ProductPage"; // <-- new page
+import { AuthProvider } from "./context/AuthProvider";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AccountPage from "./pages/AccountPage";
+
 
 
 const queryClient = new QueryClient();
