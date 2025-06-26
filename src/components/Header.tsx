@@ -8,6 +8,8 @@ import { useEffect, useState } from "react";
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false); // 👈 new
+
   const { user } = useAuth();
   const navigate = useNavigate();
 
