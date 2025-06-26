@@ -1,17 +1,21 @@
 import { useState } from "react";
-import { supabase } from "../lib/supabaseClient";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useSupabase } from "../context/AuthProvider"; // instead of creating client directly
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
+} from "./ui/dialog";
+import { Separator } from "./ui/separator";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL!,
+  import.meta.env.VITE_SUPABASE_ANON_KEY!
+);
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -24,120 +28,186 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     email: "",
     password: "",
     confirmPassword: "",
+    firstName: "",
+    lastName: "",
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    if (isSignUp) {
-      if (formData.password !== formData.confirmPassword) {
-        setError("Passwords do not match.");
-        setLoading(false);
-        return;
-      }
-
-      const { error: signUpError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (signUpError) setError(signUpError.message);
-    } else {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (signInError) setError(signInError.message);
-    }
-
-    setLoading(false);
-    onClose(); // Close modal after successful login/signup
+  const resetForm = () => {
+    setFormData({
+      email: "",
+      password: "",
+      confirmPassword: "",
+      firstName: "",
+      lastName: "",
+    });
   };
 
   const toggleMode = () => {
     setIsSignUp(!isSignUp);
-    setFormData({ email: "", password: "", confirmPassword: "" });
-    setError("");
+    resetForm();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    if (isSignUp) {
+      if (formData.password !== formData.confirmPassword) {
+        alert("Passwords do not match.");
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (error) {
+        alert(error.message);
+        setLoading(false);
+        return;
+      }
+
+      const user = data.user;
+
+      if (user) {
+        // insert into users table
+        await supabase.from("users").insert({
+          id: user.id,
+          email: formData.email,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+        });
+        onClose(); // close modal
+      }
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (error) {
+        alert(error.message);
+        setLoading(false);
+        return;
+      }
+
+      onClose(); // close modal
+    }
+
+    setLoading(false);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[400px] bg-white">
+      <DialogContent className="sm:max-w-[425px] bg-white">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-center">
+          <DialogTitle className="text-2xl font-bold text-[#161616] text-center">
             {isSignUp ? "Create Account" : "Welcome Back"}
           </DialogTitle>
-          <DialogDescription className="text-center text-gray-500">
+          <DialogDescription className="text-center text-[#B2AFAB]">
             {isSignUp
-              ? "Sign up with your email and password."
-              : "Log in to your DearNeuro account"}
+              ? "Join DearNeuro for exclusive benefits and personalized wellness"
+              : "Sign in to your DearNeuro account"}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              type="email"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              type="password"
-              required
-            />
-          </div>
+        <div className="space-y-6 py-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </div>
+            )}
 
-          {isSignUp && (
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="email">Email Address</Label>
               <Input
-                name="confirmPassword"
-                value={formData.confirmPassword}
+                name="email"
+                type="email"
+                value={formData.email}
                 onChange={handleInputChange}
-                type="password"
                 required
               />
             </div>
-          )}
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
 
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#514B3D] hover:bg-[#5a5147]"
-          >
-            {loading ? "Please wait..." : isSignUp ? "Create Account" : "Sign In"}
-          </Button>
-        </form>
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  name="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}
 
-        <div className="text-center text-sm mt-2 text-gray-500">
-          {isSignUp ? "Already have an account?" : "Don't have an account?"}
-          <button
-            onClick={toggleMode}
-            className="ml-1 text-[#514B3D] font-medium hover:underline"
-          >
-            {isSignUp ? "Sign In" : "Sign Up"}
-          </button>
+            <Button
+              type="submit"
+              className="w-full bg-[#514B3D] hover:bg-[#5a5147] text-white rounded-xl py-3 h-auto"
+              disabled={loading}
+            >
+              {loading
+                ? isSignUp
+                  ? "Creating account..."
+                  : "Signing in..."
+                : isSignUp
+                ? "Create Account"
+                : "Sign In"}
+            </Button>
+          </form>
+
+          {/* Toggle mode */}
+          <div className="text-center">
+            <span className="text-sm text-[#B2AFAB]">
+              {isSignUp
+                ? "Already have an account?"
+                : "Don't have an account?"}
+            </span>
+            <button
+              onClick={toggleMode}
+              className="ml-1 text-sm text-[#514B3D] hover:underline font-medium"
+            >
+              {isSignUp ? "Sign In" : "Sign Up"}
+            </button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
