@@ -55,7 +55,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       if (isSignUp) {
         if (formData.password !== formData.confirmPassword) {
           alert("Passwords do not match.");
-          return setLoading(false);
+          return;
         }
 
         const { data: signUpData, error: signUpError } =
@@ -64,25 +64,33 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             password: formData.password,
           });
 
-        if (signUpError || !signUpData.user) {
-          alert(signUpError?.message ?? "Signup failed");
-          return setLoading(false);
+        if (signUpError) {
+          alert(signUpError.message);
+          return;
         }
 
-        // Once user is created, insert profile row
-        const user = signUpData.user;
-        const { error: insertError } = await supabase
-          .from("users")
-          .insert({
-            id: user.id,
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            email: formData.email,
-          });
+        // Listen for confirmed login to insert user profile
+        const { data: listener } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (event === "SIGNED_IN" && session?.user) {
+              const { error: insertError } = await supabase.from("users").insert([
+                {
+                  id: session.user.id,
+                  email: session.user.email,
+                  first_name: formData.firstName,
+                  last_name: formData.lastName,
+                  created_at: new Date().toISOString(),
+                },
+              ]);
 
-        if (insertError) {
-          console.error("Profile insert error:", insertError.message);
-        }
+              if (insertError) {
+                console.error("Insert error:", insertError.message);
+              }
+
+              listener.subscription.unsubscribe(); // Clean up
+            }
+          }
+        );
 
         onClose();
       } else {
@@ -93,14 +101,13 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
         if (signInError) {
           alert(signInError.message);
-          return setLoading(false);
+          return;
         }
 
         onClose();
       }
-
     } catch (err) {
-      console.error("Auth error:", err);
+      console.error("Auth Error:", err);
     } finally {
       setLoading(false);
     }
@@ -110,14 +117,17 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
     });
-    if (error) alert(error.message);
+
+    if (error) {
+      alert(error.message);
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] bg-white">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">
+          <DialogTitle className="text-2xl font-bold text-[#161616] text-center">
             {isSignUp ? "Create Account" : "Welcome Back"}
           </DialogTitle>
           <DialogDescription className="text-center text-[#B2AFAB]">
@@ -131,14 +141,24 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           <Button
             onClick={handleGoogleSignIn}
             variant="outline"
-            className="w-full border-2 rounded-xl py-3"
+            className="w-full border-2 border-gray-200 hover:bg-gray-50 rounded-xl py-3 h-auto"
           >
-            Continue with Google
+            <div className="flex items-center gap-3">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92..." fill="#4285F4" />
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66..." fill="#34A853" />
+                <path d="M5.84 14.09c-.22-.66-.35-1.36..." fill="#FBBC05" />
+                <path d="M12 5.38c1.62 0 3.06.56..." fill="#EA4335" />
+              </svg>
+              <span className="text-sm font-medium text-gray-700">
+                Continue with Google
+              </span>
+            </div>
           </Button>
 
           <div className="relative">
             <Separator />
-            <div className="absolute inset-0 flex justify-center">
+            <div className="absolute inset-0 flex items-center justify-center">
               <span className="bg-white px-3 text-xs text-[#B2AFAB]">
                 or continue with email
               </span>
@@ -148,7 +168,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSignUp && (
               <div className="grid grid-cols-2 gap-3">
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
                   <Input
                     id="firstName"
@@ -158,7 +178,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                     required
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="lastName">Last Name</Label>
                   <Input
                     id="lastName"
@@ -171,7 +191,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
               </div>
             )}
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -183,7 +203,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
@@ -196,7 +216,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             </div>
 
             {isSignUp && (
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <Input
                   id="confirmPassword"
@@ -212,7 +232,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#514B3D] text-white rounded-xl py-3"
+              className="w-full bg-[#514B3D] hover:bg-[#5a5147] text-white rounded-xl py-3 h-auto"
             >
               {loading
                 ? isSignUp
@@ -224,13 +244,16 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             </Button>
           </form>
 
-          <div className="text-center mt-4">
+          <div className="text-center">
             <span className="text-sm text-[#B2AFAB]">
               {isSignUp
                 ? "Already have an account?"
                 : "Don't have an account?"}
             </span>
-            <button onClick={toggleMode} className="ml-1 text-sm text-[#514B3D]">
+            <button
+              onClick={toggleMode}
+              className="ml-1 text-sm text-[#514B3D] hover:underline font-medium"
+            >
               {isSignUp ? "Sign In" : "Sign Up"}
             </button>
           </div>
