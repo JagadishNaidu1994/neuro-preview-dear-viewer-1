@@ -29,6 +29,44 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     firstName: "",
     lastName: "",
   });
+  useEffect(() => {
+  const syncGoogleUserProfile = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session?.user) {
+      const { id, email, user_metadata } = session.user;
+
+      const { given_name, family_name } = user_metadata || {};
+
+      if (!email) return;
+
+      const { error: upsertError } = await supabase
+        .from("users")
+        .upsert(
+          [
+            {
+              id,
+              email,
+              first_name: given_name || "",
+              last_name: family_name || "",
+              created_at: new Date().toISOString(),
+            },
+          ],
+          { onConflict: "id" }
+        );
+
+      if (upsertError) {
+        console.error("Google profile upsert error:", upsertError.message);
+      } else {
+        console.log("Google user profile synced to DB.");
+      }
+    }
+  };
+
+  syncGoogleUserProfile();
+}, []);
 
   const [resetEmail, setResetEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
