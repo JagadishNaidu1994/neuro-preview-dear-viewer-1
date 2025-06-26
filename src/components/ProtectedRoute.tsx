@@ -1,10 +1,18 @@
+import { useAuth } from "@/context/AuthProvider";
 import { Navigate } from "react-router-dom";
-import { useSupabase } from "../context/AuthProvider";
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-  const { session } = useSupabase();
+  const { session, loading } = useAuth();
 
-  if (!session) return <Navigate to="/" replace />;
+  // ✅ Show nothing while checking auth
+  if (loading) return null;
+
+  // ❌ No session? Redirect
+  if (!session) {
+    return <Navigate to="/" />;
+  }
+
+  // ✅ Authenticated, render page
   return children;
 };
 
