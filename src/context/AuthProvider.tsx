@@ -27,3 +27,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     </SupabaseContext.Provider>
   );
 };
+export const useAuth = () => useContext(AuthContext);
