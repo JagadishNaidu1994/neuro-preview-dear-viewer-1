@@ -46,6 +46,7 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
             { label: "Science", path: "/the-science" },
             { label: "Our Story", path: "/ethos" },
             { label: "Refer a Friend", path: "/refer" },
+            <Link to="/rewards">Rewards</Link>
           ].map((item, idx) => (
             <div key={idx} className="px-4 py-3 flex justify-between items-center hover:bg-gray-100">
               {item.path ? (
@@ -60,7 +61,7 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
 
         {/* Secondary Links */}
         <div className="py-4 px-4 space-y-3 text-sm text-[#444] font-normal border-t mt-2">
-          <Link to="/rewards">Rewards</Link>
+          
         </div>
 
         {/* Footer Links */}
