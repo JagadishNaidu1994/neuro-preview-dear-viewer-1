@@ -48,15 +48,15 @@ const HerbalIndex = () => {
           const isFlipped = flipped === herb.id;
           return (
             <div
-              key={herb.id}
-              className="relative cursor-pointer [perspective:1000px]"
-              onClick={() => setFlipped(isFlipped ? null : herb.id)}
-            >
-              <div
-                className={`transition-transform duration-500 [transform-style:preserve-3d] ${
-                  isFlipped ? "rotate-y-180" : ""
-                }`}
-              >
+  key={herb.id}
+  className="relative cursor-pointer [perspective:1000px] hover:shadow-xl transition-shadow"
+  onClick={() => setFlipped(isFlipped ? null : herb.id)}
+>
+  <div
+    className={`transition-transform duration-500 [transform-style:preserve-3d] ${
+      isFlipped ? "rotate-y-180" : ""
+    }`}
+  >
                 {/* Front Face */}
                 <div className="absolute w-full h-full bg-white rounded-xl p-6 [backface-visibility:hidden] shadow-md">
   <div className="flex items-center justify-between mb-2">
