@@ -1,39 +1,55 @@
 import React, { useState } from "react";
-import "../styles/herbal.css";
-import { Herb } from "@/data/herbs";
+import type { Herb } from "@/data/herbs";
 
 const HerbalCard = ({ herb }: { herb: Herb }) => {
   const [flipped, setFlipped] = useState(false);
 
   return (
-    <div className={`herbal-card ${flipped ? "flipped" : ""}`} onClick={() => setFlipped(!flipped)}>
-      <div className="card-inner">
-        {/* Front */}
-        <div className="card-front">
-          <div dangerouslySetInnerHTML={{ __html: herb.svg }} className="herb-icon" />
-          <h3>{herb.name}</h3>
-          <p><em>{herb.latinName}</em></p>
-          <p className="text-sm text-gray-600">
-            <strong>Best For</strong><br />
-            {herb.bestFor.join(", ")}
-          </p>
+    <div
+      onClick={() => setFlipped(!flipped)}
+      className="cursor-pointer perspective"
+    >
+      <div
+        className={`relative w-full h-full transition-transform duration-500 transform-style-preserve-3d ${
+          flipped ? "rotate-y-180" : ""
+        }`}
+      >
+        {/* Front Side */}
+        <div className="absolute backface-hidden w-full h-full p-6 rounded-xl bg-white shadow-md">
+          <div className="flex justify-between items-start mb-2">
+            <span className="text-sm font-semibold text-[#161616]">[{herb.id}]</span>
+            <span
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: herb.color || "#C1A85F" }}
+            />
+          </div>
+
+          <div className="mb-4 w-10 h-10">{herb.svg}</div>
+
+          <h3 className="font-semibold text-[#161616] text-lg">{herb.name}</h3>
+          <p className="italic text-sm text-gray-500 mb-4">{herb.latinName}</p>
+          <div>
+            <p className="text-sm font-semibold text-[#1E1E1E]">Best For</p>
+            <p className="text-sm text-[#555]">
+              {herb.bestFor.join(", ")}
+            </p>
+          </div>
         </div>
 
-        {/* Back */}
-        <div className="card-back">
-          <h3>{herb.name}</h3>
-          <p className="font-bold mt-2">Origins:</p>
-          <p>{herb.back.origin}</p>
-          <p className="font-bold mt-2">Why We Use It:</p>
-          <p>{herb.back.whyWeUseIt}</p>
-          <p className="font-bold mt-2">Key Studies:</p>
-          <ul className="list-disc ml-4">
-            {herb.back.studies.map((url, i) => (
-              <li key={i}><a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">Study {i + 1}</a></li>
-            ))}
-          </ul>
-          <p className="font-bold mt-2">Used In:</p>
-          <p>{herb.back.usedIn}</p>
+        {/* Back Side */}
+        <div className="absolute backface-hidden rotate-y-180 w-full h-full p-6 rounded-xl bg-white shadow-md text-sm overflow-hidden">
+          <h3 className="font-semibold text-[#161616] text-base mb-1">{herb.name}</h3>
+          <p className="text-[13px] text-[#555] mb-2"><strong>Origins:</strong> {herb.back.origin}</p>
+          <p className="text-[13px] text-[#555] mb-2"><strong>Why We Use It:</strong> {herb.back.whyWeUseIt}</p>
+          <div className="mb-2">
+            <strong>Key Studies:</strong>
+            <ul className="list-disc ml-5 text-blue-600 underline">
+              {herb.back.studies.map((study, index) => (
+                <li key={index}><a href={study} target="_blank" rel="noopener noreferrer">Study {index + 1}</a></li>
+              ))}
+            </ul>
+          </div>
+          <p className="text-[13px] text-[#555]"><strong>Used In:</strong> {herb.back.usedIn}</p>
         </div>
       </div>
     </div>
