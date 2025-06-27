@@ -9,7 +9,7 @@ import MobileNav from "./MobileNav";
 const Header = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-
+  const [isMenuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
 
