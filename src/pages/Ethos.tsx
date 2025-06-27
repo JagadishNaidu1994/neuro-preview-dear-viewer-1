@@ -21,7 +21,7 @@ const Ethos = () => {
           </div>
           <div>
             <img
-              src="images/thescience/gummies-blocks.webp"
+              src="https://cdn.shopify.com/s/files/1/0671/5382/1848/files/chill_editorial_ethos.png"
               alt="Chill Gummy Hero"
               className="w-full rounded-xl"
             />
