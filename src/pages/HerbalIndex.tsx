@@ -43,7 +43,7 @@ const HerbalIndex = () => {
 
         <section className="mb-16">
           <img
-            src="/images/hero-herbal.jpg"
+            src="/images/herbal/hero-herbal.jpg"
             alt="Herbal Index Hero"
             className="w-full rounded-2xl"
           />
