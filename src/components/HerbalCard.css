@@ -1,3 +1,38 @@
+/* src/components/HerbalCard.css */
+.herbal-card-wrapper {
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.herbal-card {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+  position: relative;
+}
+
+.herbal-card.flipped {
+  transform: rotateY(180deg);
+}
+
+.herbal-card-front,
+.herbal-card-back {
+  backface-visibility: hidden;
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  height: 260px;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.herbal-card-back {
+  transform: rotateY(180deg);
+}
+
 .perspective {
   perspective: 1000px;
 }
