@@ -6,100 +6,139 @@ const TheScience = () => {
       <Header />
 
       {/* Intro Section */}
-      <section className="max-w-[1440px] mx-auto px-6 md:px-10 py-20 grid md:grid-cols-2 gap-10">
-        <div className="flex flex-col justify-center">
-          <h1 className="text-4xl md:text-5xl font-semibold leading-tight mb-6">
-            Good science feels like magic, and we're here to share that with the world
-          </h1>
-          <p className="text-lg text-[#444]">
-            We’ve done the hard work to find the best ingredients and the most novel technology to give you the purest, cleanest and most effective products on the market. Neuroscience backed to help you sleep good, feel full, and support your best self.
-          </p>
-        </div>
+        <main className="max-w-[1200px] mx-auto px-4 pt-16 space-y-24 pb-32">
+
+    {/* Top Section */}
+    <section className="flex flex-col md:flex-row items-center gap-10">
+      <div className="flex-1">
+        <h1 className="text-3xl md:text-4xl font-semibold mb-4">
+          Good science feels like magic, and we’re here to share that with the world
+        </h1>
+        <p className="text-base text-[#3C3C3C]">
+          We’ve done the hard work to find the best ingredients and the most novel technologies to help you get the purest, cleanest, most effective products on the market.
+        </p>
+      </div>
+      <div className="flex-1">
         <img
-          src="https://noon.world/cdn/shop/files/noon-science-top.png"
-          alt="Hand with drop"
+          src="/images/thescience/header-image.webp"
+          alt="Science overview"
           className="w-full rounded-lg"
         />
-      </section>
+      </div>
+    </section>
 
-      {/* Four Icons Row */}
-      <section className="max-w-[1440px] mx-auto px-6 md:px-10 py-12 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+    {/* Pillars */}
+    <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {[
+        { label: "Transparency", image: "/images/thescience/pillar1.webp" },
+        { label: "Scientific Efficacy", image: "/images/thescience/pillar2.webp" },
+        { label: "Clean Ingredients", image: "/images/thescience/pillar3.webp" },
+        { label: "Maximum Effect", image: "/images/thescience/pillar4.webp" },
+      ].map((pillar) => (
+        <div key={pillar.label} className="text-center">
+          <img src={pillar.image} alt={pillar.label} className="rounded-lg mb-2" />
+          <p className="text-sm font-medium">{pillar.label}</p>
+        </div>
+      ))}
+    </section>
+
+    {/* Doctors Section */}
+    <section className="text-center space-y-6">
+      <h2 className="text-2xl font-semibold">Proprietary formulas made by Neuroscientists and Clinical Doctors</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
-          { label: "Transparency", src: "https://noon.world/cdn/shop/files/science_1.jpg" },
-          { label: "Scientific Efficacy", src: "https://noon.world/cdn/shop/files/science_2.jpg" },
-          { label: "Clean Ingredients", src: "https://noon.world/cdn/shop/files/science_3.jpg" },
-          { label: "Maximum Effect", src: "https://noon.world/cdn/shop/files/science_4.jpg" }
-        ].map((item, i) => (
-          <div key={i}>
-            <img src={item.src} alt={item.label} className="rounded-lg w-full" />
-            <p className="mt-2 text-sm font-semibold">{item.label}</p>
+          { name: "Dr. Julie Hwang, MD", image: "/images/thescience/doc1.webp" },
+          { name: "Dr. Christine Wong, PhD", image: "/images/thescience/doc2.webp" },
+          { name: "Dr. Riley Chen, MD", image: "/images/thescience/doc3.webp" },
+        ].map((doc) => (
+          <div key={doc.name}>
+            <img src={doc.image} alt={doc.name} className="w-full rounded-md mb-2" />
+            <p className="text-sm font-medium">{doc.name}</p>
           </div>
         ))}
-      </section>
+      </div>
+    </section>
 
-      {/* Team Section */}
-      <section className="bg-white py-16">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-10">
-          <h2 className="text-2xl font-bold mb-4">
-            Neuroscience meets nature. Our scientific leadership team combines expertise in cutting-edge brain research with the regenerative power of plants.
-          </h2>
-          <div className="grid md:grid-cols-3 gap-6 mt-8">
-            {[
-              {
-                name: "Dr. Julie Hwang, MD",
-                img: "https://noon.world/cdn/shop/files/science_julie.png",
-              },
-              {
-                name: "Dr. Christine Wong, PhD",
-                img: "https://noon.world/cdn/shop/files/science_wong.png",
-              },
-              {
-                name: "Dr. Samantha Lee, ND",
-                img: "https://noon.world/cdn/shop/files/science_sam.png",
-              }
-            ].map((doc, i) => (
-              <div key={i} className="text-center">
-                <img src={doc.img} alt={doc.name} className="mx-auto w-[120px] rounded-full mb-4" />
-                <p className="text-sm font-medium">{doc.name}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+    {/* Accordion - Proprietary Formulas */}
+    <section className="space-y-6">
+      <h3 className="text-xl font-semibold">Each formula is crafted with care</h3>
+      <details className="bg-white border rounded-lg p-4">
+        <summary className="cursor-pointer font-medium">Backed by Human Clinical Studies</summary>
+        <p className="mt-2 text-sm text-gray-600">Every ingredient and product we use has been tested in clinical trials.</p>
+      </details>
+      <details className="bg-white border rounded-lg p-4">
+        <summary className="cursor-pointer font-medium">Made for Maximum Value & Effect</summary>
+        <p className="mt-2 text-sm text-gray-600">Formulated for potency, absorption, and real-world benefits.</p>
+      </details>
+      <details className="bg-white border rounded-lg p-4">
+        <summary className="cursor-pointer font-medium">For Immediate and Long-term Effects</summary>
+        <p className="mt-2 text-sm text-gray-600">Designed for quick noticeable impact and lasting support.</p>
+      </details>
+    </section>
 
-      {/* Accordion Section (summary) */}
-      <section className="max-w-[800px] mx-auto px-6 md:px-10 py-16 text-sm leading-relaxed space-y-10">
-        <div>
-          <h3 className="font-bold text-lg mb-2">Proprietary formulas made by Neuroscientists and Clinical Doctors</h3>
-          <p>
-            Each formula is crafted with care by our Neuroscience & Clinical Formulation team with clinically tested ingredients and informed by decades of herbal tradition.
-          </p>
-        </div>
-        <div>
-          <h3 className="font-bold text-lg mb-2">Innovative dual-layer gummies that work better, faster and longer</h3>
-          <p>
-            Our outer layer supports quick digestion while the inner layer ensures long-lasting effects. We use liposomal delivery for superior absorption.
-          </p>
-        </div>
-        <div>
-          <h3 className="font-bold text-lg mb-2">Committing to the highest standards in formulation, testing and production</h3>
-          <p>
-            We back up every product with high scientific research and rigorous testing protocols. Each batch is third-party tested and made with clean manufacturing practices.
-          </p>
-        </div>
-      </section>
+    {/* Gummies Image */}
+    <section className="w-full">
+      <img
+        src="/images/thescience/gummies-blocks.webp"
+        alt="Gummies block"
+        className="rounded-xl w-full"
+      />
+    </section>
 
-      {/* Image Highlights */}
-      <section className="max-w-[1440px] mx-auto px-6 md:px-10 pb-20 grid md:grid-cols-2 gap-10">
-        {[
-          "https://noon.world/cdn/shop/files/science_gummy1.jpg",
-          "https://noon.world/cdn/shop/files/science_gummy2.jpg",
-          "https://noon.world/cdn/shop/files/science_hand.jpg",
-        ].map((img, i) => (
-          <img key={i} src={img} alt={`Science visual ${i}`} className="rounded-lg w-full" />
-        ))}
-      </section>
-    </div>
+    {/* Dual Layer Section */}
+    <section>
+      <h3 className="text-xl font-semibold mb-4">Innovative dual-layer gummies that work better, faster and longer</h3>
+      <div className="flex items-start gap-10 flex-col md:flex-row">
+        <div className="flex-1 space-y-4">
+          <details className="bg-white border rounded-lg p-4">
+            <summary className="cursor-pointer font-medium">Outer Protective Layer</summary>
+            <p className="mt-2 text-sm text-gray-600">Protects active ingredients and starts digestion later.</p>
+          </details>
+          <details className="bg-white border rounded-lg p-4">
+            <summary className="cursor-pointer font-medium">Enhanced Bioavailability</summary>
+            <p className="mt-2 text-sm text-gray-600">Optimized for maximum absorption in the gut.</p>
+          </details>
+          <details className="bg-white border rounded-lg p-4">
+            <summary className="cursor-pointer font-medium">Quick Release Effects</summary>
+            <p className="mt-2 text-sm text-gray-600">Get noticeable benefits in minutes, not hours.</p>
+          </details>
+        </div>
+        <div className="flex-1">
+          <img
+            src="/images/thescience/gummy-hand.webp"
+            alt="Gummy on hand"
+            className="rounded-xl"
+          />
+        </div>
+      </div>
+    </section>
+
+    {/* Final Commitment Section */}
+    <section>
+      <h3 className="text-xl font-semibold mb-4">Committing to the highest standards in formulation, testing and production</h3>
+      <div className="space-y-4">
+        <details className="bg-white border rounded-lg p-4">
+          <summary className="cursor-pointer font-medium">Multistep Clinical Research Methodology</summary>
+          <p className="mt-2 text-sm text-gray-600">We test and refine every step from raw ingredient to finished product.</p>
+        </details>
+        <details className="bg-white border rounded-lg p-4">
+          <summary className="cursor-pointer font-medium">cGMP Manufacturing</summary>
+          <p className="mt-2 text-sm text-gray-600">Manufactured in facilities that follow current Good Manufacturing Practices.</p>
+        </details>
+        <details className="bg-white border rounded-lg p-4">
+          <summary className="cursor-pointer font-medium">Alpha, Beta and Third Party Testing</summary>
+          <p className="mt-2 text-sm text-gray-600">All products undergo internal and external testing for quality, potency and safety.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  {/* Simple Footer Placeholder */}
+  <footer className="text-center py-10 border-t mt-16 text-sm text-[#777]">
+    <p>NOON © 2025 All rights reserved.</p>
+  </footer>
+</div>
+
   );
 };
 
