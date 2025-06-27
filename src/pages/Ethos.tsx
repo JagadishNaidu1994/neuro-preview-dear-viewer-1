@@ -84,7 +84,7 @@ const Ethos = () => {
         <section className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
           <div>
             <img
-              src="https://noon.world/cdn/shop/files/NOON_Jane_Julie.webp"
+              src="/public/images/ethos/founders.jpg"
               alt="Founders Jane and Julie"
               className="rounded-xl"
             />
