@@ -32,7 +32,7 @@ const TheScience = () => {
   {[
     {
       title: "Transparency",
-      image: "/images/feature-transparency.jpg",
+      image: "/images/pillar1.webp",
     },
     {
       title: "Scientific Efficacy",
