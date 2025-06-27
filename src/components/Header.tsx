@@ -1,58 +1,57 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { FaShoppingCart, FaUserCircle, FaBars } from "react-icons/fa";
+import { FaUser, FaShoppingCart, FaBars } from "react-icons/fa";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="bg-[#F9F9F4] shadow-sm border-b">
-      <div className="max-w-[1200px] mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Mobile Hamburger */}
+    <header className="bg-[#F9F9F4] border-b border-[#ddd]">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        {/* Mobile hamburger */}
         <button
-          className="md:hidden text-[#161616] text-xl"
           onClick={() => setMenuOpen(!menuOpen)}
+          className="md:hidden text-xl"
         >
           <FaBars />
         </button>
 
-        {/* Logo Centered */}
-        <Link
-          to="/"
-          className="text-lg font-bold text-[#161616] absolute left-1/2 transform -translate-x-1/2 md:static md:translate-x-0"
-        >
-          DearNeuro
-        </Link>
+        {/* Brand Name */}
+        <div className="flex-1 flex justify-center md:justify-start">
+          <Link to="/" className="text-lg font-semibold text-[#161616]">
+            DearNeuro
+          </Link>
+        </div>
 
-        {/* Icons */}
-        <div className="flex items-center space-x-4 text-[#514B3D]">
-          <Link to="/cart">
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex gap-6 text-sm text-[#161616] flex-1 justify-center items-center">
+          <Link to="/shop-all">Shop All</Link>
+          <Link to="/the-science">The Science</Link>
+          <Link to="/our-ethos">Our Ethos</Link>
+          <Link to="/herbal-index">Herbal Index</Link>
+        </nav>
+
+        {/* Right Side Icons */}
+        <div className="flex gap-4 items-center">
+          <Link to="/cart" className="text-xl">
             <FaShoppingCart />
           </Link>
-          <Link to="/account">
-            <FaUserCircle />
+          <Link to="/account" className="text-xl">
+            <FaUser />
           </Link>
         </div>
       </div>
 
-      {/* Mobile Nav Menu */}
+      {/* Mobile Nav */}
       {menuOpen && (
-        <nav className="md:hidden bg-[#F9F9F4] border-t border-[#ddd] px-4 py-2 space-y-2">
-          <Link to="/shop-all" className="block text-[#161616]">Shop All</Link>
-          <Link to="/the-science" className="block text-[#161616]">The Science</Link>
-          <Link to="/ethos" className="block text-[#161616]">Our Ethos</Link>
-          <Link to="/herbal-index" className="block text-[#161616]">Herbal Index</Link>
-          <Link to="/account" className="block text-[#161616]">Account</Link>
-        </nav>
+        <div className="md:hidden px-4 pb-4 space-y-2 text-[#161616] text-sm">
+          <Link to="/shop-all" className="block">Shop All</Link>
+          <Link to="/the-science" className="block">The Science</Link>
+          <Link to="/our-ethos" className="block">Our Ethos</Link>
+          <Link to="/herbal-index" className="block">Herbal Index</Link>
+          <Link to="/account" className="block">Account</Link>
+        </div>
       )}
-
-      {/* Desktop Nav */}
-      <nav className="hidden md:flex justify-center space-x-6 py-2 text-sm text-[#161616]">
-        <Link to="/shop-all">Shop All</Link>
-        <Link to="/the-science">The Science</Link>
-        <Link to="/ethos">Our Ethos</Link>
-        <Link to="/herbal-index">Herbal Index</Link>
-      </nav>
     </header>
   );
 };
