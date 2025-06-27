@@ -2,9 +2,9 @@ export interface Herb {
   id: number;
   name: string;
   latinName: string;
-  svg: JSX.Element;
-  bestFor: string[];
+  svg: JSX.Element; // ✅ Change from string to JSX.Element
   color?: string;
+  bestFor: string[];
   back: {
     origin: string;
     whyWeUseIt: string;
@@ -12,6 +12,7 @@ export interface Herb {
     usedIn: string;
   };
 }
+
 
 export const herbs: Herb[] = [
   {
