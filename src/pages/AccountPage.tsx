@@ -1,80 +1,30 @@
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthProvider";
-import { Button } from "@/components/ui/button";
+const sections = [
+  { icon: "👤", label: "Account Settings", link: "#" },
+  { icon: "📦", label: "Subscriptions", link: "#" },
+  { icon: "🧾", label: "Order History", link: "#" },
+  { icon: "⚙️", label: "Preferences", link: "#" },
+  { icon: "📨", label: "Contact Us", link: "#" },
+  { icon: "🔒", label: "Security", link: "#" },
+  { icon: "📬", label: "Address Book", link: "#" },
+  { icon: "💳", label: "Payment Methods", link: "#" },
+];
 
-const AccountPage = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  const sections = [
-    {
-      title: "Account Settings",
-      description: user?.email || "Not available",
-      icon: "👤",
-      onClick: () => {}, // can add modal
-    },
-    {
-      title: "Subscriptions",
-      description: "No active subscriptions yet.",
-      icon: "📦",
-      onClick: () => {}, // navigate('/subscriptions')
-    },
-    {
-      title: "Order History",
-      description: "You haven’t placed any orders yet.",
-      icon: "🧾",
-      onClick: () => {}, // navigate('/orders')
-    },
-    {
-      title: "Settings",
-      description: "Additional preferences coming soon.",
-      icon: "⚙️",
-      onClick: () => {},
-    },
-    {
-      title: "Contact Us",
-      description: "Need help? Reach out at support@dearneuro.com",
-      icon: "📨",
-      onClick: () => {
-        window.open("mailto:support@dearneuro.com");
-      },
-    },
-  ];
-
-  const handleLogout = async () => {
-    const { error } = await import("@/lib/supabaseClient").then((mod) =>
-      mod.supabase.auth.signOut()
-    );
-    if (!error) navigate("/");
-  };
-
+export default function AccountPage() {
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold mb-2">My Account</h1>
-
-      <div className="space-y-4">
-        {sections.map((section, idx) => (
-          <button
-            key={idx}
-            onClick={section.onClick}
-            className="w-full flex items-start gap-4 bg-[#f6f5f3] hover:bg-[#f0eee9] rounded-xl p-4 text-left transition-shadow shadow-sm hover:shadow-md"
+    <div className="p-6 bg-[#f8f8f5] min-h-screen">
+      <h2 className="text-2xl font-bold mb-6">My Account</h2>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {sections.map(({ icon, label, link }) => (
+          <a
+            key={label}
+            href={link}
+            className="bg-white rounded-lg shadow hover:shadow-md transition-all duration-200 flex flex-col justify-center items-center p-6 text-center"
           >
-            <div className="text-2xl">{section.icon}</div>
-            <div>
-              <h2 className="font-semibold text-lg">{section.title}</h2>
-              <p className="text-sm text-gray-600">{section.description}</p>
-            </div>
-          </button>
+            <div className="text-3xl mb-2">{icon}</div>
+            <span className="text-sm font-medium text-gray-800">{label}</span>
+          </a>
         ))}
-      </div>
-
-      <div className="pt-4">
-        <Button onClick={handleLogout} className="bg-[#514B3D] hover:bg-[#5a5147]">
-          Log Out
-        </Button>
       </div>
     </div>
   );
-};
-
-export default AccountPage;
+}
