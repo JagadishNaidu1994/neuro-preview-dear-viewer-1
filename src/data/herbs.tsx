@@ -1,3 +1,18 @@
+export interface Herb {
+  id: number;
+  name: string;
+  latinName: string;
+  color: string;
+  svg: JSX.Element;
+  bestFor: string[];
+  back: {
+    origin: string;
+    whyWeUseIt: string;
+    studies: string[];
+    usedIn: string;
+  };
+}
+
 export const herbs: Herb[] = [
   {
     id: 1,
@@ -21,7 +36,7 @@ export const herbs: Herb[] = [
       origin:
         "Native to the Appalachian Mountains and Eastern Canada, revered in both Native American and traditional Chinese medicine.",
       whyWeUseIt:
-        "The primary active compounds of American Ginseng are called ginsenosides. Ginsenosides support your nervous system by protecting and promoting the growth of brain cells. These bioactives also help calm the body’s stress response by tuning down overactivity in your HPA axis (your stress system) for greater emotional balance.",
+        "The primary active compounds of American Ginseng are called ginsenosides. Ginsenosides support your nervous system by protecting and promoting the growth of brain cells. These bioactives also help calm the body's stress response by tuning down overactivity in your HPA axis (your stress system) for greater emotional balance.",
       studies: [
         "https://example.com/study1",
         "https://example.com/study2",
