@@ -20,9 +20,11 @@ export const herbs: Herb[] = [
     latinName: "Panax quinquefolius",
     color: "#A88C3D",
     svg: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#161616" strokeWidth="2">
-        <path d="M5 12h14M12 5v14" />
-      </svg>
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 20L20 10L30 20L20 30Z" stroke="black" strokeWidth="2" />
+  </svg>
+),
+
     ),
     bestFor: ["Energy", "Memory", "Stress", "Mental Clarity"],
     back: {
