@@ -1,61 +1,60 @@
 import React from "react";
-import Header from "@/components/Header";
 import HerbalCard from "@/components/HerbalCard";
-import { herbs } from "@/data/herbalData";
+import Header from "@/components/Header";
+
+const herbs = [
+  {
+    id: 1,
+    title: "American Ginseng",
+    icon: "/icons/american-ginseng.svg",
+    color: "#B49A52",
+    frontText: "Energy, Memory, Mood Clarity",
+    backContent: (
+      <div>
+        <h4 className="font-semibold text-sm mb-1">Origins</h4>
+        <p className="text-xs mb-2">
+          Native to the Appalachian Mountains and Eastern Canada, revered in both Native American and traditional Chinese medicine.
+        </p>
+        <h4 className="font-semibold text-sm mb-1">Why We Use It</h4>
+        <p className="text-xs mb-2">
+          Ginsenosides support your nervous system and brain cell growth, and help reduce stress response.
+        </p>
+        <h4 className="font-semibold text-sm mb-1">Key Studies</h4>
+        <ul className="text-xs list-disc list-inside mb-2">
+          <li><a href="#" className="underline">Study 1</a></li>
+          <li><a href="#" className="underline">Study 2</a></li>
+          <li><a href="#" className="underline">Study 3</a></li>
+        </ul>
+        <h4 className="font-semibold text-sm mb-1">Used In</h4>
+        <p className="text-xs">In the Zone & Matcha Chocolate Delights</p>
+      </div>
+    ),
+  },
+  // Add the other 24 herbs here in similar format...
+];
 
 const HerbalIndex = () => {
   return (
-    <div className="bg-[#F8F8F5] min-h-screen text-[#1E1E1E]">
+    <div className="bg-[#FAFAF7] min-h-screen">
       <Header />
-
-      {/* Hero Section */}
-      <section className="max-w-6xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl md:text-5xl font-semibold leading-tight tracking-tight">
-          A whole world of mushrooms, adaptogens and nootropics that work better, together.
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-16">
+        <h1 className="text-4xl md:text-5xl font-semibold text-center mb-4">
+          A whole world of mushrooms,<br /> adaptogens and nootropics that<br /> work better, together.
         </h1>
-      </section>
-
-      {/* Hero Mushroom Image */}
-      <div className="max-w-6xl mx-auto px-4 pb-12">
-        <img
-          src="/images/herbal/hero-mushroom.png"
-          alt="Herbal Index Hero"
-          className="w-full rounded-xl object-cover"
-        />
-      </div>
-
-      {/* Herb Cards Grid */}
-      <section className="max-w-[1300px] mx-auto px-4 pb-20 grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {herbs.map((herb) => (
-          <HerbalCard
-            key={herb.id}
-            id={herb.id}
-            title={herb.title}
-            icon={herb.icon}
-            color={herb.color}
-            frontText={herb.frontText}
-            backContent={herb.backContent}
+        <div className="my-8">
+          <img
+            src="/images/herbal-banner.png"
+            alt="Mushroom"
+            className="rounded-2xl w-full object-cover"
           />
-        ))}
-      </section>
+        </div>
 
-      {/* Footer */}
-      <footer className="bg-[#F8F8F5] pt-20 pb-12 text-sm text-gray-500 relative">
-        <div className="absolute bottom-0 left-0 w-full text-center opacity-10">
-          <img src="/images/footer-noon-logo.svg" alt="NOON Logo" className="mx-auto h-24" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pb-12">
+          {herbs.map((herb) => (
+            <HerbalCard key={herb.id} {...herb} />
+          ))}
         </div>
-        <div className="max-w-6xl mx-auto px-4 text-center z-10 relative">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pb-8">
-            <a href="/shop-all">Shop All</a>
-            <a href="/the-science">The Science</a>
-            <a href="/ethos">Our Ethos</a>
-            <a href="/herbal-index">Herbal Index</a>
-          </div>
-          <div className="text-xs text-gray-400">
-            © 2025 DearNeuro. All rights reserved.
-          </div>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 };
