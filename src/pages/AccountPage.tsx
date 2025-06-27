@@ -1,58 +1,52 @@
-import { useAuth } from "@/context/AuthProvider";
-import { supabase } from "@/lib/supabaseClient";
-import { useNavigate } from "react-router-dom";
+import Header from "@/components/Header";
+import {
+  FaUser,
+  FaBox,
+  FaHistory,
+  FaCogs,
+  FaEnvelope,
+  FaLock,
+  FaAddressBook,
+  FaCreditCard,
+} from "react-icons/fa";
+
+const items = [
+  { icon: <FaUser size={24} />, label: "Account Settings" },
+  { icon: <FaBox size={24} />, label: "Subscriptions" },
+  { icon: <FaHistory size={24} />, label: "Order History" },
+  { icon: <FaCogs size={24} />, label: "Preferences" },
+  { icon: <FaEnvelope size={24} />, label: "Contact Us" },
+  { icon: <FaLock size={24} />, label: "Security" },
+  { icon: <FaAddressBook size={24} />, label: "Address Book" },
+  { icon: <FaCreditCard size={24} />, label: "Payment Methods" },
+];
 
 const AccountPage = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  const firstName =
-    user?.user_metadata?.first_name ||
-    user?.user_metadata?.given_name ||
-    user?.user_metadata?.full_name?.split(" ")?.[0] ||
-    user?.email?.split("@")[0] ||
-    "";
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
-  const accountOptions = [
-    { label: "Account Settings", icon: "👤" },
-    { label: "Subscriptions", icon: "📦" },
-    { label: "Order History", icon: "📄" },
-    { label: "Preferences", icon: "⚙️" },
-    { label: "Contact Us", icon: "✉️" },
-    { label: "Security", icon: "🔒" },
-    { label: "Address Book", icon: "📬" },
-    { label: "Payment Methods", icon: "💳" },
-  ];
-
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold mb-8">My Account</h1>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {accountOptions.map((item) => (
-          <div
-            key={item.label}
-            className="bg-white p-5 rounded-lg shadow hover:shadow-md cursor-pointer text-center"
-          >
-            <div className="text-3xl mb-2">{item.icon}</div>
-            <div className="font-medium">{item.label}</div>
-          </div>
-        ))}
-
-        <div
-          onClick={handleLogout}
-          className="bg-white p-5 rounded-lg shadow hover:shadow-md cursor-pointer text-center"
-        >
-          <div className="text-3xl mb-2">🚪</div>
-          <div className="font-medium">Log Out</div>
+    <>
+      <Header />
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-6 text-[#161616]">My Account</h1>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((item, index) => (
+            <div
+              key={index}
+              className="flex items-center gap-4 p-4 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div className="text-[#514B3D]">{item.icon}</div>
+              <span className="text-sm text-[#161616] font-medium">
+                {item.label}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8">
+          <button className="px-4 py-2 bg-[#514B3D] text-white rounded-lg hover:bg-[#3f3a2f]">
+            Log Out
+          </button>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
