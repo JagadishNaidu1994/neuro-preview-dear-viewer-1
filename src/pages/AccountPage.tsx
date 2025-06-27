@@ -1,83 +1,80 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
+import { useAuth } from "@/context/AuthProvider";
+import { Button } from "@/components/ui/button";
 
 const AccountPage = () => {
-  const [user, setUser] = useState<any>(null);
+  const { user } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        navigate("/");
-      } else {
-        setUser(user);
-      }
-    };
-
-    fetchUser();
-  }, [navigate]);
+  const sections = [
+    {
+      title: "Account Settings",
+      description: user?.email || "Not available",
+      icon: "👤",
+      onClick: () => {}, // can add modal
+    },
+    {
+      title: "Subscriptions",
+      description: "No active subscriptions yet.",
+      icon: "📦",
+      onClick: () => {}, // navigate('/subscriptions')
+    },
+    {
+      title: "Order History",
+      description: "You haven’t placed any orders yet.",
+      icon: "🧾",
+      onClick: () => {}, // navigate('/orders')
+    },
+    {
+      title: "Settings",
+      description: "Additional preferences coming soon.",
+      icon: "⚙️",
+      onClick: () => {},
+    },
+    {
+      title: "Contact Us",
+      description: "Need help? Reach out at support@dearneuro.com",
+      icon: "📨",
+      onClick: () => {
+        window.open("mailto:support@dearneuro.com");
+      },
+    },
+  ];
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
+    const { error } = await import("@/lib/supabaseClient").then((mod) =>
+      mod.supabase.auth.signOut()
+    );
+    if (!error) navigate("/");
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F8F5]">
-      <Header />
-      <div className="max-w-4xl mx-auto px-4 py-16 space-y-10">
-        <h1 className="text-4xl font-semibold text-[#161616]">My Account</h1>
+    <div className="max-w-3xl mx-auto p-6 space-y-6">
+      <h1 className="text-3xl font-bold mb-2">My Account</h1>
 
-        <div className="space-y-8">
-          <Section title="Account Settings">
-            <p>Email: {user?.email}</p>
-          </Section>
-
-          <Section title="Subscriptions">
-            <p>No active subscriptions yet.</p>
-          </Section>
-
-          <Section title="Order History">
-            <p>You haven't placed any orders yet.</p>
-          </Section>
-
-          <Section title="Settings">
-            <p>Additional preferences coming soon.</p>
-          </Section>
-
-          <Section title="Contact Us">
-            <p>Need help? Reach out at support@dearneuro.com</p>
-          </Section>
-
+      <div className="space-y-4">
+        {sections.map((section, idx) => (
           <button
-            onClick={handleLogout}
-            className="bg-[#514B3D] text-white py-2 px-6 rounded-xl hover:bg-[#665c50] transition"
+            key={idx}
+            onClick={section.onClick}
+            className="w-full flex items-start gap-4 bg-[#f6f5f3] hover:bg-[#f0eee9] rounded-xl p-4 text-left transition-shadow shadow-sm hover:shadow-md"
           >
-            Log Out
+            <div className="text-2xl">{section.icon}</div>
+            <div>
+              <h2 className="font-semibold text-lg">{section.title}</h2>
+              <p className="text-sm text-gray-600">{section.description}</p>
+            </div>
           </button>
-        </div>
+        ))}
+      </div>
+
+      <div className="pt-4">
+        <Button onClick={handleLogout} className="bg-[#514B3D] hover:bg-[#5a5147]">
+          Log Out
+        </Button>
       </div>
     </div>
   );
 };
-
-const Section = ({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) => (
-  <div>
-    <h2 className="text-xl font-semibold mb-2 text-[#1E1E1E]">{title}</h2>
-    <div className="text-[#231F20] text-sm">{children}</div>
-  </div>
-);
 
 export default AccountPage;
