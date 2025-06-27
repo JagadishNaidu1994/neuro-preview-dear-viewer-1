@@ -36,7 +36,7 @@ const Header = () => {
           <Link to="/cart" className="text-xl">
             <FaShoppingCart />
           </Link>
-          <Link to="/account" className="text-xl">
+          <Link to="/account" className="text-2xl">
             <FaUser />
           </Link>
         </div>
