@@ -1,19 +1,21 @@
 // src/components/ProtectedRoute.tsx
-import { Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthProvider";
 
-const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-  const { user, loading } = useAuth();
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { session, loading } = useAuth();
+  const navigate = useNavigate();
 
-  if (loading) {
-    return <div className="text-center py-20">Loading...</div>;
-  }
+  useEffect(() => {
+    if (!loading && !session) {
+      navigate("/"); // or show login modal, or /login
+    }
+  }, [loading, session]);
 
-  if (!user) {
-    return <Navigate to="/" replace />;
-  }
+  if (loading) return null;
 
-  return children;
+  return session ? <>{children}</> : null;
 };
 
 export default ProtectedRoute;

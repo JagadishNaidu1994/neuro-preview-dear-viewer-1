@@ -1,58 +1,141 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { FaUser, FaShoppingCart, FaBars } from "react-icons/fa";
+// src/components/Header.tsx
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import AuthModal from "./AuthModal";
+import { useAuth } from "@/context/AuthProvider";
 
 const Header = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const navigate = useNavigate();
+
+  const { user, loading } = useAuth();
+
+  const firstName =
+    user?.user_metadata?.first_name ||
+    user?.user_metadata?.given_name ||
+    user?.user_metadata?.full_name?.split(" ")?.[0] ||
+    user?.email?.split("@")[0] ||
+    "";
+
+  const handleAccountClick = () => {
+    if (loading) return;
+    if (user) {
+      navigate("/account");
+    } else {
+      setIsAuthModalOpen(true);
+    }
+  };
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="bg-[#F9F9F4] border-b border-[#ddd]">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-        {/* Mobile hamburger */}
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden text-2xl"
-        >
-          <FaBars />
-        </button>
+    <>
+      <header
+        className={`sticky top-0 z-50 bg-[#fafaf7] transition-shadow ${
+          scrolled ? "shadow-md" : ""
+        }`}
+      >
+        <div className="max-w-[1440px] mx-auto px-4 md:px-8 flex items-center justify-between h-16 lg:h-20">
+          {/* Left */}
+          <div className="flex items-center gap-3 lg:flex-none">
+            {/* Hamburger for mobile */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="lg:hidden p-2 rounded-lg bg-[#ededebd9]"
+              aria-label="Toggle Menu"
+            >
+              <div className="space-y-1">
+                <div className="w-5 h-0.5 bg-[#161616]" />
+                <div className="w-5 h-0.5 bg-[#161616]" />
+                <div className="w-5 h-0.5 bg-[#161616]" />
+              </div>
+            </button>
 
-        {/* Brand Name */}
-        <div className="flex-1 flex justify-center md:justify-start">
-          <Link to="/" className="text-xl font-semibold text-[#161616]">
-            DearNeuro
-          </Link>
+            <a
+              href="/"
+              className="text-xl lg:text-2xl font-bold text-[#161616] block lg:hidden mx-auto"
+            >
+              DearNeuro
+            </a>
+
+            <a
+              href="/"
+              className="hidden lg:block text-xl lg:text-2xl font-bold text-[#161616]"
+            >
+              DearNeuro
+            </a>
+          </div>
+
+          {/* Center nav (desktop) */}
+          <nav className="hidden lg:flex flex-1 justify-center space-x-12 text-sm font-medium text-[#1E1E1E]">
+            <a href="/shop-all" className="hover:underline">Shop All</a>
+            <a href="/the-science" className="hover:underline">The Science</a>
+            <a href="/ethos" className="hover:underline">Our Ethos</a>
+            <a href="/herbal-index" className="hover:underline">Herbal Index</a>
+          </nav>
+
+          {/* Right */}
+          <div className="flex items-center gap-3">
+            {user && (
+              <span className="hidden md:inline text-sm text-[#514B3D] font-medium">
+                Hey {firstName}
+              </span>
+            )}
+
+            {user && (
+              <button
+                className="text-[#514B3D] text-xl hover:opacity-80"
+                aria-label="Cart"
+              >
+                🛒
+              </button>
+            )}
+
+            <button
+              onClick={handleAccountClick}
+              className="flex items-center justify-center bg-[rgba(237,236,235,0.60)] hover:bg-[rgba(237,236,235,0.80)] rounded-full w-9 h-9"
+              aria-label="Account"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </button>
+          </div>
         </div>
 
-        {/* Desktop Nav */}
-        <nav className="hidden md:flex gap-6 text-sm text-[#161616] flex-1 justify-center items-center">
-          <Link to="/shop-all">Shop All</Link>
-          <Link to="/the-science">The Science</Link>
-          <Link to="/our-ethos">Our Ethos</Link>
-          <Link to="/herbal-index">Herbal Index</Link>
-        </nav>
+        {/* Mobile menu */}
+        {isMenuOpen && (
+          <div className="lg:hidden px-4 pb-4 pt-2 space-y-3 bg-white border-t border-gray-200 shadow">
+            <a href="/shop-all" className="block text-sm hover:text-[#514B3D]">Shop All</a>
+            <a href="/the-science" className="block text-sm hover:text-[#514B3D]">The Science</a>
+            <a href="/ethos" className="block text-sm hover:text-[#514B3D]">Our Ethos</a>
+            <a href="/herbal-index" className="block text-sm hover:text-[#514B3D]">Herbal Index</a>
+            <button onClick={handleAccountClick} className="block text-sm text-[#514B3D] pt-2">
+              Account
+            </button>
+          </div>
+        )}
+      </header>
 
-        {/* Right Side Icons */}
-        <div className="flex gap-4 items-center">
-          <Link to="/cart" className="text-2xl">
-            <FaShoppingCart />
-          </Link>
-          <Link to="/account" className="text-2xl">
-            <FaUser />
-          </Link>
-        </div>
-      </div>
-
-      {/* Mobile Nav */}
-      {menuOpen && (
-        <div className="md:hidden px-4 pb-4 space-y-2 text-[#161616] text-sm">
-          <Link to="/shop-all" className="block">Shop All</Link>
-          <Link to="/the-science" className="block">The Science</Link>
-          <Link to="/our-ethos" className="block">Our Ethos</Link>
-          <Link to="/herbal-index" className="block">Herbal Index</Link>
-          <Link to="/account" className="block">Account</Link>
-        </div>
-      )}
-    </header>
+      {/* Auth modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
+    </>
   );
 };
 

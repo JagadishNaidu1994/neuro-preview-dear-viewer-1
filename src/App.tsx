@@ -3,7 +3,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
+import AuthModal from "@/components/AuthModal";
+import { useAuth } from "@/context/AuthProvider";
 import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
 import ShopAll from "@/pages/ShopAll";
@@ -18,6 +19,8 @@ import { AuthProvider } from "@/context/AuthProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
+const { isAuthModalOpen, closeAuthModal } = useAuth();
+
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
