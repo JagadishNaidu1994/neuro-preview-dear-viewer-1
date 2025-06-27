@@ -1,51 +1,66 @@
+// src/pages/TheScience.tsx
 import Header from "@/components/Header";
+import { Link } from "react-router-dom";
 
-const TheScience = () => {
+interface ScienceItem {
+  id: number;
+  title: string;
+  description: string;
+  img: string;
+}
+
+const SCIENCE_ITEMS: ScienceItem[] = [
+  {
+    id: 1,
+    title: "Neuro Wellness Explained",
+    description: "How our mushroom blend benefits cognition & mood",
+    img: "https://cdn.builder.io/api/v1/image/assets/TEMP/science1.jpg",
+  },
+  {
+    id: 2,
+    title: "The Power of Adaptogens",
+    description: "Adaptogenic mushrooms and your stress response",
+    img: "https://cdn.builder.io/api/v1/image/assets/TEMP/science2.jpg",
+  },
+  {
+    id: 3,
+    title: "Client-Grade Formulas",
+    description: "Formulation process, safety & quality control",
+    img: "https://cdn.builder.io/api/v1/image/assets/TEMP/science3.jpg",
+  },
+];
+
+export default function TheScience() {
   return (
-    <div className="min-h-screen bg-[#F8F8F5]">
+    <div className="min-h-screen bg-white">
       <Header />
-      <div className="max-w-[1905px] mx-auto">
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <h2 className="text-4xl font-normal text-[#1E1E1E] mb-6">
-              Neuroscience Meets Nature
-            </h2>
-            <p className="text-lg text-[#231F20] mb-8">
-              Our research is backed by leading neuroscientists who understand
-              the intricate workings of the mind and how functional mushrooms
-              can enhance cognitive performance.
-            </p>
-            <div className="space-y-4">
-              <div className="bg-white rounded-[20px] p-6">
-                <h3 className="text-lg font-medium text-[#161616] mb-2">
-                  Clinical Research
-                </h3>
-                <p className="text-sm text-[#B2AFAB]">
-                  Peer-reviewed studies on cognitive enhancement
-                </p>
+      <main className="max-w-[1440px] mx-auto px-4 md:px-8 py-8">
+        <h1 className="text-4xl font-semibold mb-6">The Science</h1>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {SCIENCE_ITEMS.map((item) => (
+            <Link
+              key={item.id}
+              to="#"
+              className="group flex flex-col bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300"
+            >
+              <div className="relative h-48 overflow-hidden">
+                <img
+                  src={item.img}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
               </div>
-              <div className="bg-white rounded-[20px] p-6">
-                <h3 className="text-lg font-medium text-[#161616] mb-2">
-                  Expert Formulation
-                </h3>
-                <p className="text-sm text-[#B2AFAB]">
-                  Developed by functional health doctors
-                </p>
+              <div className="p-4 flex-1 flex flex-col">
+                <h2 className="text-lg font-medium mb-2">{item.title}</h2>
+                <p className="text-gray-600 flex-1">{item.description}</p>
+                <span className="mt-4 text-sm text-[#514B3D] font-medium">
+                  Learn more →
+                </span>
               </div>
-            </div>
-          </div>
-          <div className="rounded-[20px] overflow-hidden">
-            <img
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/3a760dbb1fd453f7e5e2af17f5fe0ba0eb31cb2e"
-              alt="Neuroscience research"
-              className="w-full h-full object-cover"
-            />
-          </div>
+            </Link>
+          ))}
         </div>
-      </div>
+      </main>
     </div>
   );
-};
-
-export default TheScience;
+}
