@@ -24,7 +24,6 @@ export const herbs: Herb[] = [
     <path d="M10 20L20 10L30 20L20 30Z" stroke="black" strokeWidth="2" />
   </svg>
 ),
-
     ),
     bestFor: ["Energy", "Memory", "Stress", "Mental Clarity"],
     back: {
