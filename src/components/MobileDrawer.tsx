@@ -19,7 +19,6 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
   ];
 
   const extraItems = [
-    { label: "Log In", onClick: onAccountClick },
     { label: "Contact Us", path: "/contact" },
     { label: "FAQs", path: "/faqs" },
     { label: "Shipping & Returns", path: "/shipping" },
