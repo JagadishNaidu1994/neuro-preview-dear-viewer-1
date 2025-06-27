@@ -39,6 +39,10 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
         <div className="divide-y divide-gray-200 text-sm font-semibold text-[#161616]">
           {[
             { label: "Shop All", path: "/shop-all" },
+            // // { label: "Shop by Product", expandable: true },
+            // // { label: "Shop by Benefit", expandable: true },
+            // // { label: "Shop by Mushroom", expandable: true },
+            // { label: "Accessories", path: "/accessories" },
             { label: "Science", path: "/the-science" },
             { label: "Our Story", path: "/ethos" },
             { label: "Refer a Friend", path: "/refer" },
@@ -56,7 +60,6 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
 
         {/* Secondary Links */}
         <div className="py-4 px-4 space-y-3 text-sm text-[#444] font-normal border-t mt-2">
-          <button onClick={onAccountClick}>Log In</button>
           <Link to="/refer">Refer a Friend</Link>
           <Link to="/rewards">Rewards</Link>
         </div>
