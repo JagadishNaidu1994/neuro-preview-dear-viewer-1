@@ -36,7 +36,7 @@ const TheScience = () => {
     },
     {
       title: "Scientific Efficacy",
-      image: "/images/feature-efficacy.jpg",
+      image: "/images/pillar2.webp",
     },
     {
       title: "Clean Ingredients",
