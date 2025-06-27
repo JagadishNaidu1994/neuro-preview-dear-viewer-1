@@ -12,7 +12,6 @@ const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const { user, firstName } = useAuth();
-
   const handleAccountClick = () => {
     if (user) navigate("/account");
     else setAuthOpen(true);
