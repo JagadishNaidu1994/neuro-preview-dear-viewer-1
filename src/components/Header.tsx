@@ -63,7 +63,7 @@ const Header = () => {
   )}
 </div>
 
-        <div className="flex items-center gap-4 text-xl text-[#161616]">
+        <div className="hidden md:flex items-center gap-4 text-xl text-[#161616]">
           <Link to="/cart" aria-label="Cart"><FaShoppingCart /></Link>
           <button onClick={handleAccountClick} aria-label="Account"><FaUser /></button>
         </div>
