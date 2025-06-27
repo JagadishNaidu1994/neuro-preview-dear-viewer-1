@@ -49,7 +49,7 @@ const Header = () => {
         {/* Icons */}
         <span className="text-sm font-medium text-[#161616]">Hey {firstName}</span>
 
-        <div className="hidden md:flex items-center gap-4 text-xl text-[#161616]">
+        <div className="flex items-center gap-4 text-xl text-[#161616]">
   <Link to="/cart" aria-label="Cart">
     <FaShoppingCart />
   </Link>
