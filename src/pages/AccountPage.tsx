@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthProvider";
-import AuthModal from "@/components/ui/AuthModal";
+import { AuthModal } from "@/components/ui/AuthModal";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
