@@ -12,6 +12,11 @@ const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
 
+  const firstName =
+  user?.user_metadata?.given_name ||
+  user?.user_metadata?.full_name?.split(" ")[0] ||
+  "there"; // fallback if no name
+  
   const handleAccountClick = () => {
     if (user) navigate("/account");
     else setAuthOpen(true);
