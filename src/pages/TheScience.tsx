@@ -40,11 +40,11 @@ const TheScience = () => {
     },
     {
       title: "Clean Ingredients",
-      image: "/images/feature-ingredients.jpg",
+      image: "/images/pillar3.webp",
     },
     {
       title: "Maximum Effect",
-      image: "/images/feature-effect.jpg",
+      image: "/images/pillar4.webp",
     },
   ].map((item, idx) => (
     <div
