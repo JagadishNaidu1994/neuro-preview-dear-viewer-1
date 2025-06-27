@@ -66,9 +66,15 @@ const Header = () => {
       >
         <div className="flex justify-between items-center p-4 border-b">
           <span className="text-lg font-semibold text-[#161616]">Menu</span>
-          <button onClick={() => setMobileOpen(false)} className="text-xl">
+          {/* <button onClick={() => setMobileOpen(false)} className="text-xl">
             <FaTimes />
-          </button>
+          </button> */}
+          <button onClick={() => setMenuOpen(true)} className="md:hidden text-xl p-2">
+  <svg className="w-6 h-6 text-[#161616]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+</button>
+
         </div>
         <nav className="flex flex-col space-y-4 p-4 text-[#161616] font-medium text-sm">
           <MobileNavLink to="/shop-all" icon={<FaHome />}>Shop All</MobileNavLink>
