@@ -1,3 +1,4 @@
+// src/pages/HerbalIndex.tsx
 import React, { useState } from "react";
 import Header from "@/components/Header";
 
@@ -6,105 +7,101 @@ const herbs = [
     id: 1,
     name: "American Ginseng",
     svg: (
-      <svg
-        width="48"
-        height="48"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <path d="M8 12h8M12 8v8" />
+      <svg width="40" height="40" fill="none" viewBox="0 0 24 24">
+        <path
+          d="M12 2C10.343 4.343 6.343 5.343 6 8c.343 2.657 4.343 3.657 6 6 1.657-2.343 5.657-3.343 6-6-.343-2.657-4.343-3.657-6-6z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
       </svg>
     ),
-    bestFor: ["Energy", "Memory", "Clarity"],
+    latin: "Panax quinquefolius",
+    bestFor: ["Energy", "Memory", "Stress", "Mental Clarity"],
+    description:
+      "This powerful root enhances cognitive performance by improving memory and neuroplasticity (your brain’s ability to adapt), reaction time, and combating stress to support mental clarity. It can also provide a gentle boost of energy by stimulating metabolism and combating fatigue without the jitters associated with harsh stimulants.",
     back: {
       origin:
-        "Native to North America, traditionally used in Chinese medicine.",
+        "Native to the Appalachian Mountains and Eastern Canada, revered in both Native American and traditional Chinese medicine.",
       whyWeUseIt:
-        "Supports the nervous system and cognitive clarity. Helps regulate stress.",
-      studies: ["https://example.com/study1", "https://example.com/study2"],
+        "The primary active compounds of American Ginseng are called ginsenosides. Ginsenosides support your nervous system by protecting and promoting the growth of brain cells. These bioactives also help calm the body’s stress response by tuning down overactivity in your HPA axis (your stress system) for greater emotional balance.",
+      studies: ["Study 1", "Study 2", "Study 3"],
       usedIn: "In the Zone & Matcha Chocolate Delights",
     },
   },
+  // Add more herbs...
 ];
 
 const HerbalIndex = () => {
-  const [flippedId, setFlippedId] = useState<number | null>(null);
-
-  const toggleFlip = (id: number) => {
-    setFlippedId(flippedId === id ? null : id);
-  };
+  const [flipped, setFlipped] = useState<number | null>(null);
 
   return (
-    <>
+    <div className="bg-[#FAFAF7] min-h-screen">
       <Header />
-      <main className="bg-[#FAFAF7] min-h-screen px-4 py-10">
-        <h1 className="text-center text-xl md:text-3xl font-semibold text-[#1E1E1E] mb-8">
+      <div className="text-center py-12 px-4">
+        <h1 className="text-3xl md:text-4xl font-semibold text-[#0D0D0D]">
           A whole world of mushrooms, adaptogens and nootropics that work better, together.
         </h1>
+      </div>
 
-        <div className="flex flex-wrap justify-center gap-8 max-w-6xl mx-auto">
-          {herbs.map((herb) => (
+      <div className="max-w-6xl mx-auto px-4 grid gap-6 sm:grid-cols-2 md:grid-cols-3 pb-16">
+        {herbs.map((herb) => {
+          const isFlipped = flipped === herb.id;
+          return (
             <div
               key={herb.id}
-              className="relative w-[280px] h-[360px] cursor-pointer [perspective:1000px]"
-              onClick={() => toggleFlip(herb.id)}
+              className="relative cursor-pointer [perspective:1000px]"
+              onClick={() => setFlipped(isFlipped ? null : herb.id)}
             >
               <div
-                className={`w-full h-full transition-transform duration-700 [transform-style:preserve-3d] ${
-                  flippedId === herb.id ? "[transform:rotateY(180deg)]" : ""
+                className={`transition-transform duration-500 [transform-style:preserve-3d] ${
+                  isFlipped ? "rotate-y-180" : ""
                 }`}
               >
-                {/* FRONT */}
-                <div className="absolute w-full h-full [backface-visibility:hidden] bg-white rounded-xl shadow-md p-5 flex flex-col items-center justify-center text-center">
-                  <div className="mb-4">{herb.svg}</div>
-                  <h3 className="text-lg font-semibold">
-                    [{String(herb.id).padStart(2, "0")}] {herb.name}
-                  </h3>
-                  <p className="text-sm mt-2 text-gray-600">
-                    Best for: {herb.bestFor.join(", ")}
-                  </p>
-                  <p className="text-xs mt-4 text-gray-400">
-                    Tap to learn more →
-                  </p>
+                {/* Front Face */}
+                <div className="absolute w-full h-full bg-white rounded-xl p-6 [backface-visibility:hidden] shadow-md">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-[#333]">[{herb.id}]</span>
+                    <span className="w-3 h-3 rounded-full bg-[#a58956]" />
+                  </div>
+                  <div className="mb-3">{herb.svg}</div>
+                  <h2 className="font-semibold text-[#111] text-lg mb-1">{herb.name}</h2>
+                  <p className="italic text-sm text-[#666] mb-2">{herb.latin}</p>
+                  <p className="text-sm text-[#444] line-clamp-4">{herb.description}</p>
+                  <div className="mt-4 text-xs font-semibold text-[#333]">
+                    Best For
+                  </div>
+                  <p className="text-xs text-[#666]">{herb.bestFor.join(", ")}</p>
                 </div>
 
-                {/* BACK */}
-                <div className="absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] bg-white rounded-xl shadow-md p-5 overflow-y-auto">
-                  <h3 className="text-md font-bold mb-1">{herb.name}</h3>
-                  <p className="text-sm text-gray-800">
-                    <strong>Origins:</strong> {herb.back.origin}
-                  </p>
-                  <p className="text-sm text-gray-800 mt-2">
-                    <strong>Why We Use It:</strong> {herb.back.whyWeUseIt}
-                  </p>
-                  <p className="text-sm font-medium mt-2">Key Studies:</p>
-                  <ul className="text-sm list-disc pl-4">
-                    {herb.back.studies.map((link, i) => (
-                      <li key={i}>
-                        <a
-                          href={link}
-                          className="text-blue-600 underline"
-                          target="_blank"
-                        >
-                          Study {i + 1}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="text-sm mt-2">
-                    <strong>Used In:</strong> {herb.back.usedIn}
-                  </p>
-                  <p className="text-xs mt-2 text-gray-400 text-right">Tap to flip back</p>
+                {/* Back Face */}
+                <div className="absolute w-full h-full bg-white rounded-xl p-6 [transform:rotateY(180deg)] [backface-visibility:hidden] shadow-md">
+                  <h2 className="font-semibold text-[#111] text-md mb-2">{herb.name}</h2>
+                  <div className="text-xs text-[#444] space-y-2">
+                    <div>
+                      <span className="font-semibold">Origins:</span> {herb.back.origin}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Why We Use It:</span> {herb.back.whyWeUseIt}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Key Studies:</span>
+                      <ul className="list-disc pl-4">
+                        {herb.back.studies.map((s, i) => (
+                          <li key={i}>{s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <span className="font-semibold">Used In:</span> {herb.back.usedIn}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-      </main>
-    </>
+          );
+        })}
+      </div>
+    </div>
   );
 };
 
