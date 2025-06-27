@@ -38,8 +38,8 @@ const Header = () => {
       {/* Mobile Nav Menu */}
       {menuOpen && (
         <nav className="md:hidden bg-[#F9F9F4] border-t border-[#ddd] px-4 py-2 space-y-2">
-          <Link to="/shop" className="block text-[#161616]">Shop All</Link>
-          <Link to="/science" className="block text-[#161616]">The Science</Link>
+          <Link to="/shop-all" className="block text-[#161616]">Shop All</Link>
+          <Link to="/the-science" className="block text-[#161616]">The Science</Link>
           <Link to="/ethos" className="block text-[#161616]">Our Ethos</Link>
           <Link to="/herbal-index" className="block text-[#161616]">Herbal Index</Link>
           <Link to="/account" className="block text-[#161616]">Account</Link>
