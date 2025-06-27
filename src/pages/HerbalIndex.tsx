@@ -12,7 +12,7 @@ const HerbalIndex = () => {
           A whole world of mushrooms, adaptogens and nootropics that work better, together.
         </h1>
         <img
-          src="/images/herbal-banner.png"
+          src="/images/thescience/pillar1.jpg"
           alt="Herbal Index Banner"
           className="mx-auto mt-8 rounded-lg"
         />
