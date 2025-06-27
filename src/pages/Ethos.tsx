@@ -31,7 +31,7 @@ const Ethos = () => {
         {/* Large Image */}
         <section>
           <img
-            src="https://noon.world/cdn/shop/files/NOON_Gummy_Held.jpg"
+            src="/public/images/ethos/hand_gummy.jpg"
             alt="Gummy Held"
             className="w-full rounded-xl"
           />
