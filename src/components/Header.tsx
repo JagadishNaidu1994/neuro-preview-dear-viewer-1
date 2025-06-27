@@ -11,7 +11,7 @@ const Header = () => {
         {/* Mobile hamburger */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden text-xl"
+          className="md:hidden text-2xl"
         >
           <FaBars />
         </button>
