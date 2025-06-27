@@ -44,7 +44,7 @@ const TheScience = () => {
     },
     {
       title: "Maximum Effect",
-      image: "/images/pillar4.jpg",
+      image: "/images/thescience/pillar4.jpg",
     },
   ].map((item, idx) => (
     <div
