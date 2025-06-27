@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthProvider";
 import { FaBars, FaTimes, FaUser, FaShoppingCart, FaFlask, FaLeaf, FaBookOpen, FaHome } from "react-icons/fa";
 import AuthModal from "@/components/AuthModal";
+import MobileNav from "./MobileNav";
+
 
 const Header = () => {
   const { user } = useAuth();
