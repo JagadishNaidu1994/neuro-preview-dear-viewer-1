@@ -1,337 +1,109 @@
-// import React, { useState } from "react";
-// import { Link, useNavigate } from "react-router-dom";
-// import { FaShoppingCart, FaUser } from "react-icons/fa";
-// import { useAuth } from "@/context/AuthProvider";
-// import AuthModal from "@/components/AuthModal";
-// import { useMediaQuery } from "usehooks-ts";
-
-// const Header = () => {
-//   const { user } = useAuth();
-//   const navigate = useNavigate();
-//   const isMobile = useMediaQuery("(max-width: 768px)");
-
-//   const [showMenu, setShowMenu] = useState(false);
-//   const [showAuthModal, setShowAuthModal] = useState(false);
-
-//   const handleAccountClick = () => {
-//     if (user) {
-//       navigate("/account");
-//     } else {
-//       setShowAuthModal(true);
-//     }
-//   };
-
-//   return (
-//     <header className="sticky top-0 z-50 bg-[#F9F9F4] shadow-sm border-b">
-//       <div className="max-w-[1200px] mx-auto px-4 py-3 flex justify-between items-center relative">
-//         {/* Left: Hamburger (Mobile Only) */}
-//         {isMobile && (
-//           <button
-//             onClick={() => setShowMenu(!showMenu)}
-//             className="text-xl text-[#161616]"
-//           >
-//             &#9776;
-//           </button>
-//         )}
-
-//         {/* Center: Logo (mobile center, desktop left) */}
-//         <div
-//           className={`font-bold text-[#161616] text-lg ${
-//             isMobile ? "absolute left-1/2 transform -translate-x-1/2" : ""
-//           }`}
-//         >
-//           <Link to="/">DearNeuro</Link>
-//         </div>
-
-//         {/* Right: Cart + Account Icons */}
-//         <div className="flex items-center gap-4">
-//           <Link to="/cart">
-//             <FaShoppingCart className="text-[#161616]" size={18} />
-//           </Link>
-//           <button onClick={handleAccountClick}>
-//             <FaUser className="text-[#161616]" size={18} />
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* Nav Bar */}
-//       <nav
-//         className={`${
-//           isMobile
-//             ? `${
-//                 showMenu ? "block" : "hidden"
-//               } px-4 pb-4 text-sm font-medium text-[#161616] space-y-2`
-//             : "flex justify-center space-x-8 text-sm text-[#161616] font-medium py-2"
-//         }`}
-//       >
-//         <Link to="/shop-all">Shop All</Link>
-//         <Link to="/the-science">The Science</Link>
-//         <Link to="/ethos">Our Ethos</Link>
-//         <Link to="/herbal-index">Herbal Index</Link>
-//       </nav>
-
-//       {/* Auth Modal */}
-//       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
-//     </header>
-//   );
-// };
-
-// export default Header;
-
-
-
-// import React, { useState } from "react";
-// import { Link, useNavigate } from "react-router-dom";
-// import { FaShoppingCart, FaUser, FaBars, FaTimes } from "react-icons/fa";
-// import { useAuth } from "@/context/AuthProvider";
-// import AuthModal from "@/components/AuthModal";
-// import { useMediaQuery } from "usehooks-ts";
-
-// const Header = () => {
-//   const { user } = useAuth();
-//   const navigate = useNavigate();
-//   const isMobile = useMediaQuery("(max-width: 768px)");
-
-//   const [showMenu, setShowMenu] = useState(false);
-//   const [showAuthModal, setShowAuthModal] = useState(false);
-
-//   const handleAccountClick = () => {
-//     if (user) {
-//       navigate("/account");
-//     } else {
-//       setShowAuthModal(true);
-//     }
-//   };
-
-//   return (
-//     <header className="sticky top-0 z-50 bg-[#F9F9F4] shadow-sm border-b">
-//       <div className="max-w-[1200px] mx-auto px-4 py-3 flex justify-between items-center relative">
-//         {/* Left: Hamburger (Mobile Only) */}
-//         {isMobile && (
-//           <button
-//             onClick={() => setShowMenu(true)}
-//             className="text-xl text-[#161616]"
-//           >
-//             <FaBars />
-//           </button>
-//         )}
-
-//         {/* Center: Logo (mobile center, desktop left) */}
-//         <div
-//           className={`font-bold text-[#161616] text-lg ${
-//             isMobile ? "absolute left-1/2 transform -translate-x-1/2" : ""
-//           }`}
-//         >
-//           <Link to="/">DearNeuro</Link>
-//         </div>
-
-//         {/* Right: Cart + Account Icons */}
-//         <div className="flex items-center gap-4">
-//           <Link to="/cart">
-//             <FaShoppingCart className="text-[#161616]" size={18} />
-//           </Link>
-//           <button onClick={handleAccountClick}>
-//             <FaUser className="text-[#161616]" size={18} />
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* Desktop Nav Bar */}
-//       {!isMobile && (
-//         <nav className="flex justify-center space-x-8 text-sm text-[#161616] font-medium py-2">
-//           <Link to="/shop-all">Shop All</Link>
-//           <Link to="/the-science">The Science</Link>
-//           <Link to="/ethos">Our Ethos</Link>
-//           <Link to="/herbal-index">Herbal Index</Link>
-//         </nav>
-//       )}
-
-//       {/* Mobile Flyout Menu */}
-//       {isMobile && (
-//         <div
-//           className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${
-//             showMenu ? "translate-x-0" : "-translate-x-full"
-//           }`}
-//         >
-//           <div className="flex items-center justify-between p-4 border-b">
-//             <span className="font-bold text-[#161616] text-lg">Menu</span>
-//             <button
-//               onClick={() => setShowMenu(false)}
-//               className="text-xl text-[#161616]"
-//             >
-//               <FaTimes />
-//             </button>
-//           </div>
-//           <nav className="flex flex-col px-4 py-4 text-[#161616] font-medium space-y-4">
-//             <Link to="/shop-all" onClick={() => setShowMenu(false)}>
-//               Shop All
-//             </Link>
-//             <Link to="/the-science" onClick={() => setShowMenu(false)}>
-//               The Science
-//             </Link>
-//             <Link to="/ethos" onClick={() => setShowMenu(false)}>
-//               Our Ethos
-//             </Link>
-//             <Link to="/herbal-index" onClick={() => setShowMenu(false)}>
-//               Herbal Index
-//             </Link>
-//             <button
-//               onClick={() => {
-//                 setShowMenu(false);
-//                 handleAccountClick();
-//               }}
-//               className="text-left"
-//             >
-//               Account
-//             </button>
-//           </nav>
-//         </div>
-//       )}
-
-//       {/* Auth Modal */}
-//       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
-//     </header>
-//   );
-// };
-
-// export default Header;
-
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaShoppingCart, FaUser, FaBars, FaTimes } from "react-icons/fa";
 import { useAuth } from "@/context/AuthProvider";
+import { FaBars, FaTimes, FaUser, FaShoppingCart, FaFlask, FaLeaf, FaBookOpen, FaHome } from "react-icons/fa";
 import AuthModal from "@/components/AuthModal";
-import { useMediaQuery } from "usehooks-ts";
 
 const Header = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const isMobile = useMediaQuery("(max-width: 768px)");
 
-  const [showMenu, setShowMenu] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
 
   const handleAccountClick = () => {
     if (user) {
       navigate("/account");
     } else {
-      setShowAuthModal(true);
+      setAuthOpen(true);
     }
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-[#F9F9F4] shadow-md border-b">
-      <div className="max-w-[1200px] mx-auto px-4 py-3 flex justify-between items-center relative">
-        {/* Left: Hamburger (Mobile Only) */}
-        {isMobile && (
-          <button
-            onClick={() => setShowMenu(true)}
-            className="text-xl text-[#161616]"
-          >
-            <FaBars />
-          </button>
-        )}
+    <header className="sticky top-0 z-50 bg-[#FAFAF5] shadow-md">
+      <div className="max-w-[1200px] mx-auto flex items-center justify-between px-4 py-3 md:py-4">
+        {/* Mobile Menu Icon */}
+        <button onClick={() => setMobileOpen(true)} className="md:hidden text-xl text-[#161616]">
+          <FaBars />
+        </button>
 
-        {/* Center: Logo (mobile center, desktop left) */}
-        <div
-          className={`font-bold text-[#161616] text-lg ${
-            isMobile ? "absolute left-1/2 transform -translate-x-1/2" : ""
-          }`}
+        {/* Logo */}
+        <Link
+          to="/"
+          className="text-lg font-bold text-[#161616] mx-auto md:mx-0 md:text-left"
         >
-          <Link to="/">DearNeuro</Link>
-        </div>
+          DearNeuro
+        </Link>
 
-        {/* Right: Cart + Account Icons */}
-        <div className="flex items-center gap-4">
-          <Link to="/cart">
-            <FaShoppingCart className="text-[#161616]" size={18} />
-          </Link>
-          <button onClick={handleAccountClick}>
-            <FaUser className="text-[#161616]" size={18} />
-          </button>
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex space-x-8 font-medium text-sm">
+          <NavLink to="/shop-all" icon={<FaHome />}>Shop All</NavLink>
+          <NavLink to="/the-science" icon={<FaFlask />}>The Science</NavLink>
+          <NavLink to="/ethos" icon={<FaBookOpen />}>Our Ethos</NavLink>
+          <NavLink to="/herbal-index" icon={<FaLeaf />}>Herbal Index</NavLink>
+        </nav>
+
+        {/* Icons */}
+        <div className="flex items-center gap-4 text-xl text-[#161616]">
+          <Link to="/cart" aria-label="Cart"><FaShoppingCart /></Link>
+          <button onClick={handleAccountClick} aria-label="Account"><FaUser /></button>
         </div>
       </div>
 
-      {/* Desktop Nav Bar */}
-      {!isMobile && (
-        <nav className="flex justify-center space-x-10 text-sm text-[#161616] font-medium py-2">
-          <Link to="/shop-all" className="hover:text-[#514B3D] transition">
-            Shop All
-          </Link>
-          <Link to="/the-science" className="hover:text-[#514B3D] transition">
-            The Science
-          </Link>
-          <Link to="/ethos" className="hover:text-[#514B3D] transition">
-            Our Ethos
-          </Link>
-          <Link to="/herbal-index" className="hover:text-[#514B3D] transition">
-            Herbal Index
-          </Link>
-        </nav>
-      )}
-
-      {/* Backdrop overlay */}
-      {isMobile && showMenu && (
-        <div
-          className="fixed inset-0 z-40 bg-black bg-opacity-40 backdrop-blur-sm transition-opacity"
-          onClick={() => setShowMenu(false)}
-        />
-      )}
-
-      {/* Mobile Flyout Menu */}
-      {isMobile && (
-        <div
-          className={`fixed top-0 left-0 h-full w-72 bg-white z-50 transform transition-transform duration-300 ease-in-out shadow-lg ${
-            showMenu ? "translate-x-0" : "-translate-x-full"
-          }`}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-4 border-b">
-            <span className="text-lg font-semibold text-[#161616]">Menu</span>
-            <button
-              onClick={() => setShowMenu(false)}
-              className="text-2xl text-[#161616] hover:text-[#514B3D]"
-            >
-              <FaTimes />
-            </button>
-          </div>
-
-          {/* Nav Items */}
-          <nav className="flex flex-col p-4 text-[#161616] text-base font-medium space-y-4">
-            {[
-              { to: "/shop-all", label: "Shop All" },
-              { to: "/the-science", label: "The Science" },
-              { to: "/ethos", label: "Our Ethos" },
-              { to: "/herbal-index", label: "Herbal Index" },
-            ].map(({ to, label }) => (
-              <Link
-                key={to}
-                to={to}
-                onClick={() => setShowMenu(false)}
-                className="hover:text-[#514B3D] hover:pl-2 transition-all duration-200"
-              >
-                {label}
-              </Link>
-            ))}
-
-            <button
-              onClick={() => {
-                setShowMenu(false);
-                handleAccountClick();
-              }}
-              className="text-left hover:text-[#514B3D] hover:pl-2 transition-all duration-200"
-            >
-              Account
-            </button>
-          </nav>
+      {/* Mobile Menu */}
+      <div
+        className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 ${
+          mobileOpen ? "opacity-100 visible" : "opacity-0 invisible"
+        }`}
+        onClick={() => setMobileOpen(false)}
+      />
+      <div
+        className={`fixed top-0 left-0 w-[250px] h-full bg-white shadow-xl z-50 transform transition-transform duration-300 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex justify-between items-center p-4 border-b">
+          <span className="text-lg font-semibold text-[#161616]">Menu</span>
+          <button onClick={() => setMobileOpen(false)} className="text-xl">
+            <FaTimes />
+          </button>
         </div>
-      )}
+        <nav className="flex flex-col space-y-4 p-4 text-[#161616] font-medium text-sm">
+          <MobileNavLink to="/shop-all" icon={<FaHome />}>Shop All</MobileNavLink>
+          <MobileNavLink to="/the-science" icon={<FaFlask />}>The Science</MobileNavLink>
+          <MobileNavLink to="/ethos" icon={<FaBookOpen />}>Our Ethos</MobileNavLink>
+          <MobileNavLink to="/herbal-index" icon={<FaLeaf />}>Herbal Index</MobileNavLink>
+          <button
+            onClick={handleAccountClick}
+            className="flex items-center gap-2 text-left w-full"
+          >
+            <FaUser />
+            Account
+          </button>
+        </nav>
+      </div>
 
       {/* Auth Modal */}
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
     </header>
   );
 };
+
+// Desktop NavLink with underline effect
+const NavLink = ({ to, icon, children }: { to: string; icon?: React.ReactNode; children: React.ReactNode }) => (
+  <Link to={to} className="group relative flex items-center gap-1 hover:text-[#514B3D]">
+    {icon}
+    <span>{children}</span>
+    <span className="absolute bottom-[-2px] left-0 w-0 h-[2px] bg-[#514B3D] transition-all duration-300 group-hover:w-full" />
+  </Link>
+);
+
+// Mobile NavLink
+const MobileNavLink = ({ to, icon, children }: { to: string; icon?: React.ReactNode; children: React.ReactNode }) => (
+  <Link to={to} className="flex items-center gap-2" onClick={() => window.scrollTo(0, 0)}>
+    {icon}
+    {children}
+  </Link>
+);
 
 export default Header;
