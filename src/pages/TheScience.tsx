@@ -32,19 +32,19 @@ const TheScience = () => {
   {[
     {
       title: "Transparency",
-      image: "/images/pillar1.webp",
+      image: "/images/pillar1.jpg",
     },
     {
       title: "Scientific Efficacy",
-      image: "/images/pillar2.webp",
+      image: "/images/pillar2.jpg",
     },
     {
       title: "Clean Ingredients",
-      image: "/images/pillar3.webp",
+      image: "/images/pillar3.jpg",
     },
     {
       title: "Maximum Effect",
-      image: "/images/pillar4.webp",
+      image: "/images/pillar4.jpg",
     },
   ].map((item, idx) => (
     <div
