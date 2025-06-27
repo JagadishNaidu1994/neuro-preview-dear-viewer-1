@@ -1,48 +1,58 @@
-// components/HerbalCard.tsx
 import React, { useState } from "react";
-import "./HerbalCard.css"; // Custom flip styles if needed
+import type { Herb } from "@/data/herbs";
 
-interface Herb {
-  id: number;
-  name: string;
-  svg: JSX.Element;
-  bestFor: string;
-  frontColor?: string;
-  details?: {
-    origins?: string;
-    whyWeUseIt?: string;
-    usedIn?: string;
-    studies?: string[];
-  };
+interface Props {
+  herb: Herb;
 }
 
-const HerbalCard = ({ herb }: { herb: Herb }) => {
+const HerbalCard: React.FC<Props> = ({ herb }) => {
   const [flipped, setFlipped] = useState(false);
 
   return (
     <div
       onClick={() => setFlipped(!flipped)}
-      className={`cursor-pointer transform transition-transform duration-500 relative w-full h-64 rounded-xl shadow-md bg-white ${flipped ? "rotate-y-180" : ""}`}
+      className="cursor-pointer w-full h-64 perspective"
     >
-      <div className="absolute inset-0 p-4 backface-hidden">
-        {/* Front content */}
-        <div
-          className="w-12 h-12 mb-2"
-          dangerouslySetInnerHTML={{ __html: herb.svg }}
-        />
-        <h3 className="text-sm font-semibold">[{herb.id}] {herb.name}</h3>
-        <p className="text-xs text-gray-600 mt-2">{herb.bestFor.join(", ")}</p>
-      </div>
+      <div
+        className={`relative w-full h-full transition-transform duration-700 transform-style preserve-3d ${
+          flipped ? "rotate-y-180" : ""
+        }`}
+      >
+        {/* Front */}
+        <div className="absolute w-full h-full backface-hidden bg-white rounded-lg p-4 shadow">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold">[{herb.id}] {herb.name}</span>
+            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: "#aaa" }} />
+          </div>
+          <div className="mt-6 w-16 h-16" dangerouslySetInnerHTML={{ __html: herb.svg }} />
+          <div className="mt-4 text-xs text-gray-600">
+            <strong>Best For:</strong> {herb.bestFor.join(", ")}
+          </div>
+        </div>
 
-      <div className="absolute inset-0 p-4 rotate-y-180 backface-hidden bg-[#FAFAF7] text-sm">
-        <h4 className="font-bold">Origins</h4>
-        <p>{herb.back.origin}</p>
-        <h4 className="font-bold mt-2">Why We Use It</h4>
-        <p>{herb.back.whyWeUseIt}</p>
+        {/* Back */}
+        <div className="absolute w-full h-full backface-hidden bg-gray-100 rounded-lg p-4 shadow transform rotate-y-180 overflow-auto text-sm">
+          <h4 className="font-semibold">Origins</h4>
+          <p>{herb.back.origin}</p>
+
+          <h4 className="font-semibold mt-2">Why We Use It</h4>
+          <p>{herb.back.whyWeUseIt}</p>
+
+          <h4 className="font-semibold mt-2">Used In</h4>
+          <p>{herb.back.usedIn}</p>
+
+          <h4 className="font-semibold mt-2">Studies</h4>
+          <ul className="list-disc list-inside">
+            {herb.back.studies.map((url, i) => (
+              <li key={i}>
+                <a href={url} target="_blank" className="text-blue-600 underline">Study {i + 1}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
 };
-
 
 export default HerbalCard;
