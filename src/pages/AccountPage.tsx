@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabaseClient";
 import Header from "@/components/Header";
 import {
   FaUser,
@@ -22,6 +24,17 @@ const items = [
 ];
 
 const AccountPage = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Logout error:", error.message);
+    } else {
+      navigate("/"); // redirect to homepage or login page
+    }
+  };
+
   return (
     <>
       <Header />
@@ -41,7 +54,10 @@ const AccountPage = () => {
           ))}
         </div>
         <div className="mt-8">
-          <button className="px-4 py-2 bg-[#514B3D] text-white rounded-lg hover:bg-[#3f3a2f]">
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-[#514B3D] text-white rounded-lg hover:bg-[#3f3a2f]"
+          >
             Log Out
           </button>
         </div>
