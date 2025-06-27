@@ -39,33 +39,17 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
         <div className="divide-y divide-gray-200 text-sm font-semibold text-[#161616]">
           {[
             { label: "Shop All", path: "/shop-all" },
-            // // { label: "Shop by Product", expandable: true },
-            // // { label: "Shop by Benefit", expandable: true },
-            // // { label: "Shop by Mushroom", expandable: true },
-            // { label: "Accessories", path: "/accessories" },
             { label: "Science", path: "/the-science" },
             { label: "Our Story", path: "/ethos" },
             { label: "Refer a Friend", path: "/refer" },
             { label: "Rewards", path: "/rewards" },
           ].map((item, idx) => (
-            // <div key={idx} className="px-4 py-3 flex justify-between items-center hover:bg-gray-100">
-            //   {/* {item.path ? (
-            //     <Link to={item.path} onClick={onClose}>{item.label}</Link>
-            //   ) : (
-            //     <span>{item.label}</span>
-            //   )}
-            //   {item.expandable ? <FaPlus className="text-xs" /> : <FaChevronRight className="text-xs" />} */}
-            // </div>
+         
           ))}
           
         </div>
 
-        {/* Secondary Links */}
-        {/* <div className="py-4 px-4 space-y-3 text-sm text-[#444] font-normal border-t mt-2">
-          
-        </div> */}
-
-        {/* Footer Links */}
+       
         
       </div>
     </>
