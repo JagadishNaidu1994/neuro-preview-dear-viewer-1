@@ -15,7 +15,7 @@ const HerbalIndex = () => {
 
         <div className="aspect-[3/1] rounded-3xl overflow-hidden mb-12">
           <img
-            src="/images/herbs/mushroom-banner.png"
+            src="images/thescience/gummy-hand.webp"
             alt="Herbal Index Banner"
             className="w-full h-full object-cover"
           />
