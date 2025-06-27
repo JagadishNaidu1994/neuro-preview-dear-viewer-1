@@ -59,19 +59,20 @@ const HerbalIndex = () => {
               >
                 {/* Front Face */}
                 <div className="absolute w-full h-full bg-white rounded-xl p-6 [backface-visibility:hidden] shadow-md">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#333]">[{herb.id}]</span>
-                    <span className="w-3 h-3 rounded-full bg-[#a58956]" />
-                  </div>
-                  <div className="mb-3">{herb.svg}</div>
-                  <h2 className="font-semibold text-[#111] text-lg mb-1">{herb.name}</h2>
-                  <p className="italic text-sm text-[#666] mb-2">{herb.latin}</p>
-                  <p className="text-sm text-[#444] line-clamp-4">{herb.description}</p>
-                  <div className="mt-4 text-xs font-semibold text-[#333]">
-                    Best For
-                  </div>
-                  <p className="text-xs text-[#666]">{herb.bestFor.join(", ")}</p>
-                </div>
+  <div className="flex items-center justify-between mb-2">
+    <span className="text-sm font-semibold text-[#333]">[{herb.id}]</span>
+    <span className="w-4 h-4 rounded-full bg-[#a58956]" />
+  </div>
+  <div className="flex justify-center mb-4">{herb.svg}</div>
+  <h2 className="font-semibold text-[#111] text-base mb-1">{herb.name}</h2>
+  <p className="italic text-sm text-[#555] mb-2">{herb.latin}</p>
+  <p className="text-sm text-[#444] line-clamp-5">{herb.description}</p>
+  <div className="mt-3 text-xs font-semibold text-[#333]">
+    Best For
+  </div>
+  <p className="text-xs text-[#666]">{herb.bestFor.join(", ")}</p>
+</div>
+
 
                 {/* Back Face */}
                 <div className="absolute w-full h-full bg-white rounded-xl p-6 [transform:rotateY(180deg)] [backface-visibility:hidden] shadow-md">
