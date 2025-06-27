@@ -113,5 +113,6 @@ const MobileNavLink = ({ to, icon, children }: { to: string; icon?: React.ReactN
     {children}
   </Link>
 );
+<MobileNav isOpen={isMenuOpen} onClose={() => setMenuOpen(false)} />
 
 export default Header;
