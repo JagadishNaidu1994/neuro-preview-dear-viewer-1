@@ -1,90 +1,54 @@
 // src/pages/ShopAll.tsx
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import Header from "@/components/Header";
+import { useState } from "react";
 
-const products = [
-  {
-    id: 1,
-    name: "Focus Mushroom Gummy Delights",
-    price: "$52",
-    rating: 5,
-    reviews: 8,
-    image:
-      "https://cdn.builder.io/api/v1/image/assets/TEMP/8040d28d4a7ffcb143c97e6d28e82cbe1ee0a7da",
-    description: "For Enhanced Focus & Mental Clarity",
-  },
-  // ...more items
+interface Product {
+  id: number;
+  name: string;
+  price: string;
+  reviews: number;
+  rating: number;
+  img: string;
+}
+
+const PRODUCTS: Product[] = [
+  { id: 1, name: "Focus Mushroom Gummy Delights", price: "$32", rating: 5, reviews: 6, img: "https://cdn.builder.io/api/v1/image/assets/TEMP/8040d28d4a7ffcb143c97e6d28e82cbe1ee0a7da" },
+  { id: 2, name: "Chill Mushroom Gummy Delights", price: "$32", rating: 5, reviews: 31, img: "https://cdn.builder.io/api/v1/image/assets/TEMP/8040d28d4a7ffcb143c97e6d28e82cbe1ee0a7da" },
+  { id: 3, name: "Sleep Mushroom Gummy Delights", price: "$32", rating: 5, reviews: 112, img: "https://cdn.builder.io/api/v1/image/assets/TEMP/8040d28d4a7ffcb143c97e6d28e82cbe1ee0a7da" },
+  { id: 4, name: "Matcha Chocolate Delights", price: "$23", rating: 5, reviews: 1, img: "https://cdn.builder.io/api/v1/image/assets/TEMP/d0995167772a5034c3deecba822595a5b4ac0b48" },
+  // Add more items as needed...
 ];
 
-const ShopAll = () => {
+export default function ShopAll() {
   return (
-    <div className="min-h-screen bg-[#F8F8F5]">
+    <div className="min-h-screen bg-white">
       <Header />
 
-      <main className="max-w-[1905px] mx-auto px-4 md:px-8 pt-12 pb-16">
-        {/* Hero Banner */}
-        <section className="relative h-64 md:h-96 overflow-hidden rounded-xl mb-12">
-          <img
-            src="/images/shop-hero.jpg"
-            alt="Shop Banner"
-            className="object-cover w-full h-full brightness-90 transition-transform duration-500 hover:scale-105"
-          />
-          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-            <h1 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold">
-              Shop All Products
-            </h1>
-          </div>
-        </section>
-
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8">
-          {products.map((product) => (
+      <main className="max-w-[1440px] mx-auto px-4 md:px-8 py-8">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {PRODUCTS.map((p) => (
             <Link
-              to={`/product?id=${product.id}`}
-              key={product.id}
-              className="group bg-white rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-300"
+              key={p.id}
+              to={`/product?id=${p.id}`}
+              className="group overflow-hidden rounded-xl bg-white shadow-sm hover:shadow-lg transition-shadow duration-300"
             >
-              <div className="aspect-square overflow-hidden rounded-t-lg bg-[#EEEEEA]">
+              <div className="relative aspect-square overflow-hidden">
                 <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105"
+                  src={p.img}
+                  alt={p.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
-              <div className="p-4 md:p-6 flex flex-col justify-between h-full">
-                <div>
-                  <h3 className="text-[#161616] text-lg font-medium mb-1">
-                    {product.name}
-                  </h3>
-                  <p className="text-[#B2AFAB] text-sm mb-3">
-                    {product.description}
-                  </p>
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="flex">
-                      {[...Array(product.rating)].map((_, i) => (
-                        <span key={i} className="text-yellow-400 text-base">
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                    <span className="text-gray-500 text-sm">
-                      ({product.reviews})
-                    </span>
-                  </div>
+              <div className="p-4">
+                <h3 className="text-gray-900 font-medium mb-1">{p.name}</h3>
+                <div className="flex items-center text-sm text-gray-500 mb-1">
+                  {[...Array(p.rating)].map((_, i) => (
+                    <span key={i} className="text-yellow-400">★</span>
+                  ))}
+                  <span className="ml-2">({p.reviews})</span>
                 </div>
-                <div className="mt-auto flex items-center justify-between pt-3">
-                  <span className="text-[#161616] text-xl font-semibold">
-                    {product.price}
-                  </span>
-                  <Button
-                    variant="outline"
-                    className="border-2 border-[#161616] text-[#161616] bg-transparent hover:bg-[#161616] hover:text-white rounded-full px-5 py-2 text-sm transition-colors"
-                  >
-                    Add to Cart
-                  </Button>
-                </div>
+                <div className="text-lg font-semibold text-gray-900">{p.price}</div>
               </div>
             </Link>
           ))}
@@ -92,6 +56,4 @@ const ShopAll = () => {
       </main>
     </div>
   );
-};
-
-export default ShopAll;
+}
