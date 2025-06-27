@@ -1,22 +1,83 @@
-// src/data/herbalData.ts
-import { GiHerbsBundle } from "react-icons/gi";
+export interface Herb {
+  id: number;
+  name: string;
+  svg: string;
+  bestFor: string[];
+  back: {
+    origin: string;
+    whyWeUseIt: string;
+    studies: string[];
+    usedIn: string;
+  };
+}
 
-export const herbs = [
+export const herbs: Herb[] = [
   {
-    index: 1,
+    id: 1,
     name: "American Ginseng",
-    icon: <GiHerbsBundle size={40} />,
-    colorDot: "#B6A04E",
-    details: `Origins\nNative to the Appalachian Mountains and Eastern Canada.
-    
-Why We Use It
-Supports nervous system and emotional balance.
-
-Key Studies
-Study 1\nStudy 2\nStudy 3
-
-Used In
-In the Zone & Matcha Chocolate Delights`,
+    svg: "/icons/ginseng.svg",
+    bestFor: ["Energy", "Memory", "Clarity"],
+    back: {
+      origin: "Native to North America, traditionally used in Chinese medicine.",
+      whyWeUseIt:
+        "Supports the nervous system and cognitive clarity. Helps regulate stress.",
+      studies: ["https://example.com/study1", "https://example.com/study2"],
+      usedIn: "In the Zone & Matcha Chocolate Delights",
+    },
   },
-  // Add more entries similarly...
+  {
+    id: 2,
+    name: "Ashwagandha",
+    svg: "/icons/ashwagandha.svg",
+    bestFor: ["Stress", "Sleep", "Mood"],
+    back: {
+      origin: "An adaptogen from India used in Ayurvedic medicine.",
+      whyWeUseIt:
+        "Helps reduce cortisol and manage daily stressors. Improves sleep quality.",
+      studies: ["https://example.com/study1", "https://example.com/study2"],
+      usedIn: "Calm & Sleep Gummies",
+    },
+  },
+  {
+    id: 3,
+    name: "Cacao Seed",
+    svg: "/icons/cacao.svg",
+    bestFor: ["Mood", "Cognition"],
+    back: {
+      origin: "Sourced from tropical regions of South America.",
+      whyWeUseIt:
+        "Rich in polyphenols and theobromine, supports focus and happiness.",
+      studies: ["https://example.com/study1"],
+      usedIn: "Matcha Chocolate Delights",
+    },
+  },
+  {
+    id: 4,
+    name: "Chamomile",
+    svg: "/icons/chamomile.svg",
+    bestFor: ["Relaxation", "Sleep"],
+    back: {
+      origin: "Commonly found across Europe and Asia.",
+      whyWeUseIt:
+        "Natural calming herb that reduces anxiety and supports deep sleep.",
+      studies: ["https://example.com/study1"],
+      usedIn: "Sleep Gummies",
+    },
+  },
+  {
+    id: 5,
+    name: "Cordyceps Mushroom",
+    svg: "/icons/cordyceps.svg",
+    bestFor: ["Energy", "Endurance"],
+    back: {
+      origin: "High-altitude fungi used in traditional Tibetan medicine.",
+      whyWeUseIt:
+        "Improves oxygen uptake and physical performance.",
+      studies: ["https://example.com/study1"],
+      usedIn: "Energy Gummies",
+    },
+  },
+  // Add more herbs similarly up to 25
 ];
+
+export default herbs;
