@@ -1,5 +1,5 @@
 import React from "react";
-import herbs from "@/data/herbs";
+import { herbs } from "@/data/herbs";
 import HerbalCard from "@/components/HerbalCard";
 import Header from "@/components/Header";
 
