@@ -73,7 +73,7 @@ const Ethos = () => {
           </div>
           <div>
             <img
-              src="https://noon.world/cdn/shop/files/NOON_Cubes_Sparkling.jpg"
+              src="/public/images/ethos/gummy_sparkling.jpg"
               alt="Gummy Cubes"
               className="rounded-xl"
             />
