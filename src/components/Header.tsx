@@ -33,7 +33,7 @@ const Header = () => {
 
         {/* Right Side Icons */}
         <div className="flex gap-4 items-center">
-          <Link to="/cart" className="text-xl">
+          <Link to="/cart" className="text-2xl">
             <FaShoppingCart />
           </Link>
           <Link to="/account" className="text-2xl">
