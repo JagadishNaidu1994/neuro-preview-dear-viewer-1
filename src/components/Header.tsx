@@ -43,6 +43,20 @@ const Header = () => {
 
         {/* Icons */}
         <div className="flex items-center gap-4 text-xl text-[#161616]">
+  <Link to="/cart" aria-label="Cart">
+    <FaShoppingCart />
+  </Link>
+  <button onClick={handleAccountClick} aria-label="Account">
+    <FaUser />
+  </button>
+  {user && firstName && (
+    <span className="text-sm font-medium text-[#161616] hidden md:inline-block">
+      Hey {firstName}
+    </span>
+  )}
+</div>
+
+        <div className="flex items-center gap-4 text-xl text-[#161616]">
           <Link to="/cart" aria-label="Cart"><FaShoppingCart /></Link>
           <button onClick={handleAccountClick} aria-label="Account"><FaUser /></button>
         </div>
