@@ -56,12 +56,14 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
             //   )}
             //   {item.expandable ? <FaPlus className="text-xs" /> : <FaChevronRight className="text-xs" />} */}
             // </div>
-          ))}
-          <div className="py-4 px-4 space-y-3 text-xs text-[#888] font-light border-t">
+         <div className="py-4 px-4 space-y-3 text-xs text-[#888] font-light border-t">
           <Link to="/faq">FAQs</Link>
           <Link to="/contact">Contact Us</Link>
           <Link to="/shipping">Shipping & Returns</Link>
         </div>
+          
+          ))}
+          
         </div>
 
         {/* Secondary Links */}
