@@ -18,7 +18,7 @@ const Header = () => {
 
         {/* Brand Name */}
         <div className="flex-1 flex justify-center md:justify-start">
-          <Link to="/" className="text-lg font-semibold text-[#161616]">
+          <Link to="/" className="text-xl font-semibold text-[#161616]">
             DearNeuro
           </Link>
         </div>
