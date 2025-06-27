@@ -1,11 +1,11 @@
+// src/pages/HerbalIndex.tsx
 import React, { useState } from "react";
 import Header from "@/components/Header";
 
-// Define herb type
 interface Herb {
   id: number;
   name: string;
-  svg: string;
+  svg: JSX.Element;
   bestFor: string[];
   back: {
     origin: string;
@@ -15,12 +15,16 @@ interface Herb {
   };
 }
 
-// Sample herb data
 const herbs: Herb[] = [
   {
     id: 1,
     name: "American Ginseng",
-    svg: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"/></svg>`,
+    svg: (
+      <svg width="48" height="48" fill="none" stroke="currentColor">
+        {/* inline SVG path from noon */}
+        <path d="M10 10 L38 38 M38 10 L10 38"/>
+      </svg>
+    ),
     bestFor: ["Energy", "Memory", "Clarity"],
     back: {
       origin: "Native to North America, traditionally used in Chinese medicine.",
@@ -30,99 +34,72 @@ const herbs: Herb[] = [
       usedIn: "In the Zone & Matcha Chocolate Delights",
     },
   },
-  {
-    id: 2,
-    name: "Ashwagandha",
-    svg: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="5" width="14" height="14" rx="2" stroke-width="2"/></svg>`,
-    bestFor: ["Stress", "Sleep", "Mood"],
-    back: {
-      origin: "An adaptogen from India used in Ayurvedic medicine.",
-      whyWeUseIt:
-        "Helps reduce cortisol and manage daily stressors. Improves sleep quality.",
-      studies: ["https://example.com/study3"],
-      usedIn: "Calm & Sleep Gummies",
-    },
-  },
+  // ... include all 25 items similarly
 ];
 
-// Card component
-const HerbalCard: React.FC<{ herb: Herb }> = ({ herb }) => {
-  const [flipped, setFlipped] = useState(false);
+const HerbalIndex: React.FC = () => {
+  const [flipped, setFlipped] = useState<Record<number, boolean>>({});
 
   return (
-    <div
-      onClick={() => setFlipped(!flipped)}
-      className="cursor-pointer w-full h-64 perspective"
-    >
-      <div
-        className={`relative w-full h-full transition-transform duration-700 transform-style preserve-3d ${
-          flipped ? "rotate-y-180" : ""
-        }`}
-      >
-        {/* Front */}
-        <div className="absolute w-full h-full backface-hidden bg-white rounded-lg p-4 shadow">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold">[{herb.id}] {herb.name}</span>
-            <span className="w-3 h-3 rounded-full bg-gray-300" />
-          </div>
-          <div
-            className="mt-6 w-16 h-16"
-            dangerouslySetInnerHTML={{ __html: herb.svg }}
-          />
-          <div className="mt-4 text-xs text-gray-600">
-            <strong>Best For:</strong> {herb.bestFor.join(", ")}
-          </div>
-        </div>
-
-        {/* Back */}
-        <div className="absolute w-full h-full backface-hidden bg-gray-100 rounded-lg p-4 shadow transform rotate-y-180 overflow-auto text-sm">
-          <h4 className="font-semibold">Origins</h4>
-          <p>{herb.back.origin}</p>
-
-          <h4 className="font-semibold mt-2">Why We Use It</h4>
-          <p>{herb.back.whyWeUseIt}</p>
-
-          <h4 className="font-semibold mt-2">Used In</h4>
-          <p>{herb.back.usedIn}</p>
-
-          <h4 className="font-semibold mt-2">Studies</h4>
-          <ul className="list-disc list-inside">
-            {herb.back.studies.map((url, i) => (
-              <li key={i}>
-                <a href={url} target="_blank" className="text-blue-600 underline">
-                  Study {i + 1}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Full page
-const HerbalIndex = () => {
-  return (
-    <div className="bg-[#FAFAF7] min-h-screen">
+    <>
       <Header />
-      <div className="text-center px-4 pt-12">
-        <h1 className="text-3xl md:text-4xl font-bold text-[#1E1E1E] max-w-xl mx-auto">
+      <main className="bg-[#FAFAF7] min-h-screen p-8">
+        <h1 className="text-center text-3xl font-bold mb-6">
           A whole world of mushrooms, adaptogens and nootropics that work better, together.
         </h1>
-        <img
-          src="images/thescience/pillar1.jpg"
-          alt="Herbal Index Banner"
-          className="mx-auto mt-8 rounded-lg"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 md:px-8 py-12">
-        {herbs.map((herb) => (
-          <HerbalCard key={herb.id} herb={herb} />
-        ))}
-      </div>
-    </div>
+        <div className="flex flex-wrap gap-6 justify-center">
+          {herbs.map((h) => (
+            <div
+              key={h.id}
+              onClick={() => setFlipped((f) => ({ ...f, [h.id]: !f[h.id] }))}
+              className="relative w-[260px] h-[300px] bg-white rounded-lg shadow-md cursor-pointer perspective"
+            >
+              <div
+                className={`relative w-full h-full duration-500 transform-style-preserve ${
+                  flipped[h.id] ? "rotateY(180deg)" : ""
+                }`}
+              >
+                {/* front */}
+                <div className="absolute w-full h-full backface-hidden flex flex-col p-4 justify-between">
+                  <div>{h.svg}</div>
+                  <div>
+                    <h2 className="font-semibold">{`[${String(
+                      h.id
+                    ).padStart(2, "0")}] ${h.name}`}</h2>
+                    <p className="text-sm text-gray-500 mt-2">Best for:</p>
+                    <p className="mt-1 text-[#514B3D]">
+                      {h.bestFor.join(", ")}
+                    </p>
+                  </div>
+                </div>
+                {/* back */}
+                <div className="absolute w-full h-full backface-hidden rotateY-180deg p-4 overflow-auto">
+                  <h2 className="text-lg font-semibold">{h.name}</h2>
+                  <p className="mt-2 text-sm"><strong>Origins:</strong> {h.back.origin}</p>
+                  <p className="mt-2 text-sm"><strong>Why We Use It:</strong> {h.back.whyWeUseIt}</p>
+                  <p className="mt-2 text-sm"><strong>Key Studies:</strong></p>
+                  <ul className="list-disc list-inside text-sm">
+                    {h.back.studies.map((s, i) => (
+                      <li key={i}>
+                        <a
+                          href={s}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline text-blue-600"
+                        >
+                          Study {i + 1}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-2 text-sm"><strong>Used In:</strong> {h.back.usedIn}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
+    </>
   );
 };
 
