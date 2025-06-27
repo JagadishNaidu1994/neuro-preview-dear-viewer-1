@@ -32,15 +32,15 @@ const TheScience = () => {
   {[
     {
       title: "Transparency",
-      image: "/images/pillar1.jpg",
+      image: "/images/thescience/pillar1.jpg",
     },
     {
       title: "Scientific Efficacy",
-      image: "/images/pillar2.jpg",
+      image: "/images/thescience/pillar2.jpg",
     },
     {
       title: "Clean Ingredients",
-      image: "/images/pillar3.jpg",
+      image: "/images/thescience/pillar3.jpg",
     },
     {
       title: "Maximum Effect",
