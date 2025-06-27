@@ -60,7 +60,6 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
 
         {/* Secondary Links */}
         <div className="py-4 px-4 space-y-3 text-sm text-[#444] font-normal border-t mt-2">
-          <Link to="/refer">Refer a Friend</Link>
           <Link to="/rewards">Rewards</Link>
         </div>
 
