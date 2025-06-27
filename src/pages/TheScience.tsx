@@ -71,9 +71,9 @@ const TheScience = () => {
       <h2 className="text-2xl font-semibold">Proprietary formulas made by Neuroscientists and Clinical Doctors</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
-          { name: "Dr. Julie Hwang, MD", image: "/images/thescience/doc1.webp" },
-          { name: "Dr. Christine Wong, PhD", image: "/images/thescience/doc2.webp" },
-          { name: "Dr. Riley Chen, MD", image: "/images/thescience/doc3.webp" },
+          { name: "Dr. Julie Hwang, MD", image: "/images/thescience/doc1.jpg" },
+          { name: "Dr. Christine Wong, PhD", image: "/images/thescience/doc2.jpg" },
+          { name: "Dr. Riley Chen, MD", image: "/images/thescience/doc3.jpg" },
         ].map((doc) => (
           <div key={doc.name}>
             <img src={doc.image} alt={doc.name} className="w-full rounded-md mb-2" />
