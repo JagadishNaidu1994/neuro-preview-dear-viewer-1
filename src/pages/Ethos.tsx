@@ -73,7 +73,7 @@ const Ethos = () => {
           </div>
           <div>
             <img
-              src="/public/images/ethos/gummy_sparkling.webp"
+              src="/images/ethos/gummy_sparkling.webp"
               alt="Gummy Cubes"
               className="rounded-xl"
             />
