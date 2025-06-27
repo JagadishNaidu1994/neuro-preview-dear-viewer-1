@@ -48,28 +48,29 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
             { label: "Refer a Friend", path: "/refer" },
             { label: "Rewards", path: "/rewards" },
           ].map((item, idx) => (
-            <div key={idx} className="px-4 py-3 flex justify-between items-center hover:bg-gray-100">
-              {item.path ? (
-                <Link to={item.path} onClick={onClose}>{item.label}</Link>
-              ) : (
-                <span>{item.label}</span>
-              )}
-              {item.expandable ? <FaPlus className="text-xs" /> : <FaChevronRight className="text-xs" />}
-            </div>
+            // <div key={idx} className="px-4 py-3 flex justify-between items-center hover:bg-gray-100">
+            //   {/* {item.path ? (
+            //     <Link to={item.path} onClick={onClose}>{item.label}</Link>
+            //   ) : (
+            //     <span>{item.label}</span>
+            //   )}
+            //   {item.expandable ? <FaPlus className="text-xs" /> : <FaChevronRight className="text-xs" />} */}
+            // </div>
           ))}
-        </div>
-
-        {/* Secondary Links */}
-        <div className="py-4 px-4 space-y-3 text-sm text-[#444] font-normal border-t mt-2">
-          
-        </div>
-
-        {/* Footer Links */}
-        <div className="py-4 px-4 space-y-3 text-xs text-[#888] font-light border-t">
+          <div className="py-4 px-4 space-y-3 text-xs text-[#888] font-light border-t">
           <Link to="/faq">FAQs</Link>
           <Link to="/contact">Contact Us</Link>
           <Link to="/shipping">Shipping & Returns</Link>
         </div>
+        </div>
+
+        {/* Secondary Links */}
+        {/* <div className="py-4 px-4 space-y-3 text-sm text-[#444] font-normal border-t mt-2">
+          
+        </div> */}
+
+        {/* Footer Links */}
+        
       </div>
     </>
   );
