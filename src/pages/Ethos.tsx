@@ -84,7 +84,7 @@ const Ethos = () => {
         <section className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
           <div>
             <img
-              src="/public/images/ethos/founders.jpg"
+              src="/public/images/ethos/founders.webp"
               alt="Founders Jane and Julie"
               className="rounded-xl"
             />
