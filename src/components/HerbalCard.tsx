@@ -16,7 +16,7 @@ const HerbalCard = ({ herb }: { herb: Herb }) => {
         }`}
       >
         {/* Front */}
-        <div className="absolute w-full h-full [backface-visibility:hidden] bg-white rounded-xl shadow-md p-6">
+        <div className="absolute w-full h-full [backface-visibility:hidden] bg-[#F6F5EF] rounded-xl shadow-md p-6">
           <div className="flex justify-between items-start mb-3">
             <span className="text-sm font-semibold text-[#161616]">[{herb.id}]</span>
             <span
