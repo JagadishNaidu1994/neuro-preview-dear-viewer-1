@@ -28,19 +28,43 @@ const TheScience = () => {
     </section>
 
     {/* Pillars */}
-    <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {[
-        { label: "Transparency", image: "/images/thescience/pillar1.webp" },
-        { label: "Scientific Efficacy", image: "/images/thescience/pillar2.webp" },
-        { label: "Clean Ingredients", image: "/images/thescience/pillar3.webp" },
-        { label: "Maximum Effect", image: "/images/thescience/pillar4.webp" },
-      ].map((pillar) => (
-        <div key={pillar.label} className="text-center">
-          <img src={pillar.image} alt={pillar.label} className="rounded-lg mb-2" />
-          <p className="text-sm font-medium">{pillar.label}</p>
-        </div>
-      ))}
-    </section>
+    <section className="grid grid-cols-2 md:grid-cols-4 gap-4 px-4 md:px-16 my-12">
+  {[
+    {
+      title: "Transparency",
+      image: "/images/feature-transparency.jpg",
+    },
+    {
+      title: "Scientific Efficacy",
+      image: "/images/feature-efficacy.jpg",
+    },
+    {
+      title: "Clean Ingredients",
+      image: "/images/feature-ingredients.jpg",
+    },
+    {
+      title: "Maximum Effect",
+      image: "/images/feature-effect.jpg",
+    },
+  ].map((item, idx) => (
+    <div
+      key={idx}
+      className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+    >
+      <div className="aspect-[3/4] overflow-hidden">
+        <img
+          src={item.image}
+          alt={item.title}
+          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+        />
+      </div>
+      <div className="text-center text-sm mt-2 mb-4 font-medium">
+        {item.title}
+      </div>
+    </div>
+  ))}
+</section>
+
 
     {/* Doctors Section */}
     <section className="text-center space-y-6">
