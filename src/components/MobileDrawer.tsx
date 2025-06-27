@@ -46,7 +46,7 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
             { label: "Science", path: "/the-science" },
             { label: "Our Story", path: "/ethos" },
             { label: "Refer a Friend", path: "/refer" },
-            <Link to="/rewards">Rewards</Link>
+            { label: "Rewards", path: "/rewards" },
           ].map((item, idx) => (
             <div key={idx} className="px-4 py-3 flex justify-between items-center hover:bg-gray-100">
               {item.path ? (
