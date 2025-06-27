@@ -48,8 +48,8 @@ const Header = () => {
 
       {/* Desktop Nav */}
       <nav className="hidden md:flex justify-center space-x-6 py-2 text-sm text-[#161616]">
-        <Link to="/shop">Shop All</Link>
-        <Link to="/science">The Science</Link>
+        <Link to="/shop-all">Shop All</Link>
+        <Link to="/the-science">The Science</Link>
         <Link to="/ethos">Our Ethos</Link>
         <Link to="/herbal-index">Herbal Index</Link>
       </nav>
