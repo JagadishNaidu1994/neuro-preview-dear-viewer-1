@@ -73,7 +73,7 @@ const TheScience = () => {
         {[
           { name: "Dr. Julie Hwang, MD", image: "/images/thescience/doc1.jpg" },
           { name: "Dr. Christine Wong, PhD", image: "/images/thescience/doc2.jpg" },
-          { name: "Dr. Riley Chen, MD", image: "/images/thescience/doc3.jpg" },
+          { name: "Dr. Riley Chen, MD", image: "/images/thescience/doc1.jpg" },
         ].map((doc) => (
           <div key={doc.name}>
             <img src={doc.image} alt={doc.name} className="w-full rounded-md mb-2" />
