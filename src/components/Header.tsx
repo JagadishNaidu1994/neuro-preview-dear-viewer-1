@@ -1,20 +1,21 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthProvider";
 import AuthModal from "./AuthModal";
+import { useAuth } from "@/context/AuthProvider";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const navigate = useNavigate();
+
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const firstName =
-    user?.user_metadata?.given_name ||
     user?.user_metadata?.first_name ||
+    user?.user_metadata?.given_name ||
     user?.email?.split("@")[0] ||
-    "there";
+    "";
 
   const handleAccountClick = () => {
     if (user) {
@@ -25,51 +26,52 @@ const Header = () => {
   };
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <>
       <header
-        className={`sticky top-0 z-50 bg-[#f9f9f5] transition-shadow ${
+        className={`sticky top-0 z-50 bg-[#f8f8f5] transition-shadow ${
           scrolled ? "shadow-md" : ""
         }`}
       >
-        <div className="flex items-center justify-between px-4 md:px-8 max-w-screen-xl mx-auto py-3">
-          {/* Mobile: Hamburger */}
-          <div className="lg:hidden">
+        <div className="flex items-center justify-between px-4 md:px-8 max-w-[1440px] mx-auto h-16 lg:h-20">
+          {/* Left: Hamburger + Logo */}
+          <div className="flex items-center flex-1">
+            {/* Hamburger - Mobile */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex flex-col items-center justify-center w-8 h-8 space-y-1 bg-[rgba(237,236,235,0.85)] rounded-lg p-1"
+              className="lg:hidden mr-4"
               aria-label="Toggle menu"
             >
-              <div className={`w-5 h-0.5 bg-[#161616] ${isMenuOpen ? "rotate-45 translate-y-1.5" : ""}`} />
-              <div className={`w-5 h-0.5 bg-[#161616] ${isMenuOpen ? "opacity-0" : ""}`} />
-              <div className={`w-5 h-0.5 bg-[#161616] ${isMenuOpen ? "-rotate-45 -translate-y-1.5" : ""}`} />
+              <div className="w-6 h-0.5 bg-[#161616] mb-1" />
+              <div className="w-6 h-0.5 bg-[#161616] mb-1" />
+              <div className="w-6 h-0.5 bg-[#161616]" />
             </button>
+
+            {/* Logo */}
+            <a href="/" className="text-xl lg:text-2xl font-bold text-[#161616]">
+              DearNeuro
+            </a>
           </div>
 
-          {/* Logo (left on desktop, center on mobile) */}
-          <div className="flex-1 text-center lg:text-left">
-            <h1 className="text-xl lg:text-3xl font-bold text-[#161616]">
-              <a href="/">DearNeuro</a>
-            </h1>
-          </div>
-
-          {/* Nav Links (centered on desktop) */}
-          <nav className="hidden lg:flex absolute left-1/2 transform -translate-x-1/2 gap-10 text-sm text-[#1E1E1E] font-medium">
+          {/* Center: Nav links (only on lg) */}
+          <nav className="hidden lg:flex flex-1 justify-center space-x-12 text-sm text-[#1E1E1E] font-medium">
             <a href="/shop-all" className="hover:underline">Shop All</a>
             <a href="/the-science" className="hover:underline">The Science</a>
             <a href="/ethos" className="hover:underline">Our Ethos</a>
             <a href="/herbal-index" className="hover:underline">Herbal Index</a>
           </nav>
 
-          {/* Account / Cart / Greeting */}
-          <div className="flex items-center gap-3">
+          {/* Right: Account/Cart/Greeting */}
+          <div className="flex items-center justify-end flex-1 gap-4">
             {user && (
-              <span className="text-sm text-[#514B3D] font-medium hidden md:inline">
+              <span className="text-sm text-[#514B3D] hidden md:inline">
                 Hey {firstName}
               </span>
             )}
@@ -82,7 +84,7 @@ const Header = () => {
 
             <button
               onClick={handleAccountClick}
-              className="flex items-center justify-center bg-[rgba(237,236,235,0.60)] rounded-full w-9 h-9 hover:bg-[rgba(237,236,235,0.80)]"
+              className="bg-[rgba(237,236,235,0.60)] hover:bg-[rgba(237,236,235,0.80)] rounded-xl p-2 transition-colors"
               aria-label="Account"
             >
               <svg
@@ -101,15 +103,18 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden bg-white border-t border-gray-200 shadow-lg">
-            <div className="px-4 py-4 space-y-4">
-              <a href="/shop-all" className="block text-sm text-[#1E1E1E] hover:text-[#514B3D]">Shop All</a>
-              <a href="/the-science" className="block text-sm text-[#1E1E1E] hover:text-[#514B3D]">The Science</a>
-              <a href="/ethos" className="block text-sm text-[#1E1E1E] hover:text-[#514B3D]">Our Ethos</a>
-              <a href="/herbal-index" className="block text-sm text-[#1E1E1E] hover:text-[#514B3D]">Herbal Index</a>
+          <div className="lg:hidden bg-white border-t border-gray-200 shadow z-40">
+            <div className="px-4 py-4 space-y-3 text-sm font-medium">
+              <a href="/shop-all" className="block" onClick={() => setIsMenuOpen(false)}>Shop All</a>
+              <a href="/the-science" className="block" onClick={() => setIsMenuOpen(false)}>The Science</a>
+              <a href="/ethos" className="block" onClick={() => setIsMenuOpen(false)}>Our Ethos</a>
+              <a href="/herbal-index" className="block" onClick={() => setIsMenuOpen(false)}>Herbal Index</a>
               <button
-                onClick={handleAccountClick}
-                className="block w-full text-left text-sm text-[#514B3D] mt-4"
+                className="w-full text-left text-[#514B3D] mt-2"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  handleAccountClick();
+                }}
               >
                 Account
               </button>
@@ -118,6 +123,7 @@ const Header = () => {
         )}
       </header>
 
+      {/* Auth Modal */}
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </>
   );
