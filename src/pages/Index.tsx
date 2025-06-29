@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import AuthModal from "@/components/AuthModal";
 import Header from "@/components/Header";
 
@@ -13,7 +14,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-[#F8F8F5]">
-                <Header />
+      <Header />
       {/* Main Content */}
       <main className="max-w-[1905px] mx-auto px-4 md:px-[15px] pt-[18px]">
         <div className="space-y-[60px] md:space-y-[90px]">
@@ -34,12 +35,14 @@ const Index = () => {
                     Celebrating the brightest minds of our generation.
                     Experience mushrooms for clarity, calm and deep sleep.
                   </h1>
-                  <Button
-                    variant="outline"
-                    className="border-2 border-white text-white bg-transparent hover:bg-white hover:text-black rounded-2xl px-4 py-2 md:px-6 md:py-3 opacity-70 hover:opacity-100 transition-all text-sm"
-                  >
-                    <span className="underline">Shop All Products</span>
-                  </Button>
+                  <Link to="/shop-all">
+                    <Button
+                      variant="outline"
+                      className="border-2 border-white text-white bg-transparent hover:bg-white hover:text-black rounded-2xl px-4 py-2 md:px-6 md:py-3 opacity-70 hover:opacity-100 transition-all text-sm"
+                    >
+                      <span className="underline">Shop All Products</span>
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -106,12 +109,14 @@ const Index = () => {
                     powerful, delightful rituals.
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  className="border-2 border-[#161616] text-[#161616] bg-transparent hover:bg-[#161616] hover:text-white rounded-2xl px-6 py-3"
-                >
-                  Our Science
-                </Button>
+                <Link to="/the-science">
+                  <Button
+                    variant="outline"
+                    className="border-2 border-[#161616] text-[#161616] bg-transparent hover:bg-[#161616] hover:text-white rounded-2xl px-6 py-3"
+                  >
+                    Our Science
+                  </Button>
+                </Link>
               </div>
               <div className="rounded-[20px] overflow-hidden h-[300px] md:h-[400px] lg:h-full order-1 lg:order-2">
                 <img
@@ -174,12 +179,14 @@ const Index = () => {
                     body- with the everyday ritual of functional mushrooms
                   </h3>
                 </div>
-                <Button
-                  variant="outline"
-                  className="border-2 border-[#161616] text-[#161616] bg-transparent hover:bg-[#161616] hover:text-white rounded-2xl px-6 py-3 w-fit"
-                >
-                  Our Ethos
-                </Button>
+                <Link to="/ethos">
+                  <Button
+                    variant="outline"
+                    className="border-2 border-[#161616] text-[#161616] bg-transparent hover:bg-[#161616] hover:text-white rounded-2xl px-6 py-3 w-fit"
+                  >
+                    Our Ethos
+                  </Button>
+                </Link>
               </div>
             </div>
 
@@ -302,71 +309,71 @@ const Index = () => {
             {/* Navigation Links */}
             <div className="lg:col-span-2 grid grid-cols-2 gap-8 md:gap-20">
               <div className="space-y-3">
-                <a
-                  href="/shop-all"
+                <Link
+                  to="/shop-all"
                   className="block text-xs text-black hover:underline"
                 >
                   Shop All
-                </a>
-                <a
-                  href="/the-science"
+                </Link>
+                <Link
+                  to="/the-science"
                   className="block text-xs text-black hover:underline"
                 >
                   The Science
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  to="/ethos"
                   className="block text-xs text-black hover:underline"
                 >
                   Our Ethos
-                </a>
-                <a
-                  href="/herbal-index"
+                </Link>
+                <Link
+                  to="/herbal-index"
                   className="block text-xs text-black hover:underline"
                 >
                   Herbal Index
-                </a>
+                </Link>
                 <div className="pt-6 md:pt-10">
-                  <a
-                    href="#"
+                  <Link
+                    to="/privacy"
                     className="block text-[9px] text-black hover:underline"
                   >
                     Privacy & Cookies Policy
-                  </a>
+                  </Link>
                 </div>
               </div>
               <div className="space-y-3">
-                <a
-                  href="#"
+                <Link
+                  to="/faqs"
                   className="block text-xs text-black hover:underline"
                 >
                   FAQs
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  to="/shipping"
                   className="block text-xs text-black hover:underline"
                 >
                   Shipping & Returns
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  to="/terms"
                   className="block text-xs text-black hover:underline"
                 >
                   Terms & Conditions
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  to="/contact"
                   className="block text-xs text-black hover:underline"
                 >
                   Contact Us
-                </a>
+                </Link>
                 <div className="pt-6 md:pt-10">
-                  <a
-                    href="#"
+                  <Link
+                    to="/accessibility"
                     className="block text-[9px] text-black hover:underline"
                   >
                     Accessibility Statement
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

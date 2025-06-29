@@ -48,6 +48,7 @@ const Header = () => {
           <DesktopLink to="/the-science">The Science</DesktopLink>
           <DesktopLink to="/ethos">Our Ethos</DesktopLink>
           <DesktopLink to="/herbal-index">Herbal Index</DesktopLink>
+          <DesktopLink to="/journal">Journal</DesktopLink>
           {isAdmin && <DesktopLink to="/admin">Admin</DesktopLink>}
         </nav>
 
