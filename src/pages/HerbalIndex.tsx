@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 
 const HerbalIndex = () => {
   return (
-    <div className="bg-[#F9F9F4] min-h-screen">
+    <div className="min-h-screen bg-[#F9F9F4]">
       <Header />
       <section className="max-w-[1200px] mx-auto px-4 py-12">
         <h1 className="text-3xl md:text-5xl font-semibold text-center mb-12 text-[#161616]">
@@ -21,5 +21,3 @@ const HerbalIndex = () => {
     </div>
   );
 };
-
-export default HerbalIndex;

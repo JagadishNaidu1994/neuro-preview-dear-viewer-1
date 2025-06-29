@@ -58,7 +58,7 @@ const ProductPage = () => {
 
   if (loading) {
     return (
-      <div className="bg-[#F8F8F5] min-h-screen">
+      <div className="min-h-screen bg-[#F8F8F5]">
         <Header />
         <div className="text-center py-24 text-xl text-gray-500">
           Loading product...
@@ -69,7 +69,7 @@ const ProductPage = () => {
 
   if (!product) {
     return (
-      <div className="bg-[#F8F8F5] min-h-screen">
+      <div className="min-h-screen bg-[#F8F8F5]">
         <Header />
         <div className="text-center py-24 text-2xl text-gray-500">
           Product not found.
@@ -79,7 +79,7 @@ const ProductPage = () => {
   }
 
   return (
-    <div className="bg-[#F8F8F5] min-h-screen">
+    <div className="min-h-screen bg-[#F8F8F5]">
       <Header />
       <div className="max-w-[1300px] mx-auto px-4 md:px-8 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         <div>
