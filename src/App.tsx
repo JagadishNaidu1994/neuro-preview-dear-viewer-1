@@ -17,6 +17,20 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import OrderSuccess from "@/pages/OrderSuccess";
+import Journal from "@/pages/Journal";
+import JournalPost from "@/pages/JournalPost";
+import ReferFriend from "@/pages/ReferFriend";
+import ContactUs from "@/pages/ContactUs";
+import FAQ from "@/pages/FAQ";
+import ShippingReturns from "@/pages/ShippingReturns";
+import Rewards from "@/pages/Rewards";
+import ProfileSettings from "@/pages/ProfileSettings";
+import Subscriptions from "@/pages/Subscriptions";
+import OrderHistory from "@/pages/OrderHistory";
+import Preferences from "@/pages/Preferences";
+import Security from "@/pages/Security";
+import AddressBook from "@/pages/AddressBook";
+import PaymentMethods from "@/pages/PaymentMethods";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { CartProvider } from "@/context/CartProvider";
@@ -40,12 +54,75 @@ const App = () => (
             <Route path="/ethos" element={<Ethos />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/herbal-index" element={<HerbalIndex />} />
+            <Route path="/journal" element={<Journal />} />
+            <Route path="/journal/:id" element={<JournalPost />} />
+            <Route path="/refer" element={<ReferFriend />} />
+            <Route path="/contact" element={<ContactUs />} />
+            <Route path="/faqs" element={<FAQ />} />
+            <Route path="/shipping" element={<ShippingReturns />} />
+            <Route path="/rewards" element={<Rewards />} />
 
             <Route
               path="/account"
               element={
                 <ProtectedRoute>
                   <AccountPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/account/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfileSettings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/account/subscriptions"
+              element={
+                <ProtectedRoute>
+                  <Subscriptions />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/account/orders"
+              element={
+                <ProtectedRoute>
+                  <OrderHistory />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/account/preferences"
+              element={
+                <ProtectedRoute>
+                  <Preferences />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/account/security"
+              element={
+                <ProtectedRoute>
+                  <Security />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/account/addresses"
+              element={
+                <ProtectedRoute>
+                  <AddressBook />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/account/payments"
+              element={
+                <ProtectedRoute>
+                  <PaymentMethods />
                 </ProtectedRoute>
               }
             />

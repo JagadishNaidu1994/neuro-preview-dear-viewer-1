@@ -14,6 +14,7 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
     { label: "Shop All", path: "/shop-all" },
     { label: "Science", path: "/the-science" },
     { label: "Our Story", path: "/ethos" },
+    { label: "Journal", path: "/journal" },
     { label: "Refer a Friend", path: "/refer" },
     { label: "Rewards", path: "/rewards" },
   ];
@@ -66,26 +67,16 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
 
         {/* Extra Nav */}
         <div className="mt-4 border-t text-sm text-[#555] font-medium">
-          {extraItems.map((item, idx) =>
-            item.path ? (
-              <Link
-                key={idx}
-                to={item.path}
-                onClick={onClose}
-                className="block px-4 py-3 hover:bg-gray-100"
-              >
-                {item.label}
-              </Link>
-            ) : (
-              <button
-                key={idx}
-                onClick={item.onClick}
-                className="w-full text-left px-4 py-3 hover:bg-gray-100"
-              >
-                {item.label}
-              </button>
-            )
-          )}
+          {extraItems.map((item, idx) => (
+            <Link
+              key={idx}
+              to={item.path}
+              onClick={onClose}
+              className="block px-4 py-3 hover:bg-gray-100"
+            >
+              {item.label}
+            </Link>
+          ))}
         </div>
       </div>
     </>
