@@ -53,6 +53,13 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     resetForm();
   };
 
+  const getEnhancedErrorMessage = (errorMessage: string) => {
+    if (errorMessage.toLowerCase().includes('invalid login credentials')) {
+      return "Invalid email or password. Please double-check your credentials or use 'Forgot password?' if you need to reset your password.";
+    }
+    return errorMessage;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -72,7 +79,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         });
 
         if (signUpError) {
-          setError(signUpError.message);
+          setError(getEnhancedErrorMessage(signUpError.message));
           setLoading(false);
           return;
         }
@@ -119,7 +126,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         });
 
         if (signInError) {
-          setError(signInError.message);
+          setError(getEnhancedErrorMessage(signInError.message));
           setLoading(false);
           return;
         }
@@ -144,7 +151,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     });
 
     if (error) {
-      setError(error.message);
+      setError(getEnhancedErrorMessage(error.message));
     }
   };
 
