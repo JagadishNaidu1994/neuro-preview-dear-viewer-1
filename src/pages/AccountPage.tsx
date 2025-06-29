@@ -13,7 +13,7 @@ import {
   FaLock,
   FaAddressBook,
   FaCreditCard,
-  FaShield,
+  FaShieldAlt,
 } from "react-icons/fa";
 
 interface Order {
@@ -76,7 +76,7 @@ const AccountPage = () => {
 
   if (isAdmin) {
     accountItems.unshift({
-      icon: <FaShield size={24} />,
+      icon: <FaShieldAlt size={24} />,
       label: "Admin Dashboard",
       action: () => navigate("/admin"),
     });
