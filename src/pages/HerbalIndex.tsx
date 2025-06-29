@@ -21,3 +21,5 @@ const HerbalIndex = () => {
     </div>
   );
 };
+
+export default HerbalIndex;
