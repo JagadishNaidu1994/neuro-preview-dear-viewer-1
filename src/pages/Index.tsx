@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AuthModal from "@/components/AuthModal";
 import Header from "@/components/Header";
@@ -7,10 +7,45 @@ import Header from "@/components/Header";
 const Index = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const handleAccountClick = () => {
     setIsAuthModalOpen(true);
   };
+
+  // Carousel data with 3 different products
+  const carouselItems = [
+    {
+      id: 1,
+      name: "Chill Mushroom Gummy Delights",
+      price: "$32",
+      description: "For Happy Calm & Less Stress",
+      image: "https://images.pexels.com/photos/6207734/pexels-photo-6207734.jpeg?auto=compress&cs=tinysrgb&w=800"
+    },
+    {
+      id: 2,
+      name: "Focus Mushroom Gummy Delights", 
+      price: "$32",
+      description: "For Mental Clarity & Sharp Focus",
+      image: "https://images.pexels.com/photos/5946071/pexels-photo-5946071.jpeg?auto=compress&cs=tinysrgb&w=800"
+    },
+    {
+      id: 3,
+      name: "Sleep Mushroom Gummy Delights",
+      price: "$32", 
+      description: "For Deep Sleep & Recovery",
+      image: "https://images.pexels.com/photos/5946063/pexels-photo-5946063.jpeg?auto=compress&cs=tinysrgb&w=800"
+    }
+  ];
+
+  // Auto-rotate carousel every 1.5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % carouselItems.length);
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, [carouselItems.length]);
 
   return (
     <div className="min-h-screen bg-[#F8F8F5]">
@@ -48,33 +83,50 @@ const Index = () => {
             </div>
           </section>
 
-          {/* Product Showcase Section */}
+          {/* Product Showcase Carousel Section */}
           <section className="space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-auto lg:h-[866px]">
-              {/* Left Product Card */}
+              {/* Left Product Carousel */}
               <div className="bg-[#EEEEEA] rounded-[20px] relative overflow-hidden h-[400px] lg:h-full">
                 <div className="h-full flex flex-col justify-center items-center relative">
-                  <img
-                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/8040d28d4a7ffcb143c97e6d28e82cbe1ee0a7da"
-                    alt="Chill Mushroom Gummy Delights"
-                    className="w-full h-full object-cover"
-                  />
+                  {/* Carousel Images */}
+                  <div className="relative w-full h-full overflow-hidden">
+                    {carouselItems.map((item, index) => (
+                      <img
+                        key={item.id}
+                        src={item.image}
+                        alt={item.name}
+                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+                          index === currentSlide ? 'opacity-100' : 'opacity-0'
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Product Info Overlay */}
                   <div className="absolute bottom-16 md:bottom-20 left-1/2 transform -translate-x-1/2 text-center">
                     <div className="flex items-center justify-center gap-2 mb-2">
                       <span className="text-[#161616] text-xs">
-                        Chill Mushroom Gummy Delights
+                        {carouselItems[currentSlide].name}
                       </span>
                       <span className="text-[#161616] text-xs">·</span>
-                      <span className="text-[#161616] text-xs">$32</span>
+                      <span className="text-[#161616] text-xs">{carouselItems[currentSlide].price}</span>
                     </div>
                     <p className="text-[#B2AFAB] text-xs text-center">
-                      For Happy Calm & Less Stress
+                      {carouselItems[currentSlide].description}
                     </p>
                   </div>
+
+                  {/* Carousel Dots */}
                   <div className="absolute bottom-12 md:bottom-16 left-1/2 transform -translate-x-1/2 bg-[#C2C2C2] rounded-[10px] px-3 py-3 flex gap-1">
-                    <div className="w-1 h-1 rounded-full bg-[#F6F6F6]"></div>
-                    <div className="w-1 h-1 rounded-full bg-[#3D3D3D]"></div>
-                    <div className="w-1 h-1 rounded-full bg-[#F6F6F6]"></div>
+                    {carouselItems.map((_, index) => (
+                      <div
+                        key={index}
+                        className={`w-1 h-1 rounded-full transition-colors duration-300 ${
+                          index === currentSlide ? 'bg-[#3D3D3D]' : 'bg-[#F6F6F6]'
+                        }`}
+                      />
+                    ))}
                   </div>
                 </div>
               </div>
