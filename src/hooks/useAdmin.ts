@@ -20,16 +20,11 @@ export const useAdmin = () => {
           .from("admin_users")
           .select("role")
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle();
 
         if (error) {
-          if (error.code === "PGRST116" || error.code === "42P01") {
-            // No rows found or table doesn't exist - user is not admin
-            setIsAdmin(false);
-          } else {
-            console.error("Error checking admin status:", error);
-            setIsAdmin(false);
-          }
+          console.error("Error checking admin status:", error);
+          setIsAdmin(false);
         } else {
           setIsAdmin(!!data);
         }
