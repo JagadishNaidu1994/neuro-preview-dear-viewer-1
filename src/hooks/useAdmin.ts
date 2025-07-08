@@ -46,20 +46,3 @@ export const useAdmin = () => {
 
   return { isAdmin, loading };
 };
-          console.error("Error checking admin status:", error);
-        }
-
-        setIsAdmin(!!data);
-      } catch (error) {
-        console.error("Error checking admin status:", error);
-        setIsAdmin(false);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAdminStatus();
-  }, [user]);
-
-  return { isAdmin, loading };
-};
