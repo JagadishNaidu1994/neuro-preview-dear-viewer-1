@@ -94,12 +94,19 @@ const AdminDashboard = () => {
         .from("orders")
         .select(`
           *,
-          user:users(email)
+          users!orders_user_id_fkey(email)
         `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setOrders(data || []);
+      
+      // Transform the data to match the expected structure
+      const transformedData = (data || []).map(order => ({
+        ...order,
+        user: order.users
+      }));
+      
+      setOrders(transformedData);
     } catch (error) {
       console.error("Error fetching orders:", error);
     }

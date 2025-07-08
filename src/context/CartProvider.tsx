@@ -55,12 +55,19 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
           id,
           product_id,
           quantity,
-          product:products(id, name, price, image_url)
+          products!cart_items_product_id_fkey(id, name, price, image_url)
         `)
         .eq("user_id", user.id);
 
       if (error) throw error;
-      setItems(data || []);
+      
+      // Transform the data to match the expected structure
+      const transformedData = (data || []).map(item => ({
+        ...item,
+        product: item.products
+      }));
+      
+      setItems(transformedData);
     } catch (error) {
       console.error("Error fetching cart items:", error);
     } finally {

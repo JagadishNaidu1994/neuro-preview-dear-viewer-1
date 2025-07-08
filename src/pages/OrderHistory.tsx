@@ -44,7 +44,7 @@ const OrderHistory = () => {
           order_items (
             quantity,
             price,
-            product:products (
+            products!order_items_product_id_fkey (
               name,
               image_url
             )
@@ -54,7 +54,17 @@ const OrderHistory = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setOrders(data || []);
+      
+      // Transform the data to match the expected structure
+      const transformedData = (data || []).map(order => ({
+        ...order,
+        order_items: order.order_items.map(item => ({
+          ...item,
+          product: item.products
+        }))
+      }));
+      
+      setOrders(transformedData);
     } catch (error) {
       console.error("Error fetching orders:", error);
     } finally {

@@ -22,7 +22,30 @@ export const useAdmin = () => {
           .eq("user_id", user.id)
           .single();
 
-        if (error && error.code !== "PGRST116") {
+        if (error) {
+          if (error.code === "PGRST116" || error.code === "42P01") {
+            // No rows found or table doesn't exist - user is not admin
+            setIsAdmin(false);
+          } else {
+            console.error("Error checking admin status:", error);
+            setIsAdmin(false);
+          }
+        } else {
+          setIsAdmin(!!data);
+        }
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+        setIsAdmin(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user]);
+
+  return { isAdmin, loading };
+};
           console.error("Error checking admin status:", error);
         }
 
