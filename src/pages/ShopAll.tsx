@@ -1,7 +1,7 @@
 // src/pages/ShopAll.tsx
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/context/CartProvider";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
