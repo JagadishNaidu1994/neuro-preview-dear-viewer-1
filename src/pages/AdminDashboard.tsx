@@ -5,10 +5,14 @@ import AdminSidebar from "@/components/admin/AdminSidebar";
 import DashboardOverview from "@/components/admin/DashboardOverview";
 import ContactSubmissionsTab from "@/components/admin/ContactSubmissionsTab";
 import OrderViewDialog from "@/components/admin/OrderViewDialog";
+import DetailedOrderView from "@/components/admin/DetailedOrderView";
+import MessagesView from "@/components/admin/MessagesView";
+import NotificationDropdown from "@/components/admin/NotificationDropdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Search, User } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -86,6 +90,8 @@ const AdminDashboard = () => {
   const { isAdmin, loading: adminLoading } = useAdmin();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [showDetailedOrder, setShowDetailedOrder] = useState(false);
+  const [showMessagesView, setShowMessagesView] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [journals, setJournals] = useState<Journal[]>([]);
@@ -581,62 +587,95 @@ const AdminDashboard = () => {
 
   if (adminLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
+      <div className="min-h-screen bg-color-1 flex items-center justify-center">
+        <div className="text-xl text-color-8">Loading...</div>
       </div>
     );
   }
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-color-1 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-          <p>You don't have permission to access this page.</p>
+          <h1 className="text-2xl font-bold mb-4 text-color-12">Access Denied</h1>
+          <p className="text-color-8">You don't have permission to access this page.</p>
         </div>
       </div>
     );
   }
 
+  // Show detailed order view
+  if (showDetailedOrder && selectedOrder) {
+    return (
+      <DetailedOrderView 
+        order={selectedOrder} 
+        onBack={() => setShowDetailedOrder(false)} 
+      />
+    );
+  }
+
+  // Show messages view
+  if (showMessagesView) {
+    return <MessagesView />;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-color-1 flex">
       <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       
       <div className="flex-1 overflow-auto">
-        <div className="p-8">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p className="text-gray-600 mt-2">Manage your store and orders</p>
+        {/* Header */}
+        <div className="bg-white border-b border-color-2 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-color-4" />
+                <Input 
+                  placeholder="Search in dashboard" 
+                  className="pl-10 bg-color-1 border-color-3"
+                />
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <NotificationDropdown />
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-color-6 rounded-full flex items-center justify-center">
+                  <User className="h-4 w-4 text-white" />
+                </div>
+                <span className="text-sm font-medium text-color-12">Jonathan Smith</span>
+              </div>
+            </div>
           </div>
+        </div>
 
+        <div className="p-6">
           {/* Dashboard Overview */}
           {activeTab === "dashboard" && <DashboardOverview />}
 
           {/* Products Tab */}
           {activeTab === "products" && (
-            <Card className="bg-white">
+            <Card className="bg-white border-color-2">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-gray-900">Products Management</CardTitle>
+                <CardTitle className="text-xl font-semibold text-color-12">Products Management</CardTitle>
                 <Dialog open={isProductModalOpen} onOpenChange={setIsProductModalOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
                       setEditingProduct(null);
                       resetProductForm();
-                    }}>
+                    }} className="bg-color-6 hover:bg-color-7 text-white">
                       <FaPlus className="mr-2" />
                       Add Product
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
+                  <DialogContent className="max-w-2xl bg-white border-color-2">
                     <DialogHeader>
-                      <DialogTitle>
+                      <DialogTitle className="text-color-12">
                         {editingProduct ? "Edit Product" : "Add New Product"}
                       </DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleProductSubmit} className="space-y-4">
                       <div>
-                        <Label htmlFor="name">Product Name</Label>
+                        <Label htmlFor="name" className="text-color-8">Product Name</Label>
                         <Input
                           id="name"
                           value={productForm.name}
@@ -644,21 +683,23 @@ const AdminDashboard = () => {
                             setProductForm({ ...productForm, name: e.target.value })
                           }
                           required
+                          className="border-color-3"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="description">Description</Label>
+                        <Label htmlFor="description" className="text-color-8">Description</Label>
                         <Textarea
                           id="description"
                           value={productForm.description}
                           onChange={(e) =>
                             setProductForm({ ...productForm, description: e.target.value })
                           }
+                          className="border-color-3"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="price">Price ($)</Label>
+                          <Label htmlFor="price" className="text-color-8">Price ($)</Label>
                           <Input
                             id="price"
                             type="number"
@@ -668,10 +709,11 @@ const AdminDashboard = () => {
                               setProductForm({ ...productForm, price: e.target.value })
                             }
                             required
+                            className="border-color-3"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="stock">Stock Quantity</Label>
+                          <Label htmlFor="stock" className="text-color-8">Stock Quantity</Label>
                           <Input
                             id="stock"
                             type="number"
@@ -680,27 +722,30 @@ const AdminDashboard = () => {
                               setProductForm({ ...productForm, stock_quantity: e.target.value })
                             }
                             required
+                            className="border-color-3"
                           />
                         </div>
                       </div>
                       <div>
-                        <Label htmlFor="category">Category</Label>
+                        <Label htmlFor="category" className="text-color-8">Category</Label>
                         <Input
                           id="category"
                           value={productForm.category}
                           onChange={(e) =>
                             setProductForm({ ...productForm, category: e.target.value })
                           }
+                          className="border-color-3"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="image_url">Image URL</Label>
+                        <Label htmlFor="image_url" className="text-color-8">Image URL</Label>
                         <Input
                           id="image_url"
                           value={productForm.image_url}
                           onChange={(e) =>
                             setProductForm({ ...productForm, image_url: e.target.value })
                           }
+                          className="border-color-3"
                         />
                       </div>
                       <div className="flex justify-end space-x-2">
@@ -708,10 +753,11 @@ const AdminDashboard = () => {
                           type="button"
                           variant="outline"
                           onClick={() => setIsProductModalOpen(false)}
+                          className="border-color-3 text-color-8"
                         >
                           Cancel
                         </Button>
-                        <Button type="submit" disabled={loading}>
+                        <Button type="submit" disabled={loading} className="bg-color-6 hover:bg-color-7 text-white">
                           {loading ? "Saving..." : "Save Product"}
                         </Button>
                       </div>
@@ -723,18 +769,18 @@ const AdminDashboard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Image</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Stock</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead className="text-color-8">Image</TableHead>
+                      <TableHead className="text-color-8">Name</TableHead>
+                      <TableHead className="text-color-8">Price</TableHead>
+                      <TableHead className="text-color-8">Stock</TableHead>
+                      <TableHead className="text-color-8">Category</TableHead>
+                      <TableHead className="text-color-8">Status</TableHead>
+                      <TableHead className="text-color-8">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {products.map((product) => (
-                      <TableRow key={product.id}>
+                      <TableRow key={product.id} className="hover:bg-color-1">
                         <TableCell>
                           <img
                             src={product.image_url}
@@ -742,10 +788,10 @@ const AdminDashboard = () => {
                             className="w-12 h-12 object-cover rounded"
                           />
                         </TableCell>
-                        <TableCell className="font-medium">{product.name}</TableCell>
-                        <TableCell>${product.price}</TableCell>
-                        <TableCell>{product.stock_quantity}</TableCell>
-                        <TableCell>{product.category}</TableCell>
+                        <TableCell className="font-medium text-color-12">{product.name}</TableCell>
+                        <TableCell className="text-color-12">${product.price}</TableCell>
+                        <TableCell className="text-color-12">{product.stock_quantity}</TableCell>
+                        <TableCell className="text-color-12">{product.category}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <Badge variant={product.is_active ? "default" : "secondary"}>
@@ -755,6 +801,7 @@ const AdminDashboard = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => toggleProductStock(product.id, product.is_active)}
+                              className="border-color-3 text-color-8 hover:bg-color-1"
                             >
                               {product.is_active ? "Disable" : "Enable"}
                             </Button>
@@ -766,6 +813,7 @@ const AdminDashboard = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => handleEditProduct(product)}
+                              className="border-color-3 text-color-8 hover:bg-color-1"
                             >
                               <FaEdit />
                             </Button>
@@ -781,35 +829,35 @@ const AdminDashboard = () => {
 
           {/* Orders Tab */}
           {activeTab === "orders" && (
-            <Card className="bg-white">
+            <Card className="bg-white border-color-2">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900">Orders Management</CardTitle>
+                <CardTitle className="text-xl font-semibold text-color-12">Orders Management</CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Order #</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead className="text-color-8">Order #</TableHead>
+                      <TableHead className="text-color-8">Customer</TableHead>
+                      <TableHead className="text-color-8">Total</TableHead>
+                      <TableHead className="text-color-8">Status</TableHead>
+                      <TableHead className="text-color-8">Date</TableHead>
+                      <TableHead className="text-color-8">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {orders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-mono text-sm">
+                      <TableRow key={order.id} className="hover:bg-color-1">
+                        <TableCell className="font-mono text-sm text-color-12">
                           #{generateOrderNumber(order.id)}
                         </TableCell>
-                        <TableCell>{order.user_email || "N/A"}</TableCell>
-                        <TableCell>${order.total_amount}</TableCell>
+                        <TableCell className="text-color-12">{order.user_email || "N/A"}</TableCell>
+                        <TableCell className="text-color-12">${order.total_amount}</TableCell>
                         <TableCell>
                           <select
                             value={order.status}
                             onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                            className="border rounded px-2 py-1 text-sm"
+                            className="border border-color-3 rounded px-2 py-1 text-sm bg-white text-color-12"
                           >
                             <option value="pending">Pending</option>
                             <option value="processing">Processing</option>
@@ -818,14 +866,18 @@ const AdminDashboard = () => {
                             <option value="cancelled">Cancelled</option>
                           </select>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-color-12">
                           {new Date(order.created_at).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleViewOrder(order)}
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setShowDetailedOrder(true);
+                            }}
+                            className="border-color-3 text-color-8 hover:bg-color-1"
                           >
                             <FaEye />
                           </Button>
@@ -839,32 +891,45 @@ const AdminDashboard = () => {
           )}
 
           {/* Messages Tab */}
-          {activeTab === "messages" && <ContactSubmissionsTab />}
+          {activeTab === "messages" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-color-12">Messages</h2>
+                <Button 
+                  onClick={() => setShowMessagesView(true)}
+                  className="bg-color-6 hover:bg-color-7 text-white"
+                >
+                  Open Messages View
+                </Button>
+              </div>
+              <ContactSubmissionsTab />
+            </div>
+          )}
 
           {/* Journals Tab */}
           {activeTab === "journals" && (
-            <Card className="bg-white">
+            <Card className="bg-white border-color-2">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-gray-900">Journals Management</CardTitle>
+                <CardTitle className="text-xl font-semibold text-color-12">Journals Management</CardTitle>
                 <Dialog open={isJournalModalOpen} onOpenChange={setIsJournalModalOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
                       setEditingJournal(null);
                       resetJournalForm();
-                    }}>
+                    }} className="bg-color-6 hover:bg-color-7 text-white">
                       <FaPlus className="mr-2" />
                       Add Journal
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-white border-color-2">
                     <DialogHeader>
-                      <DialogTitle>
+                      <DialogTitle className="text-color-12">
                         {editingJournal ? "Edit Journal" : "Add New Journal"}
                       </DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleJournalSubmit} className="space-y-4">
                       <div>
-                        <Label htmlFor="title">Title</Label>
+                        <Label htmlFor="title" className="text-color-8">Title</Label>
                         <Input
                           id="title"
                           value={journalForm.title}
@@ -872,10 +937,11 @@ const AdminDashboard = () => {
                             setJournalForm({ ...journalForm, title: e.target.value })
                           }
                           required
+                          className="border-color-3"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="excerpt">Excerpt</Label>
+                        <Label htmlFor="excerpt" className="text-color-8">Excerpt</Label>
                         <Textarea
                           id="excerpt"
                           value={journalForm.excerpt}
@@ -883,10 +949,11 @@ const AdminDashboard = () => {
                             setJournalForm({ ...journalForm, excerpt: e.target.value })
                           }
                           rows={2}
+                          className="border-color-3"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="content">Content</Label>
+                        <Label htmlFor="content" className="text-color-8">Content</Label>
                         <Textarea
                           id="content"
                           value={journalForm.content}
@@ -895,27 +962,30 @@ const AdminDashboard = () => {
                           }
                           rows={10}
                           required
+                          className="border-color-3"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="author">Author</Label>
+                          <Label htmlFor="author" className="text-color-8">Author</Label>
                           <Input
                             id="author"
                             value={journalForm.author}
                             onChange={(e) =>
                               setJournalForm({ ...journalForm, author: e.target.value })
                             }
+                            className="border-color-3"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="journal_image_url">Image URL</Label>
+                          <Label htmlFor="journal_image_url" className="text-color-8">Image URL</Label>
                           <Input
                             id="journal_image_url"
                             value={journalForm.image_url}
                             onChange={(e) =>
                               setJournalForm({ ...journalForm, image_url: e.target.value })
                             }
+                            className="border-color-3"
                           />
                         </div>
                       </div>
@@ -928,17 +998,18 @@ const AdminDashboard = () => {
                             setJournalForm({ ...journalForm, published: e.target.checked })
                           }
                         />
-                        <Label htmlFor="published">Published</Label>
+                        <Label htmlFor="published" className="text-color-8">Published</Label>
                       </div>
                       <div className="flex justify-end space-x-2">
                         <Button
                           type="button"
                           variant="outline"
                           onClick={() => setIsJournalModalOpen(false)}
+                          className="border-color-3 text-color-8"
                         >
                           Cancel
                         </Button>
-                        <Button type="submit" disabled={loading}>
+                        <Button type="submit" disabled={loading} className="bg-color-6 hover:bg-color-7 text-white">
                           {loading ? "Saving..." : "Save Journal"}
                         </Button>
                       </div>
@@ -950,24 +1021,24 @@ const AdminDashboard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Author</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead className="text-color-8">Title</TableHead>
+                      <TableHead className="text-color-8">Author</TableHead>
+                      <TableHead className="text-color-8">Status</TableHead>
+                      <TableHead className="text-color-8">Created</TableHead>
+                      <TableHead className="text-color-8">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {journals.map((journal) => (
-                      <TableRow key={journal.id}>
-                        <TableCell className="font-medium">{journal.title}</TableCell>
-                        <TableCell>{journal.author}</TableCell>
+                      <TableRow key={journal.id} className="hover:bg-color-1">
+                        <TableCell className="font-medium text-color-12">{journal.title}</TableCell>
+                        <TableCell className="text-color-12">{journal.author}</TableCell>
                         <TableCell>
                           <Badge variant={journal.published ? "default" : "secondary"}>
                             {journal.published ? "Published" : "Draft"}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-color-12">
                           {new Date(journal.created_at).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
@@ -976,6 +1047,7 @@ const AdminDashboard = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => handleEditJournal(journal)}
+                              className="border-color-3 text-color-8 hover:bg-color-1"
                             >
                               <FaEdit />
                             </Button>
@@ -991,28 +1063,28 @@ const AdminDashboard = () => {
 
           {/* Coupons Tab */}
           {activeTab === "coupons" && (
-            <Card className="bg-white">
+            <Card className="bg-white border-color-2">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-gray-900">Coupon Codes Management</CardTitle>
+                <CardTitle className="text-xl font-semibold text-color-12">Coupon Codes Management</CardTitle>
                 <Dialog open={isCouponModalOpen} onOpenChange={setIsCouponModalOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
                       setEditingCoupon(null);
                       resetCouponForm();
-                    }}>
+                    }} className="bg-color-6 hover:bg-color-7 text-white">
                       <FaPlus className="mr-2" />
                       Add Coupon
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
+                  <DialogContent className="max-w-2xl bg-white border-color-2">
                     <DialogHeader>
-                      <DialogTitle>
+                      <DialogTitle className="text-color-12">
                         {editingCoupon ? "Edit Coupon" : "Add New Coupon"}
                       </DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleCouponSubmit} className="space-y-4">
                       <div>
-                        <Label htmlFor="code">Coupon Code</Label>
+                        <Label htmlFor="code" className="text-color-8">Coupon Code</Label>
                         <Input
                           id="code"
                           value={couponForm.code}
@@ -1020,25 +1092,26 @@ const AdminDashboard = () => {
                             setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })
                           }
                           required
+                          className="border-color-3"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="discount_type">Discount Type</Label>
+                          <Label htmlFor="discount_type" className="text-color-8">Discount Type</Label>
                           <select
                             id="discount_type"
                             value={couponForm.discount_type}
                             onChange={(e) =>
                               setCouponForm({ ...couponForm, discount_type: e.target.value })
                             }
-                            className="w-full border rounded px-3 py-2"
+                            className="w-full border border-color-3 rounded px-3 py-2 bg-white text-color-12"
                           >
                             <option value="percentage">Percentage</option>
                             <option value="fixed">Fixed Amount</option>
                           </select>
                         </div>
                         <div>
-                          <Label htmlFor="discount_value">
+                          <Label htmlFor="discount_value" className="text-color-8">
                             Discount Value {couponForm.discount_type === "percentage" ? "(%)" : "($)"}
                           </Label>
                           <Input
@@ -1050,12 +1123,13 @@ const AdminDashboard = () => {
                               setCouponForm({ ...couponForm, discount_value: e.target.value })
                             }
                             required
+                            className="border-color-3"
                           />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="minimum_order_amount">Minimum Order Amount ($)</Label>
+                          <Label htmlFor="minimum_order_amount" className="text-color-8">Minimum Order Amount ($)</Label>
                           <Input
                             id="minimum_order_amount"
                             type="number"
@@ -1064,10 +1138,11 @@ const AdminDashboard = () => {
                             onChange={(e) =>
                               setCouponForm({ ...couponForm, minimum_order_amount: e.target.value })
                             }
+                            className="border-color-3"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="max_uses">Max Uses (optional)</Label>
+                          <Label htmlFor="max_uses" className="text-color-8">Max Uses (optional)</Label>
                           <Input
                             id="max_uses"
                             type="number"
@@ -1075,11 +1150,12 @@ const AdminDashboard = () => {
                             onChange={(e) =>
                               setCouponForm({ ...couponForm, max_uses: e.target.value })
                             }
+                            className="border-color-3"
                           />
                         </div>
                       </div>
                       <div>
-                        <Label htmlFor="expires_at">Expiry Date (optional)</Label>
+                        <Label htmlFor="expires_at" className="text-color-8">Expiry Date (optional)</Label>
                         <Input
                           id="expires_at"
                           type="date"
@@ -1087,6 +1163,7 @@ const AdminDashboard = () => {
                           onChange={(e) =>
                             setCouponForm({ ...couponForm, expires_at: e.target.value })
                           }
+                          className="border-color-3"
                         />
                       </div>
                       <div className="flex justify-end space-x-2">
@@ -1094,10 +1171,11 @@ const AdminDashboard = () => {
                           type="button"
                           variant="outline"
                           onClick={() => setIsCouponModalOpen(false)}
+                          className="border-color-3 text-color-8"
                         >
                           Cancel
                         </Button>
-                        <Button type="submit" disabled={loading}>
+                        <Button type="submit" disabled={loading} className="bg-color-6 hover:bg-color-7 text-white">
                           {loading ? "Saving..." : "Save Coupon"}
                         </Button>
                       </div>
@@ -1109,29 +1187,29 @@ const AdminDashboard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Code</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Value</TableHead>
-                      <TableHead>Min Order</TableHead>
-                      <TableHead>Used/Max</TableHead>
-                      <TableHead>Expires</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead className="text-color-8">Code</TableHead>
+                      <TableHead className="text-color-8">Type</TableHead>
+                      <TableHead className="text-color-8">Value</TableHead>
+                      <TableHead className="text-color-8">Min Order</TableHead>
+                      <TableHead className="text-color-8">Used/Max</TableHead>
+                      <TableHead className="text-color-8">Expires</TableHead>
+                      <TableHead className="text-color-8">Status</TableHead>
+                      <TableHead className="text-color-8">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {coupons.map((coupon) => (
-                      <TableRow key={coupon.id}>
-                        <TableCell className="font-mono font-medium">{coupon.code}</TableCell>
-                        <TableCell>{coupon.discount_type}</TableCell>
-                        <TableCell>
+                      <TableRow key={coupon.id} className="hover:bg-color-1">
+                        <TableCell className="font-mono font-medium text-color-12">{coupon.code}</TableCell>
+                        <TableCell className="text-color-12">{coupon.discount_type}</TableCell>
+                        <TableCell className="text-color-12">
                           {coupon.discount_type === "percentage" ? `${coupon.discount_value}%` : `$${coupon.discount_value}`}
                         </TableCell>
-                        <TableCell>${coupon.minimum_order_amount}</TableCell>
-                        <TableCell>
+                        <TableCell className="text-color-12">${coupon.minimum_order_amount}</TableCell>
+                        <TableCell className="text-color-12">
                           {coupon.used_count}/{coupon.max_uses || "∞"}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-color-12">
                           {coupon.expires_at 
                             ? new Date(coupon.expires_at).toLocaleDateString()
                             : "Never"
@@ -1148,6 +1226,7 @@ const AdminDashboard = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => handleEditCoupon(coupon)}
+                              className="border-color-3 text-color-8 hover:bg-color-1"
                             >
                               <FaEdit />
                             </Button>
@@ -1163,28 +1242,28 @@ const AdminDashboard = () => {
 
           {/* Shipping Tab */}
           {activeTab === "shipping" && (
-            <Card className="bg-white">
+            <Card className="bg-white border-color-2">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-gray-900">Shipping Methods Management</CardTitle>
+                <CardTitle className="text-xl font-semibold text-color-12">Shipping Methods Management</CardTitle>
                 <Dialog open={isShippingModalOpen} onOpenChange={setIsShippingModalOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
                       setEditingShipping(null);
                       resetShippingForm();
-                    }}>
+                    }} className="bg-color-6 hover:bg-color-7 text-white">
                       <FaPlus className="mr-2" />
                       Add Shipping Method
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
+                  <DialogContent className="max-w-2xl bg-white border-color-2">
                     <DialogHeader>
-                      <DialogTitle>
+                      <DialogTitle className="text-color-12">
                         {editingShipping ? "Edit Shipping Method" : "Add New Shipping Method"}
                       </DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleShippingSubmit} className="space-y-4">
                       <div>
-                        <Label htmlFor="shipping_name">Name</Label>
+                        <Label htmlFor="shipping_name" className="text-color-8">Name</Label>
                         <Input
                           id="shipping_name"
                           value={shippingForm.name}
@@ -1192,21 +1271,23 @@ const AdminDashboard = () => {
                             setShippingForm({ ...shippingForm, name: e.target.value })
                           }
                           required
+                          className="border-color-3"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="shipping_description">Description</Label>
+                        <Label htmlFor="shipping_description" className="text-color-8">Description</Label>
                         <Textarea
                           id="shipping_description"
                           value={shippingForm.description}
                           onChange={(e) =>
                             setShippingForm({ ...shippingForm, description: e.target.value })
                           }
+                          className="border-color-3"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="shipping_price">Price ($)</Label>
+                          <Label htmlFor="shipping_price" className="text-color-8">Price ($)</Label>
                           <Input
                             id="shipping_price"
                             type="number"
@@ -1216,10 +1297,11 @@ const AdminDashboard = () => {
                               setShippingForm({ ...shippingForm, price: e.target.value })
                             }
                             required
+                            className="border-color-3"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="estimated_days">Estimated Days</Label>
+                          <Label htmlFor="estimated_days" className="text-color-8">Estimated Days</Label>
                           <Input
                             id="estimated_days"
                             value={shippingForm.estimated_days}
@@ -1228,6 +1310,7 @@ const AdminDashboard = () => {
                             }
                             placeholder="e.g., 3-5 days"
                             required
+                            className="border-color-3"
                           />
                         </div>
                       </div>
@@ -1236,10 +1319,11 @@ const AdminDashboard = () => {
                           type="button"
                           variant="outline"
                           onClick={() => setIsShippingModalOpen(false)}
+                          className="border-color-3 text-color-8"
                         >
                           Cancel
                         </Button>
-                        <Button type="submit" disabled={loading}>
+                        <Button type="submit" disabled={loading} className="bg-color-6 hover:bg-color-7 text-white">
                           {loading ? "Saving..." : "Save Shipping Method"}
                         </Button>
                       </div>
@@ -1251,21 +1335,21 @@ const AdminDashboard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Estimated Days</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead className="text-color-8">Name</TableHead>
+                      <TableHead className="text-color-8">Description</TableHead>
+                      <TableHead className="text-color-8">Price</TableHead>
+                      <TableHead className="text-color-8">Estimated Days</TableHead>
+                      <TableHead className="text-color-8">Status</TableHead>
+                      <TableHead className="text-color-8">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {shippingMethods.map((shipping) => (
-                      <TableRow key={shipping.id}>
-                        <TableCell className="font-medium">{shipping.name}</TableCell>
-                        <TableCell>{shipping.description || "N/A"}</TableCell>
-                        <TableCell>${shipping.price}</TableCell>
-                        <TableCell>{shipping.estimated_days}</TableCell>
+                      <TableRow key={shipping.id} className="hover:bg-color-1">
+                        <TableCell className="font-medium text-color-12">{shipping.name}</TableCell>
+                        <TableCell className="text-color-12">{shipping.description || "N/A"}</TableCell>
+                        <TableCell className="text-color-12">${shipping.price}</TableCell>
+                        <TableCell className="text-color-12">{shipping.estimated_days}</TableCell>
                         <TableCell>
                           <Badge variant={shipping.is_active ? "default" : "secondary"}>
                             {shipping.is_active ? "Active" : "Inactive"}
@@ -1277,6 +1361,7 @@ const AdminDashboard = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => handleEditShipping(shipping)}
+                              className="border-color-3 text-color-8 hover:bg-color-1"
                             >
                               <FaEdit />
                             </Button>

@@ -1,97 +1,105 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   /**
-   * Tailwind CSS theme
-   * tailwind.config.ts expects the following color variables to be expressed as HSL values.
-   * A different format will require also updating the theme in tailwind.config.ts.
-  */
+   * Custom color palette
+   */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Custom color palette */
+    --color-1: 224 227 230; /* #e0e3e6 */
+    --color-2: 178 184 192; /* #b2b8c0 */
+    --color-3: 135 145 156; /* #87919c */
+    --color-4: 98 110 124; /* #626e7c */
+    --color-5: 66 80 96; /* #425060 */
+    --color-6: 40 56 73; /* #283849 */
+    --color-7: 21 38 54; /* #152636 */
+    --color-8: 9 26 40; /* #091a28 */
+    --color-9: 0 17 30; /* #00111e */
+    --color-10: 0 8 22; /* #000816 */
+    --color-11: 0 3 16; /* #000310 */
+    --color-12: 0 1 8; /* #000108 */
+
+    /* Semantic color mappings */
+    --background: var(--color-1);
+    --foreground: var(--color-12);
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: var(--color-12);
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: var(--color-12);
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: var(--color-6);
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: var(--color-2);
+    --secondary-foreground: var(--color-12);
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: var(--color-2);
+    --muted-foreground: var(--color-5);
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: var(--color-3);
+    --accent-foreground: var(--color-12);
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: var(--color-3);
+    --input: var(--color-3);
+    --ring: var(--color-6);
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: var(--color-1);
+    --sidebar-foreground: var(--color-8);
+    --sidebar-primary: var(--color-6);
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: var(--color-2);
+    --sidebar-accent-foreground: var(--color-8);
+    --sidebar-border: var(--color-3);
+    --sidebar-ring: var(--color-6);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: var(--color-12);
+    --foreground: var(--color-1);
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: var(--color-11);
+    --card-foreground: var(--color-1);
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: var(--color-11);
+    --popover-foreground: var(--color-1);
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: var(--color-4);
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: var(--color-8);
+    --secondary-foreground: var(--color-1);
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: var(--color-8);
+    --muted-foreground: var(--color-4);
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: var(--color-7);
+    --accent-foreground: var(--color-1);
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: var(--color-8);
+    --input: var(--color-8);
+    --ring: var(--color-4);
+
+    --sidebar-background: var(--color-11);
+    --sidebar-foreground: var(--color-2);
+    --sidebar-primary: var(--color-5);
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: var(--color-9);
+    --sidebar-accent-foreground: var(--color-2);
+    --sidebar-border: var(--color-9);
+    --sidebar-ring: var(--color-4);
   }
 }
 
@@ -104,3 +112,37 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom utility classes */
+.bg-color-1 { background-color: hsl(var(--color-1)); }
+.bg-color-2 { background-color: hsl(var(--color-2)); }
+.bg-color-3 { background-color: hsl(var(--color-3)); }
+.bg-color-4 { background-color: hsl(var(--color-4)); }
+.bg-color-5 { background-color: hsl(var(--color-5)); }
+.bg-color-6 { background-color: hsl(var(--color-6)); }
+.bg-color-7 { background-color: hsl(var(--color-7)); }
+.bg-color-8 { background-color: hsl(var(--color-8)); }
+.bg-color-9 { background-color: hsl(var(--color-9)); }
+.bg-color-10 { background-color: hsl(var(--color-10)); }
+.bg-color-11 { background-color: hsl(var(--color-11)); }
+.bg-color-12 { background-color: hsl(var(--color-12)); }
+
+.text-color-1 { color: hsl(var(--color-1)); }
+.text-color-2 { color: hsl(var(--color-2)); }
+.text-color-3 { color: hsl(var(--color-3)); }
+.text-color-4 { color: hsl(var(--color-4)); }
+.text-color-5 { color: hsl(var(--color-5)); }
+.text-color-6 { color: hsl(var(--color-6)); }
+.text-color-7 { color: hsl(var(--color-7)); }
+.text-color-8 { color: hsl(var(--color-8)); }
+.text-color-9 { color: hsl(var(--color-9)); }
+.text-color-10 { color: hsl(var(--color-10)); }
+.text-color-11 { color: hsl(var(--color-11)); }
+.text-color-12 { color: hsl(var(--color-12)); }
+
+.border-color-1 { border-color: hsl(var(--color-1)); }
+.border-color-2 { border-color: hsl(var(--color-2)); }
+.border-color-3 { border-color: hsl(var(--color-3)); }
+.border-color-4 { border-color: hsl(var(--color-4)); }
+.border-color-5 { border-color: hsl(var(--color-5)); }
+.border-color-6 { border-color: hsl(var(--color-6)); }
