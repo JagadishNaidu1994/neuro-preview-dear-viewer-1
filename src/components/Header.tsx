@@ -112,6 +112,7 @@ const Header = () => {
       <MobileDrawer
         isOpen={showMobileDrawer}
         onClose={() => setShowMobileDrawer(false)}
+        onAccountClick={handleAccountClick}
       />
     </>
   );

@@ -41,9 +41,7 @@ interface Order {
   total_amount: number;
   status: string;
   created_at: string;
-  user: {
-    email: string;
-  };
+  user_email?: string;
 }
 
 const AdminDashboard = () => {
@@ -90,23 +88,31 @@ const AdminDashboard = () => {
 
   const fetchOrders = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: ordersData, error } = await supabase
         .from("orders")
-        .select(`
-          *,
-          users!orders_user_id_fkey(email)
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       
-      // Transform the data to match the expected structure
-      const transformedData = (data || []).map(order => ({
+      // Get user emails separately
+      const userIds = [...new Set((ordersData || []).map(order => order.user_id))];
+      const { data: usersData, error: usersError } = await supabase
+        .from("users")
+        .select("id, email")
+        .in("id", userIds);
+
+      if (usersError) {
+        console.error("Error fetching users:", usersError);
+      }
+
+      // Combine orders with user emails
+      const ordersWithEmails = (ordersData || []).map(order => ({
         ...order,
-        user: order.users
+        user_email: usersData?.find(user => user.id === order.user_id)?.email || "N/A"
       }));
       
-      setOrders(transformedData);
+      setOrders(ordersWithEmails);
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
@@ -437,8 +443,8 @@ const AdminDashboard = () => {
                       <TableCell className="font-mono text-sm">
                         {order.id.slice(0, 8)}...
                       </TableCell>
-                      <TableCell>{order.user?.email || "N/A"}</TableCell>
-                      <TableCell>${order.total_amount}</TableCell>
+                      <TableCell>{order.user_email || "N/A"}</TableCell>
+                      <TableCell>₹{order.total_amount}</TableCell>
                       <TableCell>
                         <select
                           value={order.status}
