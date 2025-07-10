@@ -327,7 +327,7 @@ const Index = () => {
                 className="h-6 md:h-10"
               />
               <img
-                src="https://cdn.builder.io/api/v1/image/TEMP/f9b8a5f574d2bf861d6335d6d7f048fd95c1762c"
+                src="https://cdn.builder.io/api/v1/image/assets/TEMP/f9b8a5f574d2bf861d6335d6d7f048fd95c1762c"
                 alt="Bazaar"
                 className="h-6 md:h-10"
               />
@@ -511,29 +511,31 @@ const Index = () => {
         onClose={() => setIsAuthModalOpen(false)}
       />
 
-      <style jsx>{`
-        @keyframes scroll {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-1200px);
-          }
-        }
-        @media (min-width: 768px) {
+      <style>
+        {`
           @keyframes scroll {
             0% {
               transform: translateX(0);
             }
             100% {
-              transform: translateX(-1708px);
+              transform: translateX(-1200px);
             }
           }
-        }
-        .animate-scroll {
-          animation: scroll 30s linear infinite;
-        }
-      `}</style>
+          @media (min-width: 768px) {
+            @keyframes scroll {
+              0% {
+                transform: translateX(0);
+              }
+              100% {
+                transform: translateX(-1708px);
+              }
+            }
+          }
+          .animate-scroll {
+            animation: scroll 30s linear infinite;
+          }
+        `}
+      </style>
     </div>
   );
 };
