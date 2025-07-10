@@ -80,7 +80,7 @@ const MessagesSection = () => {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">Message</h2>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">All Inbox</span>
+              
               <Button variant="ghost" size="sm" className="text-blue-600">
                 All Inbox
               </Button>
