@@ -31,6 +31,7 @@ import Preferences from "@/pages/Preferences";
 import Security from "@/pages/Security";
 import AddressBook from "@/pages/AddressBook";
 import PaymentMethods from "@/pages/PaymentMethods";
+import AccountSampleData from "@/components/AccountSampleData";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { CartProvider } from "@/context/CartProvider";
@@ -43,6 +44,7 @@ const App = () => (
       <Toaster />
       <CartProvider>
         <BrowserRouter>
+          <AccountSampleData />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/shop-all" element={<ShopAll />} />
@@ -62,8 +64,25 @@ const App = () => (
             <Route path="/shipping" element={<ShippingReturns />} />
             <Route path="/rewards" element={<Rewards />} />
 
+            {/* Account routes - all handled by AccountPage */}
             <Route
               path="/account"
+              element={
+                <ProtectedRoute>
+                  <AccountPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/account/dashboard"
+              element={
+                <ProtectedRoute>
+                  <AccountPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/account/orders"
               element={
                 <ProtectedRoute>
                   <AccountPage />
@@ -74,7 +93,7 @@ const App = () => (
               path="/account/profile"
               element={
                 <ProtectedRoute>
-                  <ProfileSettings />
+                  <AccountPage />
                 </ProtectedRoute>
               }
             />
@@ -82,31 +101,7 @@ const App = () => (
               path="/account/subscriptions"
               element={
                 <ProtectedRoute>
-                  <Subscriptions />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/account/orders"
-              element={
-                <ProtectedRoute>
-                  <OrderHistory />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/account/preferences"
-              element={
-                <ProtectedRoute>
-                  <Preferences />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/account/security"
-              element={
-                <ProtectedRoute>
-                  <Security />
+                  <AccountPage />
                 </ProtectedRoute>
               }
             />
@@ -114,7 +109,7 @@ const App = () => (
               path="/account/addresses"
               element={
                 <ProtectedRoute>
-                  <AddressBook />
+                  <AccountPage />
                 </ProtectedRoute>
               }
             />
@@ -122,7 +117,31 @@ const App = () => (
               path="/account/payments"
               element={
                 <ProtectedRoute>
-                  <PaymentMethods />
+                  <AccountPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/account/rewards"
+              element={
+                <ProtectedRoute>
+                  <AccountPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/account/preferences"
+              element={
+                <ProtectedRoute>
+                  <AccountPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/account/security"
+              element={
+                <ProtectedRoute>
+                  <AccountPage />
                 </ProtectedRoute>
               }
             />
