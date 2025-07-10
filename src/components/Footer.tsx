@@ -1,9 +1,6 @@
-
 import { Link } from "react-router-dom";
-
 const Footer = () => {
-  return (
-    <footer className="bg-[#514B3D] text-white">
+  return <footer className="bg-[#514B3D] text-white">
       {/* Newsletter Section */}
       <div className="bg-white py-16">
         <div className="max-w-6xl mx-auto px-6 text-center">
@@ -14,11 +11,7 @@ const Footer = () => {
             Get the latest insights on cognitive wellness, nutrition science, and product updates delivered to your inbox.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#514B3D]"
-            />
+            <input type="email" placeholder="Enter your email" className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#514B3D]" />
             <button className="px-6 py-3 bg-[#514B3D] text-white rounded-lg hover:bg-[#3f3a2f] transition-colors">
               Subscribe
             </button>
@@ -27,7 +20,7 @@ const Footer = () => {
       </div>
 
       {/* Main Footer */}
-      <div className="bg-[#514B3D] py-16">
+      <div className="py-16 bg-slate-900">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Company Info */}
@@ -118,8 +111,6 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
