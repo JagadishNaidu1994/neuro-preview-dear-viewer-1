@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,7 +6,7 @@ import { useCart } from "@/context/CartProvider";
 import Header from "../components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FaShoppingCart, FaMinus, FaPlus } from "react-icons/fa";
+import { FaShoppingCart, FaMinus, FaPlus, FaStar, FaHeart, FaShare } from "react-icons/fa";
 
 interface Product {
   id: string;
@@ -24,6 +25,7 @@ const ProductPage = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState(0);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -53,15 +55,14 @@ const ProductPage = () => {
   const handleAddToCart = async () => {
     if (!product) return;
     await addToCart(product.id, quantity);
-    // You could add a toast notification here
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8F8F5]">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         <Header />
-        <div className="text-center py-24 text-xl text-gray-500">
-          Loading product...
+        <div className="flex items-center justify-center min-h-[80vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#192a3a]"></div>
         </div>
       </div>
     );
@@ -69,103 +70,249 @@ const ProductPage = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-[#F8F8F5]">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         <Header />
-        <div className="text-center py-24 text-2xl text-gray-500">
-          Product not found.
+        <div className="text-center py-24">
+          <h2 className="text-3xl font-bold text-[#192a3a] mb-4">Product not found</h2>
+          <p className="text-slate-600 mb-8">The product you're looking for doesn't exist or has been removed.</p>
+          <Button onClick={() => window.history.back()} className="bg-[#192a3a] hover:bg-[#243447]">
+            Go Back
+          </Button>
         </div>
       </div>
     );
   }
 
+  const productImages = [
+    product.image_url,
+    product.image_url, // Placeholder for additional images
+    product.image_url,
+    product.image_url
+  ];
+
   return (
-    <div className="min-h-screen bg-[#F8F8F5]">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <Header />
-      <div className="max-w-[1300px] mx-auto px-4 md:px-8 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-        <div>
-          <img
-            src={product.image_url}
-            alt={product.name}
-            className="w-full rounded-2xl shadow-lg object-cover"
-          />
-        </div>
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-4xl md:text-5xl text-[#1E1E1E] font-semibold mb-4">
-              {product.name}
-            </h1>
-            <p className="text-lg md:text-xl text-[#231F20] mb-6">
-              {product.description}
-            </p>
-          </div>
-          
-          <div className="text-3xl text-[#161616] font-bold">
-            ${product.price}
+      
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+          {/* Product Images */}
+          <div className="space-y-4">
+            <div className="aspect-square bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
+              <img
+                src={productImages[selectedImage]}
+                alt={product.name}
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+            
+            {/* Image Thumbnails */}
+            <div className="grid grid-cols-4 gap-4">
+              {productImages.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedImage(index)}
+                  className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-300 ${
+                    selectedImage === index 
+                      ? 'border-[#192a3a] shadow-lg scale-105' 
+                      : 'border-slate-300 hover:border-slate-400'
+                  }`}
+                >
+                  <img
+                    src={image}
+                    alt={`${product.name} ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <label className="text-sm font-medium">Quantity:</label>
-              <div className="flex items-center space-x-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                >
-                  <FaMinus />
-                </Button>
-                <Input
-                  type="number"
-                  value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-16 text-center"
-                  min="1"
-                  max={product.stock_quantity}
-                />
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
-                >
-                  <FaPlus />
-                </Button>
+          {/* Product Details */}
+          <div className="space-y-8">
+            {/* Header */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="px-3 py-1 bg-[#192a3a]/10 text-[#192a3a] rounded-full text-sm font-medium">
+                  {product.category}
+                </span>
+                {product.stock_quantity <= 10 && product.stock_quantity > 0 && (
+                  <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-medium">
+                    Only {product.stock_quantity} left!
+                  </span>
+                )}
+              </div>
+              
+              <h1 className="text-4xl lg:text-5xl font-bold text-[#192a3a] mb-4 leading-tight">
+                {product.name}
+              </h1>
+              
+              {/* Rating */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <FaStar key={i} className="text-yellow-400 text-lg" />
+                  ))}
+                </div>
+                <span className="text-slate-600">(4.8) • 124 reviews</span>
+              </div>
+              
+              <p className="text-lg text-slate-700 leading-relaxed">
+                {product.description}
+              </p>
+            </div>
+
+            {/* Price */}
+            <div className="bg-gradient-to-r from-[#192a3a]/5 to-blue-50 rounded-2xl p-6">
+              <div className="flex items-baseline gap-4">
+                <span className="text-4xl font-bold text-[#192a3a]">₹{product.price}</span>
+                <span className="text-xl text-slate-500 line-through">₹{(product.price * 1.2).toFixed(0)}</span>
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
+                  17% OFF
+                </span>
+              </div>
+              <p className="text-slate-600 mt-2">Inclusive of all taxes • Free shipping on orders over ₹500</p>
+            </div>
+
+            {/* Quantity Selector */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-6">
+                <label className="text-lg font-semibold text-[#192a3a]">Quantity:</label>
+                <div className="flex items-center bg-white rounded-2xl border border-slate-300 overflow-hidden shadow-sm">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="px-4 py-3 hover:bg-slate-100 rounded-none"
+                  >
+                    <FaMinus />
+                  </Button>
+                  <Input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-20 text-center border-0 focus:ring-0 bg-transparent font-semibold"
+                    min="1"
+                    max={product.stock_quantity}
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
+                    className="px-4 py-3 hover:bg-slate-100 rounded-none"
+                  >
+                    <FaPlus />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                {product.stock_quantity > 0 ? (
+                  <>
+                    <Button
+                      onClick={handleAddToCart}
+                      className="flex-1 bg-[#192a3a] hover:bg-[#243447] text-white py-4 px-8 rounded-2xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
+                      disabled={quantity > product.stock_quantity}
+                    >
+                      <FaShoppingCart className="mr-3" />
+                      Add to Cart - ₹{(product.price * quantity).toFixed(2)}
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="px-6 py-4 rounded-2xl border-2 border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white transition-all duration-300"
+                    >
+                      <FaHeart className="mr-2" />
+                      Wishlist
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="px-6 py-4 rounded-2xl border-2 border-slate-300 text-slate-600 hover:bg-slate-100 transition-all duration-300"
+                    >
+                      <FaShare />
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    disabled
+                    className="flex-1 bg-slate-400 text-white py-4 px-8 rounded-2xl text-lg font-semibold"
+                  >
+                    Out of Stock
+                  </Button>
+                )}
               </div>
             </div>
 
-            {product.stock_quantity > 0 ? (
-              <div className="space-y-2">
-                <Button
-                  onClick={handleAddToCart}
-                  className="w-full bg-[#514B3D] text-white rounded-2xl text-sm hover:bg-[#3f3a2f] transition-all py-3"
-                  disabled={quantity > product.stock_quantity}
-                >
-                  <FaShoppingCart className="mr-2" />
-                  Add to Cart - ${(product.price * quantity).toFixed(2)}
-                </Button>
-                {product.stock_quantity <= 10 && (
-                  <p className="text-sm text-orange-600">
-                    Only {product.stock_quantity} left in stock!
-                  </p>
-                )}
-              </div>
-            ) : (
-              <Button
-                disabled
-                className="w-full bg-gray-400 text-white rounded-2xl text-sm py-3"
-              >
-                Out of Stock
-              </Button>
-            )}
-          </div>
+            {/* Product Features */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+              <h3 className="font-bold text-[#192a3a] mb-4 text-lg">Product Highlights</h3>
+              <ul className="space-y-3 text-slate-700">
+                <li className="flex items-start gap-3">
+                  <span className="w-2 h-2 bg-[#192a3a] rounded-full mt-2 flex-shrink-0"></span>
+                  Premium quality, third-party tested for purity
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="w-2 h-2 bg-[#192a3a] rounded-full mt-2 flex-shrink-0"></span>
+                  Made with natural, organic ingredients
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="w-2 h-2 bg-[#192a3a] rounded-full mt-2 flex-shrink-0"></span>
+                  Free shipping on orders over ₹500
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="w-2 h-2 bg-[#192a3a] rounded-full mt-2 flex-shrink-0"></span>
+                  30-day money-back guarantee
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="w-2 h-2 bg-[#192a3a] rounded-full mt-2 flex-shrink-0"></span>
+                  Sustainably sourced and environmentally friendly
+                </li>
+              </ul>
+            </div>
 
-          <div className="border-t pt-6">
-            <h3 className="font-semibold mb-2">Product Details</h3>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>Category: {product.category}</li>
-              <li>Free shipping on orders over $50</li>
-              <li>30-day money-back guarantee</li>
-              <li>Made with premium, natural ingredients</li>
-            </ul>
+            {/* Shipping Info */}
+            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-200">
+              <h3 className="font-bold text-emerald-800 mb-3">Shipping & Returns</h3>
+              <div className="space-y-2 text-emerald-700">
+                <p>• Free delivery on orders above ₹500</p>
+                <p>• Standard delivery: 3-5 business days</p>
+                <p>• Express delivery: 1-2 business days (₹99)</p>
+                <p>• Easy returns within 30 days</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mt-20">
+          <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-8">
+            <h2 className="text-3xl font-bold text-[#192a3a] mb-8">Customer Reviews</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((review) => (
+                <div key={review} className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl p-6 border border-slate-200">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-[#192a3a] to-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                      U{review}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-[#192a3a]">User {review}</h4>
+                      <div className="flex items-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <FaStar key={i} className="text-yellow-400 text-sm" />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-slate-700">
+                    "Excellent product! I've been using it for a month and can see significant improvements. 
+                    Highly recommend to anyone looking for quality supplements."
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

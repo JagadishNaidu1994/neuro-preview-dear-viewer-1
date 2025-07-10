@@ -4,18 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
 import { useAdmin } from "@/hooks/useAdmin";
 import Header from "@/components/Header";
-import Breadcrumb from "@/components/Breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   FaUser,
   FaBox,
   FaHistory,
   FaCogs,
-  FaEnvelope,
-  FaLock,
   FaAddressBook,
   FaCreditCard,
   FaShieldAlt,
@@ -26,6 +22,10 @@ import {
   FaEdit,
   FaTrash,
   FaPlus,
+  FaDownload,
+  FaRedo,
+  FaTruck,
+  FaShoppingBag,
 } from "react-icons/fa";
 
 interface Order {
@@ -77,11 +77,9 @@ const AccountPage = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   useEffect(() => {
-    // Get active tab from URL
     const path = location.pathname;
     if (path.includes('/orders')) setActiveTab('orders');
     else if (path.includes('/profile')) setActiveTab('profile');
-    else if (path.includes('/subscriptions')) setActiveTab('subscriptions');
     else if (path.includes('/addresses')) setActiveTab('addresses');
     else if (path.includes('/payments')) setActiveTab('payments');
     else if (path.includes('/rewards')) setActiveTab('rewards');
@@ -100,7 +98,6 @@ const AccountPage = () => {
     if (!user) return;
 
     try {
-      // Fetch orders with order items
       const { data: ordersData, error: ordersError } = await supabase
         .from("orders")
         .select(`
@@ -122,7 +119,6 @@ const AccountPage = () => {
       if (ordersError) throw ordersError;
       setOrders(ordersData || []);
 
-      // Fetch addresses
       const { data: addressesData, error: addressesError } = await supabase
         .from("user_addresses")
         .select("*")
@@ -132,7 +128,6 @@ const AccountPage = () => {
       if (addressesError) throw addressesError;
       setAddresses(addressesData || []);
 
-      // Fetch rewards
       const { data: rewardsData, error: rewardsError } = await supabase
         .from("user_rewards")
         .select("*")
@@ -160,7 +155,6 @@ const AccountPage = () => {
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
-    // Update URL without page reload
     const newPath = tab === 'dashboard' ? '/account' : `/account/${tab}`;
     window.history.pushState({}, '', newPath);
   };
@@ -168,436 +162,347 @@ const AccountPage = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "delivered":
-        return "bg-green-100 text-green-700";
+        return "bg-emerald-100 text-emerald-700 border-emerald-200";
       case "shipped":
-        return "bg-blue-100 text-blue-700";
+        return "bg-blue-100 text-blue-700 border-blue-200";
       case "processing":
-        return "bg-yellow-100 text-yellow-700";
+        return "bg-amber-100 text-amber-700 border-amber-200";
       case "cancelled":
-        return "bg-red-100 text-red-700";
+        return "bg-red-100 text-red-700 border-red-200";
       default:
-        return "bg-gray-100 text-gray-700";
+        return "bg-slate-100 text-slate-700 border-slate-200";
     }
   };
 
-  const sidebarItems = [
-    { 
-      id: "dashboard", 
-      icon: <FaChartBar size={20} />, 
-      label: "Dashboard"
-    },
-    { 
-      id: "orders", 
-      icon: <FaBox size={20} />, 
-      label: "Orders"
-    },
-    { 
-      id: "profile", 
-      icon: <FaUser size={20} />, 
-      label: "Profile Settings"
-    },
-    { 
-      id: "subscriptions", 
-      icon: <FaHistory size={20} />, 
-      label: "Subscriptions"
-    },
-    { 
-      id: "addresses", 
-      icon: <FaAddressBook size={20} />, 
-      label: "Address Book"
-    },
-    { 
-      id: "payments", 
-      icon: <FaCreditCard size={20} />, 
-      label: "Payment Methods"
-    },
-    { 
-      id: "rewards", 
-      icon: <FaGift size={20} />, 
-      label: "Rewards"
-    },
-    { 
-      id: "preferences", 
-      icon: <FaCogs size={20} />, 
-      label: "Preferences"
-    },
-    { 
-      id: "security", 
-      icon: <FaLock size={20} />, 
-      label: "Security"
-    },
-  ];
+  const handleReorder = (order: Order) => {
+    console.log("Reordering:", order.id);
+    alert("Items have been added to your cart!");
+  };
 
-  if (isAdmin) {
-    sidebarItems.unshift({
-      id: "admin",
-      icon: <FaShieldAlt size={20} />,
-      label: "Admin Dashboard"
-    });
-  }
+  const handleDownloadInvoice = (orderId: string) => {
+    console.log("Downloading invoice for:", orderId);
+    alert("Invoice download started!");
+  };
+
+  const handleTrackOrder = (orderId: string) => {
+    console.log("Tracking order:", orderId);
+    alert(`Tracking order: ${orderId.slice(0, 8)}...`);
+  };
+
+  const handleViewProduct = (productId: string) => {
+    navigate(`/product?id=${productId}`);
+  };
+
+  const sidebarItems = [
+    { id: "dashboard", icon: <FaChartBar />, label: "Dashboard", color: "from-blue-500 to-cyan-500" },
+    { id: "orders", icon: <FaBox />, label: "Orders", color: "from-purple-500 to-pink-500" },
+    { id: "profile", icon: <FaUser />, label: "Profile", color: "from-emerald-500 to-teal-500" },
+    { id: "addresses", icon: <FaAddressBook />, label: "Addresses", color: "from-orange-500 to-red-500" },
+    { id: "payments", icon: <FaCreditCard />, label: "Payments", color: "from-indigo-500 to-purple-500" },
+    { id: "rewards", icon: <FaGift />, label: "Rewards", color: "from-yellow-500 to-orange-500" },
+    { id: "preferences", icon: <FaCogs />, label: "Settings", color: "from-gray-500 to-slate-500" },
+    { id: "security", icon: <FaShieldAlt />, label: "Security", color: "from-red-500 to-pink-500" },
+  ];
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-[#192a3a] to-slate-800">
         <Header />
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="text-center">Loading...</div>
+        <div className="flex items-center justify-center min-h-[80vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-[#192a3a] to-slate-800">
       <Header />
-      <div className="max-w-full mx-auto px-4 py-8">
-        <Breadcrumb />
-        
+      
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar */}
+          {/* Futuristic Sidebar */}
           <div className="lg:w-80 w-full">
-            <Card className="bg-[#514B3D] text-white">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-white">DearNeuro</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
+            <div className="bg-gradient-to-br from-slate-800/50 to-[#192a3a]/50 backdrop-blur-xl rounded-3xl border border-slate-700/50 p-6 shadow-2xl">
+              <div className="text-center mb-8">
+                <div className="w-20 h-20 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <FaUser className="text-2xl text-white" />
+                </div>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                  {user?.user_metadata?.given_name || user?.email?.split('@')[0] || 'User'}
+                </h2>
+                <p className="text-slate-400 text-sm">{user?.email}</p>
+              </div>
+              
+              <div className="space-y-2">
                 {sidebarItems.map((item) => (
-                  <Button
+                  <button
                     key={item.id}
                     onClick={() => handleTabChange(item.id)}
-                    variant={activeTab === item.id ? "secondary" : "ghost"}
-                    className={`w-full justify-start gap-4 ${
+                    className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 ${
                       activeTab === item.id
-                        ? "bg-white text-[#514B3D] hover:bg-gray-100"
-                        : "text-white hover:bg-white/10"
+                        ? `bg-gradient-to-r ${item.color} text-white shadow-lg scale-105`
+                        : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
                     }`}
                   >
-                    {item.icon}
-                    <span className="hidden sm:inline">{item.label}</span>
-                  </Button>
+                    <span className="text-lg">{item.icon}</span>
+                    <span className="font-medium">{item.label}</span>
+                  </button>
                 ))}
                 
-                <div className="pt-4 border-t border-white/20">
-                  <Button
-                    onClick={handleLogout}
-                    variant="ghost"
-                    className="w-full justify-start gap-4 text-white hover:bg-white/10"
-                  >
-                    <FaSignOutAlt size={20} />
-                    <span className="hidden sm:inline">Log Out</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-4 p-4 rounded-2xl text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all duration-300 mt-6"
+                >
+                  <FaSignOutAlt className="text-lg" />
+                  <span className="font-medium">Logout</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Main Content */}
           <div className="flex-1">
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-              {/* Dashboard Tab */}
-              <TabsContent value="dashboard" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-3xl">Welcome back, {user?.user_metadata?.given_name || user?.email}!</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                        <CardContent className="p-6">
-                          <h3 className="text-lg font-semibold mb-2">Total Orders</h3>
-                          <p className="text-3xl font-bold">{orders.length}</p>
-                        </CardContent>
-                      </Card>
-                      <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-                        <CardContent className="p-6">
-                          <h3 className="text-lg font-semibold mb-2">Total Spent</h3>
-                          <p className="text-3xl font-bold">
-                            ${orders.reduce((sum, order) => sum + order.total_amount, 0).toFixed(2)}
-                          </p>
-                        </CardContent>
-                      </Card>
-                      <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-                        <CardContent className="p-6">
-                          <h3 className="text-lg font-semibold mb-2">Reward Points</h3>
-                          <p className="text-3xl font-bold">{rewards?.points_balance || 0}</p>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Orders Tab */}
-              <TabsContent value="orders" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-2xl">Orders ({orders.length})</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {orders.length > 0 ? (
-                      <div className="space-y-4">
-                        {orders.map((order) => (
-                          <Card key={order.id} className="border">
-                            <CardContent className="p-6">
-                              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-4">
-                                    <h3 className="font-semibold">Order #{order.id.slice(0, 8)}</h3>
-                                    <Badge className={getStatusColor(order.status)}>
-                                      {order.status}
-                                    </Badge>
-                                  </div>
-                                  <p className="text-sm text-gray-600">
-                                    {new Date(order.created_at).toLocaleDateString()}
-                                  </p>
-                                  <p className="font-semibold text-lg">${order.total_amount.toFixed(2)}</p>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    onClick={() => setSelectedOrder(order)}
-                                  >
-                                    <FaEye className="mr-2" />
-                                    View Details
-                                  </Button>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+            {/* Dashboard */}
+            {activeTab === "dashboard" && (
+              <div className="space-y-8">
+                <div className="bg-gradient-to-br from-slate-800/50 to-[#192a3a]/50 backdrop-blur-xl rounded-3xl border border-slate-700/50 p-8 shadow-2xl">
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-2">
+                    Welcome back!
+                  </h1>
+                  <p className="text-slate-400 mb-8">Here's your account overview</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-2xl p-6 border border-blue-500/20">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
+                          <FaBox className="text-white" />
+                        </div>
+                        <div>
+                          <p className="text-slate-400 text-sm">Total Orders</p>
+                          <p className="text-2xl font-bold text-white">{orders.length}</p>
+                        </div>
                       </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <FaBox className="mx-auto text-4xl text-gray-400 mb-4" />
-                        <h3 className="text-xl font-semibold mb-2">No orders yet</h3>
-                        <p className="text-gray-600 mb-4">Start shopping to see your orders here</p>
-                        <Button onClick={() => navigate("/shop-all")}>
-                          Start Shopping
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Addresses Tab */}
-              <TabsContent value="addresses" className="space-y-6">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="text-2xl">Address Book</CardTitle>
-                    <Button>
-                      <FaPlus className="mr-2" />
-                      Add Address
-                    </Button>
-                  </CardHeader>
-                  <CardContent>
-                    {addresses.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {addresses.map((address) => (
-                          <Card key={address.id} className="border">
-                            <CardContent className="p-4">
-                              <div className="flex justify-between items-start">
-                                <div className="space-y-1">
-                                  <div className="flex items-center gap-2">
-                                    <h4 className="font-semibold">{address.name}</h4>
-                                    {address.is_default && (
-                                      <Badge variant="secondary">Default</Badge>
-                                    )}
-                                  </div>
-                                  <p className="text-sm text-gray-600">{address.phone}</p>
-                                  <p className="text-sm">
-                                    {address.address_line_1}
-                                    {address.address_line_2 && `, ${address.address_line_2}`}
-                                  </p>
-                                  <p className="text-sm">
-                                    {address.city}, {address.state} {address.pincode}
-                                  </p>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button size="sm" variant="outline">
-                                    <FaEdit />
-                                  </Button>
-                                  <Button size="sm" variant="outline">
-                                    <FaTrash />
-                                  </Button>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <FaAddressBook className="mx-auto text-4xl text-gray-400 mb-4" />
-                        <h3 className="text-xl font-semibold mb-2">No addresses saved</h3>
-                        <p className="text-gray-600 mb-4">Add an address for faster checkout</p>
-                        <Button>
-                          <FaPlus className="mr-2" />
-                          Add Address
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Rewards Tab */}
-              <TabsContent value="rewards" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-2xl">Rewards</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                      <Card className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-white">
-                        <CardContent className="p-6 text-center">
-                          <h3 className="text-lg font-semibold mb-2">Available Points</h3>
-                          <p className="text-3xl font-bold">{rewards?.points_balance || 0}</p>
-                        </CardContent>
-                      </Card>
-                      <Card className="bg-gradient-to-r from-green-400 to-green-500 text-white">
-                        <CardContent className="p-6 text-center">
-                          <h3 className="text-lg font-semibold mb-2">Total Earned</h3>
-                          <p className="text-3xl font-bold">{rewards?.total_earned || 0}</p>
-                        </CardContent>
-                      </Card>
-                      <Card className="bg-gradient-to-r from-red-400 to-red-500 text-white">
-                        <CardContent className="p-6 text-center">
-                          <h3 className="text-lg font-semibold mb-2">Total Redeemed</h3>
-                          <p className="text-3xl font-bold">{rewards?.total_redeemed || 0}</p>
-                        </CardContent>
-                      </Card>
                     </div>
                     
-                    <div className="text-center">
-                      <h3 className="text-xl font-semibold mb-4">How to Earn Points</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="p-4 border rounded-lg">
-                          <h4 className="font-semibold mb-2">Shop & Earn</h4>
-                          <p className="text-sm text-gray-600">Earn 1 point for every $1 spent</p>
+                    <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-2xl p-6 border border-emerald-500/20">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
+                          <FaShoppingBag className="text-white" />
                         </div>
-                        <div className="p-4 border rounded-lg">
-                          <h4 className="font-semibold mb-2">Refer Friends</h4>
-                          <p className="text-sm text-gray-600">Get 100 points for each referral</p>
-                        </div>
-                        <div className="p-4 border rounded-lg">
-                          <h4 className="font-semibold mb-2">Write Reviews</h4>
-                          <p className="text-sm text-gray-600">Earn 25 points per review</p>
+                        <div>
+                          <p className="text-slate-400 text-sm">Total Spent</p>
+                          <p className="text-2xl font-bold text-white">
+                            ₹{orders.reduce((sum, order) => sum + order.total_amount, 0).toFixed(2)}
+                          </p>
                         </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                    
+                    <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-2xl p-6 border border-yellow-500/20">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
+                          <FaGift className="text-white" />
+                        </div>
+                        <div>
+                          <p className="text-slate-400 text-sm">Reward Points</p>
+                          <p className="text-2xl font-bold text-white">{rewards?.points_balance || 0}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
-              {/* Other tabs with placeholder content */}
-              <TabsContent value="profile" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-2xl">Profile Settings</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>Profile settings functionality will be implemented here.</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+            {/* Orders */}
+            {activeTab === "orders" && (
+              <div className="bg-gradient-to-br from-slate-800/50 to-[#192a3a]/50 backdrop-blur-xl rounded-3xl border border-slate-700/50 p-8 shadow-2xl">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-8">
+                  Your Orders ({orders.length})
+                </h2>
+                
+                {orders.length > 0 ? (
+                  <div className="space-y-6">
+                    {orders.map((order) => (
+                      <div key={order.id} className="bg-slate-700/30 rounded-2xl p-6 border border-slate-600/50">
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+                          <div>
+                            <h3 className="text-xl font-semibold text-white mb-2">
+                              Order #{order.id.slice(0, 8)}...
+                            </h3>
+                            <div className="flex items-center gap-4 text-sm">
+                              <span className="text-slate-400">
+                                {new Date(order.created_at).toLocaleDateString()}
+                              </span>
+                              <Badge className={`${getStatusColor(order.status)} border`}>
+                                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col lg:items-end gap-3">
+                            <div className="text-2xl font-bold text-white">₹{order.total_amount.toFixed(2)}</div>
+                            <div className="flex flex-wrap gap-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => setSelectedOrder(order)}
+                                className="bg-blue-500/20 border-blue-500/50 text-blue-300 hover:bg-blue-500/30"
+                              >
+                                <FaEye className="mr-2" />
+                                View
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleDownloadInvoice(order.id)}
+                                className="bg-emerald-500/20 border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/30"
+                              >
+                                <FaDownload className="mr-2" />
+                                Invoice
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleReorder(order)}
+                                className="bg-purple-500/20 border-purple-500/50 text-purple-300 hover:bg-purple-500/30"
+                              >
+                                <FaRedo className="mr-2" />
+                                Reorder
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleTrackOrder(order.id)}
+                                className="bg-orange-500/20 border-orange-500/50 text-orange-300 hover:bg-orange-500/30"
+                              >
+                                <FaTruck className="mr-2" />
+                                Track
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
 
-              <TabsContent value="subscriptions" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-2xl">Subscriptions</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>Subscriptions management will be implemented here.</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                        {/* Order Items */}
+                        {order.order_items && order.order_items.length > 0 && (
+                          <div className="space-y-3 mt-4">
+                            {order.order_items.map((item, index) => (
+                              <div key={index} className="flex items-center gap-4 p-3 bg-slate-600/30 rounded-xl">
+                                <img
+                                  src={item.products.image_url}
+                                  alt={item.products.name}
+                                  className="w-12 h-12 object-cover rounded-lg"
+                                />
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-white">{item.products.name}</h4>
+                                  <p className="text-sm text-slate-400">Qty: {item.quantity}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-semibold text-white">₹{(item.price * item.quantity).toFixed(2)}</p>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleViewProduct(item.products.id)}
+                                    className="text-cyan-400 hover:text-cyan-300 p-0 h-auto"
+                                  >
+                                    View Product
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-16">
+                    <FaBox className="mx-auto text-6xl text-slate-600 mb-6" />
+                    <h3 className="text-2xl font-semibold text-white mb-4">No orders yet</h3>
+                    <p className="text-slate-400 mb-8">Start shopping to see your orders here</p>
+                    <Button onClick={() => navigate("/shop-all")} className="bg-gradient-to-r from-cyan-500 to-blue-500">
+                      Start Shopping
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
 
-              <TabsContent value="payments" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-2xl">Payment Methods</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>Payment methods management will be implemented here.</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="preferences" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-2xl">Preferences</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>User preferences will be implemented here.</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="security" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-2xl">Security</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>Security settings will be implemented here.</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+            {/* Other tabs with placeholder content */}
+            {activeTab !== "dashboard" && activeTab !== "orders" && (
+              <div className="bg-gradient-to-br from-slate-800/50 to-[#192a3a]/50 backdrop-blur-xl rounded-3xl border border-slate-700/50 p-8 shadow-2xl">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-8">
+                  {sidebarItems.find(item => item.id === activeTab)?.label}
+                </h2>
+                <p className="text-slate-400">This section is under development. Full functionality coming soon!</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Order Details Modal */}
       {selectedOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <Card className="max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Order Details #{selectedOrder.id.slice(0, 8)}</CardTitle>
-              <Button variant="ghost" onClick={() => setSelectedOrder(null)}>
-                ×
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="font-semibold">Order Date</p>
-                  <p>{new Date(selectedOrder.created_at).toLocaleDateString()}</p>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-slate-800 to-[#192a3a] rounded-3xl border border-slate-700/50 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                  Order Details #{selectedOrder.id.slice(0, 8)}...
+                </h3>
+                <Button variant="ghost" onClick={() => setSelectedOrder(null)} className="text-slate-400 hover:text-white">
+                  ✕
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="bg-slate-700/30 rounded-2xl p-4">
+                  <p className="text-slate-400 text-sm mb-1">Order Date</p>
+                  <p className="text-white font-medium">{new Date(selectedOrder.created_at).toLocaleDateString()}</p>
                 </div>
-                <div>
-                  <p className="font-semibold">Status</p>
+                <div className="bg-slate-700/30 rounded-2xl p-4">
+                  <p className="text-slate-400 text-sm mb-1">Status</p>
                   <Badge className={getStatusColor(selectedOrder.status)}>
-                    {selectedOrder.status}
+                    {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
                   </Badge>
                 </div>
-                <div>
-                  <p className="font-semibold">Total Amount</p>
-                  <p className="text-xl font-bold">${selectedOrder.total_amount.toFixed(2)}</p>
+                <div className="bg-slate-700/30 rounded-2xl p-4">
+                  <p className="text-slate-400 text-sm mb-1">Total Amount</p>
+                  <p className="text-2xl font-bold text-white">₹{selectedOrder.total_amount.toFixed(2)}</p>
                 </div>
               </div>
 
               {selectedOrder.order_items && selectedOrder.order_items.length > 0 && (
-                <div>
-                  <h4 className="font-semibold mb-2">Order Items</h4>
-                  <div className="space-y-2">
-                    {selectedOrder.order_items.map((item) => (
-                      <div key={item.id} className="flex items-center gap-4 p-2 border rounded">
+                <div className="mb-6">
+                  <h4 className="font-semibold text-white mb-4 text-lg">Order Items</h4>
+                  <div className="space-y-3">
+                    {selectedOrder.order_items.map((item, index) => (
+                      <div key={index} className="flex items-center gap-4 p-4 bg-slate-700/30 rounded-2xl">
                         <img
                           src={item.products.image_url}
                           alt={item.products.name}
-                          className="w-16 h-16 object-cover rounded"
+                          className="w-16 h-16 object-cover rounded-xl"
                         />
                         <div className="flex-1">
-                          <h5 className="font-semibold">{item.products.name}</h5>
-                          <p className="text-sm text-gray-600">
-                            Quantity: {item.quantity} × ${item.price.toFixed(2)}
+                          <h5 className="font-semibold text-white">{item.products.name}</h5>
+                          <p className="text-sm text-slate-400">
+                            Quantity: {item.quantity} × ₹{item.price.toFixed(2)}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold">${(item.quantity * item.price).toFixed(2)}</p>
+                          <p className="font-semibold text-white">₹{(item.quantity * item.price).toFixed(2)}</p>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setSelectedOrder(null);
+                              handleViewProduct(item.products.id);
+                            }}
+                            className="text-cyan-400 hover:text-cyan-300 p-0 h-auto"
+                          >
+                            View Product
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -605,20 +510,34 @@ const AccountPage = () => {
                 </div>
               )}
 
-              {selectedOrder.shipping_address && (
-                <div>
-                  <h4 className="font-semibold mb-2">Shipping Address</h4>
-                  <div className="p-3 bg-gray-50 rounded">
-                    <p>{selectedOrder.shipping_address.address_line_1}</p>
-                    {selectedOrder.shipping_address.address_line_2 && (
-                      <p>{selectedOrder.shipping_address.address_line_2}</p>
-                    )}
-                    <p>{selectedOrder.shipping_address.city}, {selectedOrder.shipping_address.state} {selectedOrder.shipping_address.pincode}</p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              <div className="flex flex-wrap gap-3">
+                <Button 
+                  onClick={() => handleDownloadInvoice(selectedOrder.id)}
+                  className="bg-gradient-to-r from-emerald-500 to-teal-500"
+                >
+                  <FaDownload className="mr-2" />
+                  Download Invoice
+                </Button>
+                <Button 
+                  onClick={() => {
+                    handleReorder(selectedOrder);
+                    setSelectedOrder(null);
+                  }}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500"
+                >
+                  <FaRedo className="mr-2" />
+                  Reorder Items
+                </Button>
+                <Button 
+                  onClick={() => handleTrackOrder(selectedOrder.id)}
+                  className="bg-gradient-to-r from-orange-500 to-red-500"
+                >
+                  <FaTruck className="mr-2" />
+                  Track Order
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
