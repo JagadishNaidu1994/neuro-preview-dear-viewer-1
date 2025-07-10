@@ -11,7 +11,7 @@ import MobileDrawer from "./MobileDrawer";
 import { ShoppingCart, User, Menu } from "lucide-react";
 
 const Header = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { totalItems } = useCart();
   const { isOpen: isCartOpen, openCart, closeCart } = useCartDrawer();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -106,15 +106,12 @@ const Header = () => {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        onSuccess={() => setShowAuthModal(false)}
       />
 
       {/* Mobile Drawer */}
       <MobileDrawer
         isOpen={showMobileDrawer}
         onClose={() => setShowMobileDrawer(false)}
-        navItems={navItems}
-        onAccountClick={handleAccountClick}
       />
     </>
   );

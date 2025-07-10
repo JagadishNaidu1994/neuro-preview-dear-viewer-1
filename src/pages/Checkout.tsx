@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useCart } from "@/context/CartProvider";
 import { useAuth } from "@/context/AuthProvider";
@@ -7,7 +6,6 @@ import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Plus, Truck, CreditCard } from "lucide-react";
@@ -113,7 +111,7 @@ const Checkout = () => {
           {
             ...newAddress,
             user_id: user.id,
-            is_default: addresses.length === 0, // First address is default
+            is_default: addresses.length === 0,
           },
         ])
         .select()
@@ -146,18 +144,17 @@ const Checkout = () => {
       const selectedShippingMethod = shippingMethods.find(method => method.id === selectedShipping);
       const shippingCost = selectedShippingMethod?.price || 0;
       const finalTotal = totalPrice + shippingCost;
+      const selectedAddressData = addresses.find(addr => addr.id === selectedAddress);
 
       // Create order
       const { data: order, error: orderError } = await supabase
         .from("orders")
-        .insert([
-          {
-            user_id: user.id,
-            total_amount: finalTotal,
-            status: "pending",
-            shipping_address: addresses.find(addr => addr.id === selectedAddress),
-          },
-        ])
+        .insert({
+          user_id: user.id,
+          total_amount: finalTotal,
+          status: "pending",
+          shipping_address: selectedAddressData as unknown as any,
+        })
         .select()
         .single();
 
