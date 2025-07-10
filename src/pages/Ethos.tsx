@@ -1,10 +1,8 @@
 // src/pages/Ethos.tsx
 import React from "react";
 import Header from "@/components/Header";
-
 const Ethos = () => {
-  return (
-    <div className="min-h-screen bg-[#FAFAF7] text-[#1E1E1E]">
+  return <div className="min-h-screen bg-[#FAFAF7] text-[#1E1E1E]">
       <Header />
       <main className="w-full px-4 md:px-8 pt-12 space-y-24 pb-32">
         <div className="max-w-[1400px] mx-auto">
@@ -20,31 +18,19 @@ const Ethos = () => {
               </p>
             </div>
             <div>
-              <img
-                src="https://cdn.shopify.com/s/files/1/0671/5382/1848/files/chill_editorial_ethos.png"
-                alt="Chill Gummy Hero"
-                className="w-full rounded-xl"
-              />
+              <img src="https://cdn.shopify.com/s/files/1/0671/5382/1848/files/chill_editorial_ethos.png" alt="Chill Gummy Hero" className="w-full rounded-xl" />
             </div>
           </section>
 
           {/* Large Image */}
           <section>
-            <img
-              src="/images/ethos/hand_gummy.webp"
-              alt="Gummy Held"
-              className="w-full rounded-xl"
-            />
+            <img src="/images/ethos/hand_gummy.webp" alt="Gummy Held" className="w-full rounded-xl" />
           </section>
 
           {/* Care Section */}
           <section className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
             <div>
-              <img
-                src="/images/ethos/gummy_eating.webp"
-                alt="Gummy Eating"
-                className="rounded-xl"
-              />
+              <img src="/images/ethos/gummy_eating.webp" alt="Gummy Eating" className="rounded-xl" />
             </div>
             <div>
               <h2 className="text-2xl md:text-3xl font-semibold mb-4">
@@ -72,22 +58,14 @@ const Ethos = () => {
               </p>
             </div>
             <div>
-              <img
-                src="/images/ethos/gummy_sparkling.webp"
-                alt="Gummy Cubes"
-                className="rounded-xl"
-              />
+              <img src="/images/ethos/gummy_sparkling.webp" alt="Gummy Cubes" className="rounded-xl" />
             </div>
           </section>
 
           {/* Wisdom Section */}
           <section className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
             <div>
-              <img
-                src="/images/ethos/founders.webp"
-                alt="Founders Jane and Julie"
-                className="rounded-xl"
-              />
+              <img src="/images/ethos/founders.webp" alt="Founders Jane and Julie" className="rounded-xl" />
             </div>
             <div>
               <h2 className="text-2xl md:text-3xl font-semibold mb-4">
@@ -109,32 +87,12 @@ const Ethos = () => {
           {/* Footer Logo */}
           <footer className="mt-24 relative">
             <div className="flex justify-center">
-              <img
-                src="https://noon.world/cdn/shop/files/noon_footer_logo.png"
-                alt="NOON Logo"
-                className="w-48 md:w-72 opacity-10"
-              />
+              
             </div>
-            <div className="mt-12 text-sm text-center text-[#7A7A7A] space-y-2">
-              <div className="space-x-6">
-                <a href="/shop-all">Shop All</a>
-                <a href="/the-science">The Science</a>
-                <a href="/ethos">Our Ethos</a>
-                <a href="/herbal-index">Herbal Index</a>
-              </div>
-              <div className="space-x-6">
-                <a href="#">FAQs</a>
-                <a href="#">Shipping & Returns</a>
-                <a href="#">Terms & Conditions</a>
-                <a href="#">Contact Us</a>
-              </div>
-              <p className="pt-4">© 2025 All Rights Reserved</p>
-            </div>
+            
           </footer>
         </div>
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default Ethos;
