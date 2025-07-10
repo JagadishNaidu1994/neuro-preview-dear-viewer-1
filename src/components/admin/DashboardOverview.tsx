@@ -47,16 +47,16 @@ const DashboardOverview = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <Card key={index} className="bg-white">
+          <Card key={index} className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
-              <stat.icon className="h-4 w-4 text-gray-400" />
+              <stat.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-              <p className="text-xs text-green-600 mt-1">
+              <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+              <p className="text-xs text-accent mt-1">
                 {stat.change} from last month
               </p>
             </CardContent>
@@ -65,22 +65,22 @@ const DashboardOverview = () => {
       </div>
 
       {/* Recent Orders */}
-      <Card className="bg-white">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900">
+          <CardTitle className="text-lg font-semibold text-foreground">
             Recent Orders
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {recentOrders.map((order) => (
-              <div key={order.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg">
+              <div key={order.id} className="flex items-center justify-between p-4 border border-border rounded-lg bg-background">
                 <div className="flex items-center space-x-4">
-                  <div className="font-medium text-gray-900">#{order.id}</div>
-                  <div className="text-gray-600">{order.customer}</div>
+                  <div className="font-medium text-foreground">#{order.id}</div>
+                  <div className="text-muted-foreground">{order.customer}</div>
                 </div>
                 <div className="flex items-center space-x-4">
-                  <div className="font-medium text-gray-900">{order.amount}</div>
+                  <div className="font-medium text-foreground">{order.amount}</div>
                   <Badge variant={
                     order.status === "Delivered" ? "default" :
                     order.status === "Shipped" ? "secondary" :
