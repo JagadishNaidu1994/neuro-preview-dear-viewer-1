@@ -90,7 +90,7 @@ const Header = () => {
               </Button>
 
               {/* User Account */}
-              <Button variant="ghost" size="sm" onClick={handleAccountClick} className="hidden md:flex items-center gap-2 text-slate-900">
+              <Button variant="ghost" size="sm" onClick={handleAccountClick} className="hidden md:flex items-center gap-2 text-slate-900 font-bold">
                 <User className="w-4 h-4" />
                 {user ? "Account" : "Sign In"}
               </Button>
