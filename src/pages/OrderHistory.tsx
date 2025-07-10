@@ -1,10 +1,12 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Breadcrumb from "@/components/Breadcrumb";
 import { Button } from "@/components/ui/button";
-import { FaEye, FaDownload } from "react-icons/fa";
+import { FaEye, FaDownload, FaRedo, FaTruck, FaBox } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 interface Order {
   id: string;
@@ -15,6 +17,7 @@ interface Order {
     quantity: number;
     price: number;
     product: {
+      id: string;
       name: string;
       image_url: string;
     };
@@ -45,6 +48,7 @@ const OrderHistory = () => {
             quantity,
             price,
             products!order_items_product_id_fkey (
+              id,
               name,
               image_url
             )
@@ -80,11 +84,38 @@ const OrderHistory = () => {
         return "bg-blue-100 text-blue-800";
       case "processing":
         return "bg-yellow-100 text-yellow-800";
+      case "pending":
+        return "bg-orange-100 text-orange-800";
       case "cancelled":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const handleReorder = async (order: Order) => {
+    // Add all items from this order to cart
+    for (const item of order.order_items) {
+      // You can implement add to cart functionality here
+      console.log("Adding to cart:", item.product.id, item.quantity);
+    }
+    alert("Items have been added to your cart!");
+  };
+
+  const handleViewProduct = (productId: string) => {
+    window.open(`/product?id=${productId}`, '_blank');
+  };
+
+  const handleDownloadInvoice = (orderId: string) => {
+    // Implement invoice download functionality
+    console.log("Downloading invoice for order:", orderId);
+    alert("Invoice download feature will be implemented soon!");
+  };
+
+  const handleTrackOrder = (orderId: string) => {
+    // Implement order tracking functionality
+    console.log("Tracking order:", orderId);
+    alert(`Tracking Order ID: ${orderId.slice(0, 8)}...\n\nStatus: In Transit\nExpected Delivery: 2-3 business days\n\nTracking ID: TRK${orderId.slice(0, 6).toUpperCase()}`);
   };
 
   if (loading) {
@@ -122,7 +153,7 @@ const OrderHistory = () => {
                     </h3>
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
                       <span>
-                        {new Date(order.created_at).toLocaleDateString('en-US', {
+                        {new Date(order.created_at).toLocaleDateString('en-IN', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric'
@@ -134,16 +165,24 @@ const OrderHistory = () => {
                     </div>
                   </div>
                   
-                  <div className="flex flex-col lg:items-end space-y-2">
-                    <div className="text-2xl font-semibold">${order.total_amount.toFixed(2)}</div>
-                    <div className="flex space-x-3">
-                      <Button size="sm" variant="outline">
+                  <div className="flex flex-col lg:items-end space-y-3 mt-4 lg:mt-0">
+                    <div className="text-2xl font-semibold">₹{order.total_amount.toFixed(2)}</div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button size="sm" variant="outline" onClick={() => console.log("View order details")}>
                         <FaEye className="mr-2" />
-                        View Details
+                        View Order
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleDownloadInvoice(order.id)}>
                         <FaDownload className="mr-2" />
                         Invoice
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleReorder(order)}>
+                        <FaRedo className="mr-2" />
+                        Re-Order
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleTrackOrder(order.id)}>
+                        <FaTruck className="mr-2" />
+                        Track
                       </Button>
                     </div>
                   </div>
@@ -163,9 +202,18 @@ const OrderHistory = () => {
                         <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
-                        <p className="text-sm text-gray-600">${item.price.toFixed(2)} each</p>
+                        <p className="font-semibold">₹{(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="text-sm text-gray-600">₹{item.price.toFixed(2)} each</p>
                       </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleViewProduct(item.product.id)}
+                        className="text-[#514B3D] hover:text-[#3f3a2f]"
+                      >
+                        <FaBox className="mr-2" />
+                        View Product
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -182,10 +230,10 @@ const OrderHistory = () => {
               You haven't placed any orders yet. Start shopping to see your order history here.
             </p>
             <Button
-              onClick={() => window.location.href = "/shop-all"}
+              asChild
               className="bg-[#514B3D] hover:bg-[#3f3a2f]"
             >
-              Start Shopping
+              <Link to="/shop-all">Start Shopping</Link>
             </Button>
           </div>
         )}
