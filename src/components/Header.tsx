@@ -95,7 +95,7 @@ const Header = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowMobileDrawner(true)}
+                onClick={() => setShowMobileDrawer(true)}
                 className="lg:hidden"
               >
                 <Menu className="w-5 h-5" />

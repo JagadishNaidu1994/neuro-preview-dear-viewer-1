@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -222,7 +223,7 @@ const Index = () => {
         </div>
       </section>
 
-      <style jsx>
+      <style>
         {`
           .line-clamp-2 {
             display: -webkit-box;
