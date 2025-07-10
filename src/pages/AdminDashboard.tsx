@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/useAdmin";
 import Header from "@/components/Header";
+import ContactSubmissionsTab from "@/components/admin/ContactSubmissionsTab";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,16 +58,6 @@ interface Journal {
   created_at: string;
 }
 
-interface ContactSubmission {
-  id: string;
-  name: string;
-  email: string;
-  subject?: string;
-  message: string;
-  status: string;
-  created_at: string;
-}
-
 interface CouponCode {
   id: string;
   code: string;
@@ -95,7 +86,6 @@ const AdminDashboard = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [journals, setJournals] = useState<Journal[]>([]);
-  const [contactSubmissions, setContactSubmissions] = useState<ContactSubmission[]>([]);
   const [coupons, setCoupons] = useState<CouponCode[]>([]);
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
   const [loading, setLoading] = useState(false);
@@ -150,10 +140,6 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (isAdmin) {
       fetchAllData();
-      
-      // Set up real-time updates for orders
-      const ordersInterval = setInterval(fetchOrders, 10000);
-      return () => clearInterval(ordersInterval);
     }
   }, [isAdmin]);
 
@@ -162,7 +148,6 @@ const AdminDashboard = () => {
       fetchProducts(),
       fetchOrders(),
       fetchJournals(),
-      fetchContactSubmissions(),
       fetchCoupons(),
       fetchShippingMethods(),
     ]);
@@ -179,11 +164,6 @@ const AdminDashboard = () => {
       setProducts(data || []);
     } catch (error) {
       console.error("Error fetching products:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch products",
-        variant: "destructive",
-      });
     }
   };
 
@@ -196,18 +176,12 @@ const AdminDashboard = () => {
 
       if (error) throw error;
       
-      // Get user emails separately
       const userIds = [...new Set((ordersData || []).map(order => order.user_id))];
-      const { data: usersData, error: usersError } = await supabase
+      const { data: usersData } = await supabase
         .from("users")
         .select("id, email")
         .in("id", userIds);
 
-      if (usersError) {
-        console.error("Error fetching users:", usersError);
-      }
-
-      // Combine orders with user emails
       const ordersWithEmails = (ordersData || []).map(order => ({
         ...order,
         user_email: usersData?.find(user => user.id === order.user_id)?.email || "N/A"
@@ -221,7 +195,7 @@ const AdminDashboard = () => {
 
   const fetchJournals = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("journals")
         .select("*")
         .order("created_at", { ascending: false });
@@ -233,23 +207,9 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchContactSubmissions = async () => {
-    try {
-      const { data, error } = await (supabase as any)
-        .from("contact_submissions")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setContactSubmissions(data || []);
-    } catch (error) {
-      console.error("Error fetching contact submissions:", error);
-    }
-  };
-
   const fetchCoupons = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("coupon_codes")
         .select("*")
         .order("created_at", { ascending: false });
@@ -275,7 +235,50 @@ const AdminDashboard = () => {
     }
   };
 
-  // Product CRUD operations
+  // Helper functions for form handling
+  const resetProductForm = () => {
+    setProductForm({
+      name: "",
+      description: "",
+      price: "",
+      image_url: "",
+      category: "",
+      stock_quantity: "",
+    });
+  };
+
+  const resetJournalForm = () => {
+    setJournalForm({
+      title: "",
+      content: "",
+      excerpt: "",
+      author: "DearNeuro Team",
+      image_url: "",
+      published: false,
+    });
+  };
+
+  const resetCouponForm = () => {
+    setCouponForm({
+      code: "",
+      discount_type: "percentage",
+      discount_value: "",
+      minimum_order_amount: "",
+      max_uses: "",
+      expires_at: "",
+    });
+  };
+
+  const resetShippingForm = () => {
+    setShippingForm({
+      name: "",
+      description: "",
+      price: "",
+      estimated_days: "",
+    });
+  };
+
+  // CRUD operations
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -323,29 +326,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleDeleteProduct = async (productId: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
-
-    try {
-      const { error } = await supabase
-        .from("products")
-        .delete()
-        .eq("id", productId);
-
-      if (error) throw error;
-      toast({ title: "Success", description: "Product deleted successfully" });
-      await fetchProducts();
-    } catch (error) {
-      console.error("Error deleting product:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete product",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Journal CRUD operations
   const handleJournalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -361,7 +341,7 @@ const AdminDashboard = () => {
       };
 
       if (editingJournal) {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from("journals")
           .update({ ...journalData, updated_at: new Date().toISOString() })
           .eq("id", editingJournal.id);
@@ -369,7 +349,7 @@ const AdminDashboard = () => {
         if (error) throw error;
         toast({ title: "Success", description: "Journal updated successfully" });
       } else {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from("journals")
           .insert([journalData]);
 
@@ -393,29 +373,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleDeleteJournal = async (journalId: string) => {
-    if (!confirm("Are you sure you want to delete this journal?")) return;
-
-    try {
-      const { error } = await (supabase as any)
-        .from("journals")
-        .delete()
-        .eq("id", journalId);
-
-      if (error) throw error;
-      toast({ title: "Success", description: "Journal deleted successfully" });
-      await fetchJournals();
-    } catch (error) {
-      console.error("Error deleting journal:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete journal",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Coupon CRUD operations
   const handleCouponSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -431,7 +388,7 @@ const AdminDashboard = () => {
       };
 
       if (editingCoupon) {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from("coupon_codes")
           .update({ ...couponData, updated_at: new Date().toISOString() })
           .eq("id", editingCoupon.id);
@@ -439,7 +396,7 @@ const AdminDashboard = () => {
         if (error) throw error;
         toast({ title: "Success", description: "Coupon updated successfully" });
       } else {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from("coupon_codes")
           .insert([couponData]);
 
@@ -463,29 +420,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleDeleteCoupon = async (couponId: string) => {
-    if (!confirm("Are you sure you want to delete this coupon?")) return;
-
-    try {
-      const { error } = await (supabase as any)
-        .from("coupon_codes")
-        .delete()
-        .eq("id", couponId);
-
-      if (error) throw error;
-      toast({ title: "Success", description: "Coupon deleted successfully" });
-      await fetchCoupons();
-    } catch (error) {
-      console.error("Error deleting coupon:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete coupon",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Shipping CRUD operations
   const handleShippingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -531,28 +465,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleDeleteShipping = async (shippingId: string) => {
-    if (!confirm("Are you sure you want to delete this shipping method?")) return;
-
-    try {
-      const { error } = await supabase
-        .from("shipping_methods")
-        .delete()
-        .eq("id", shippingId);
-
-      if (error) throw error;
-      toast({ title: "Success", description: "Shipping method deleted successfully" });
-      await fetchShippingMethods();
-    } catch (error) {
-      console.error("Error deleting shipping method:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete shipping method",
-        variant: "destructive",
-      });
-    }
-  };
-
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
       const { error } = await supabase
@@ -571,63 +483,6 @@ const AdminDashboard = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const markContactAsRead = async (contactId: string) => {
-    try {
-      const { error } = await (supabase as any)
-        .from("contact_submissions")
-        .update({ status: 'read' })
-        .eq("id", contactId);
-
-      if (error) throw error;
-      await fetchContactSubmissions();
-    } catch (error) {
-      console.error("Error marking contact as read:", error);
-    }
-  };
-
-  // Reset form functions
-  const resetProductForm = () => {
-    setProductForm({
-      name: "",
-      description: "",
-      price: "",
-      image_url: "",
-      category: "",
-      stock_quantity: "",
-    });
-  };
-
-  const resetJournalForm = () => {
-    setJournalForm({
-      title: "",
-      content: "",
-      excerpt: "",
-      author: "DearNeuro Team",
-      image_url: "",
-      published: false,
-    });
-  };
-
-  const resetCouponForm = () => {
-    setCouponForm({
-      code: "",
-      discount_type: "percentage",
-      discount_value: "",
-      minimum_order_amount: "",
-      max_uses: "",
-      expires_at: "",
-    });
-  };
-
-  const resetShippingForm = () => {
-    setShippingForm({
-      name: "",
-      description: "",
-      price: "",
-      estimated_days: "",
-    });
   };
 
   // Edit handlers
@@ -894,13 +749,6 @@ const AdminDashboard = () => {
                           >
                             <FaEdit />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteProduct(product.id)}
-                          >
-                            <FaTrash />
-                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -916,7 +764,6 @@ const AdminDashboard = () => {
           <div>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold">Orders Management</h2>
-              <p className="text-sm text-gray-600">Auto-refreshes every 10 seconds</p>
             </div>
             <div className="bg-white rounded-lg shadow">
               <Table>
@@ -937,7 +784,7 @@ const AdminDashboard = () => {
                         {order.id.slice(0, 8)}...
                       </TableCell>
                       <TableCell>{order.user_email || "N/A"}</TableCell>
-                      <TableCell>₹{order.total_amount}</TableCell>
+                      <TableCell>${order.total_amount}</TableCell>
                       <TableCell>
                         <select
                           value={order.status}
@@ -1106,13 +953,6 @@ const AdminDashboard = () => {
                           >
                             <FaEdit />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteJournal(journal.id)}
-                          >
-                            <FaTrash />
-                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1124,56 +964,7 @@ const AdminDashboard = () => {
         )}
 
         {/* Contact Submissions Tab */}
-        {activeTab === "contacts" && (
-          <div>
-            <h2 className="text-2xl font-semibold mb-6">User Contact Responses</h2>
-            <div className="bg-white rounded-lg shadow">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Subject</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {contactSubmissions.map((contact) => (
-                    <TableRow key={contact.id}>
-                      <TableCell className="font-medium">{contact.name}</TableCell>
-                      <TableCell>{contact.email}</TableCell>
-                      <TableCell>{contact.subject || "No Subject"}</TableCell>
-                      <TableCell>
-                        <Badge variant={contact.status === "read" ? "default" : "destructive"}>
-                          {contact.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {new Date(contact.created_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              alert(`Message: ${contact.message}`);
-                              markContactAsRead(contact.id);
-                            }}
-                          >
-                            <FaEye />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        )}
+        {activeTab === "contacts" && <ContactSubmissionsTab />}
 
         {/* Coupons Tab */}
         {activeTab === "coupons" && (
@@ -1338,13 +1129,6 @@ const AdminDashboard = () => {
                           >
                             <FaEdit />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteCoupon(coupon.id)}
-                          >
-                            <FaTrash />
-                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1474,13 +1258,6 @@ const AdminDashboard = () => {
                             onClick={() => handleEditShipping(shipping)}
                           >
                             <FaEdit />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteShipping(shipping.id)}
-                          >
-                            <FaTrash />
                           </Button>
                         </div>
                       </TableCell>

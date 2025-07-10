@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -23,7 +24,7 @@ const ContactUs = () => {
     setLoading(true);
 
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("contact_submissions")
         .insert([formData]);
 
