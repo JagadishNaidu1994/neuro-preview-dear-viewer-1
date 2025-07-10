@@ -21,9 +21,6 @@ const Header = () => {
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
   const navigate = useNavigate();
 
-  // Debug logging
-  console.log("Header - user:", user?.email, "isAdmin:", isAdmin, "adminLoading:", adminLoading);
-
   const handleAccountClick = () => {
     if (user) {
       navigate("/account");
