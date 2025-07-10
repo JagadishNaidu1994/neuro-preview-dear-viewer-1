@@ -4,7 +4,9 @@ import { useAdmin } from "@/hooks/useAdmin";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import DashboardOverview from "@/components/admin/DashboardOverview";
 import ContactSubmissionsTab from "@/components/admin/ContactSubmissionsTab";
-import OrderViewDialog from "@/components/admin/OrderViewDialog";
+import OrderDetailsDialog from "@/components/admin/OrderDetailsDialog";
+import MessagesSection from "@/components/admin/MessagesSection";
+import NotificationDropdown from "@/components/admin/NotificationDropdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -604,10 +606,13 @@ const AdminDashboard = () => {
       
       <div className="flex-1 overflow-auto">
         <div className="p-8">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p className="text-gray-600 mt-2">Manage your store and orders</p>
+          {/* Header with Notifications */}
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-600 mt-2">Manage your store and orders</p>
+            </div>
+            <NotificationDropdown />
           </div>
 
           {/* Dashboard Overview */}
@@ -839,7 +844,7 @@ const AdminDashboard = () => {
           )}
 
           {/* Messages Tab */}
-          {activeTab === "messages" && <ContactSubmissionsTab />}
+          {activeTab === "messages" && <MessagesSection />}
 
           {/* Journals Tab */}
           {activeTab === "journals" && (
@@ -1293,7 +1298,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Order View Dialog */}
-      <OrderViewDialog
+      <OrderDetailsDialog
         order={selectedOrder}
         isOpen={isOrderDialogOpen}
         onClose={() => setIsOrderDialogOpen(false)}
