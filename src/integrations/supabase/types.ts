@@ -343,6 +343,84 @@ export type Database = {
         }
         Relationships: []
       }
+      user_payment_methods: {
+        Row: {
+          card_holder_name: string
+          card_last_four: string
+          card_type: string
+          created_at: string | null
+          expiry_month: number
+          expiry_year: number
+          id: string
+          is_default: boolean | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          card_holder_name: string
+          card_last_four: string
+          card_type: string
+          created_at?: string | null
+          expiry_month: number
+          expiry_year: number
+          id?: string
+          is_default?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          card_holder_name?: string
+          card_last_four?: string
+          card_type?: string
+          created_at?: string | null
+          expiry_month?: number
+          expiry_year?: number
+          id?: string
+          is_default?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string | null
+          email_notifications: boolean | null
+          id: string
+          language: string | null
+          marketing_emails: boolean | null
+          newsletter_subscription: boolean | null
+          sms_notifications: boolean | null
+          timezone: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_notifications?: boolean | null
+          id?: string
+          language?: string | null
+          marketing_emails?: boolean | null
+          newsletter_subscription?: boolean | null
+          sms_notifications?: boolean | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_notifications?: boolean | null
+          id?: string
+          language?: string | null
+          marketing_emails?: boolean | null
+          newsletter_subscription?: boolean | null
+          sms_notifications?: boolean | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_rewards: {
         Row: {
           created_at: string | null
@@ -368,6 +446,39 @@ export type Database = {
           points_balance?: number | null
           total_earned?: number | null
           total_redeemed?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_security: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_password_change: string | null
+          login_notifications: boolean | null
+          security_questions: Json | null
+          two_factor_enabled: boolean | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_password_change?: string | null
+          login_notifications?: boolean | null
+          security_questions?: Json | null
+          two_factor_enabled?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_password_change?: string | null
+          login_notifications?: boolean | null
+          security_questions?: Json | null
+          two_factor_enabled?: boolean | null
           updated_at?: string | null
           user_id?: string | null
         }

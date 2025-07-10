@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,25 +8,25 @@ import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   FaUser,
   FaBox,
-  FaHistory,
-  FaCogs,
   FaAddressBook,
   FaCreditCard,
   FaShieldAlt,
   FaGift,
-  FaChartBar,
+  FaCogs,
   FaSignOutAlt,
   FaEye,
-  FaEdit,
-  FaTrash,
-  FaPlus,
   FaDownload,
   FaRedo,
   FaTruck,
-  FaShoppingBag,
+  FaEdit,
+  FaTrash,
+  FaPlus,
 } from "react-icons/fa";
 
 interface Order {
@@ -58,10 +59,33 @@ interface Address {
   is_default: boolean;
 }
 
+interface PaymentMethod {
+  id: string;
+  card_type: string;
+  card_last_four: string;
+  card_holder_name: string;
+  expiry_month: number;
+  expiry_year: number;
+  is_default: boolean;
+}
+
 interface UserReward {
   points_balance: number;
   total_earned: number;
   total_redeemed: number;
+}
+
+interface UserPreferences {
+  email_notifications: boolean;
+  sms_notifications: boolean;
+  marketing_emails: boolean;
+  newsletter_subscription: boolean;
+}
+
+interface UserSecurity {
+  two_factor_enabled: boolean;
+  login_notifications: boolean;
+  last_password_change: string;
 }
 
 const AccountPage = () => {
@@ -71,7 +95,10 @@ const AccountPage = () => {
   const { isAdmin } = useAdmin();
   const [orders, setOrders] = useState<Order[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [rewards, setRewards] = useState<UserReward | null>(null);
+  const [preferences, setPreferences] = useState<UserPreferences | null>(null);
+  const [security, setSecurity] = useState<UserSecurity | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -98,6 +125,7 @@ const AccountPage = () => {
     if (!user) return;
 
     try {
+      // Fetch orders
       const { data: ordersData, error: ordersError } = await supabase
         .from("orders")
         .select(`
@@ -119,6 +147,7 @@ const AccountPage = () => {
       if (ordersError) throw ordersError;
       setOrders(ordersData || []);
 
+      // Fetch addresses
       const { data: addressesData, error: addressesError } = await supabase
         .from("user_addresses")
         .select("*")
@@ -128,6 +157,17 @@ const AccountPage = () => {
       if (addressesError) throw addressesError;
       setAddresses(addressesData || []);
 
+      // Fetch payment methods
+      const { data: paymentData, error: paymentError } = await supabase
+        .from("user_payment_methods")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("is_default", { ascending: false });
+
+      if (paymentError) throw paymentError;
+      setPaymentMethods(paymentData || []);
+
+      // Fetch rewards
       const { data: rewardsData, error: rewardsError } = await supabase
         .from("user_rewards")
         .select("*")
@@ -136,6 +176,26 @@ const AccountPage = () => {
 
       if (rewardsError && rewardsError.code !== 'PGRST116') throw rewardsError;
       setRewards(rewardsData);
+
+      // Fetch preferences
+      const { data: preferencesData, error: preferencesError } = await supabase
+        .from("user_preferences")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (preferencesError && preferencesError.code !== 'PGRST116') throw preferencesError;
+      setPreferences(preferencesData);
+
+      // Fetch security settings
+      const { data: securityData, error: securityError } = await supabase
+        .from("user_security")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (securityError && securityError.code !== 'PGRST116') throw securityError;
+      setSecurity(securityData);
 
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -194,44 +254,43 @@ const AccountPage = () => {
   };
 
   const sidebarItems = [
-    { id: "dashboard", icon: <FaChartBar />, label: "Dashboard", color: "from-blue-500 to-cyan-500" },
-    { id: "orders", icon: <FaBox />, label: "Orders", color: "from-purple-500 to-pink-500" },
-    { id: "profile", icon: <FaUser />, label: "Profile", color: "from-emerald-500 to-teal-500" },
-    { id: "addresses", icon: <FaAddressBook />, label: "Addresses", color: "from-orange-500 to-red-500" },
-    { id: "payments", icon: <FaCreditCard />, label: "Payments", color: "from-indigo-500 to-purple-500" },
-    { id: "rewards", icon: <FaGift />, label: "Rewards", color: "from-yellow-500 to-orange-500" },
-    { id: "preferences", icon: <FaCogs />, label: "Settings", color: "from-gray-500 to-slate-500" },
-    { id: "security", icon: <FaShieldAlt />, label: "Security", color: "from-red-500 to-pink-500" },
+    { id: "dashboard", icon: <FaUser />, label: "Dashboard" },
+    { id: "orders", icon: <FaBox />, label: "Orders" },
+    { id: "addresses", icon: <FaAddressBook />, label: "Addresses" },
+    { id: "payments", icon: <FaCreditCard />, label: "Payments" },
+    { id: "rewards", icon: <FaGift />, label: "Rewards" },
+    { id: "preferences", icon: <FaCogs />, label: "Preferences" },
+    { id: "security", icon: <FaShieldAlt />, label: "Security" },
   ];
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-[#192a3a] to-slate-800">
+      <div className="min-h-screen bg-white">
         <Header />
         <div className="flex items-center justify-center min-h-[80vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#192a3a]"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-[#192a3a] to-slate-800">
+    <div className="min-h-screen bg-white">
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Futuristic Sidebar */}
+          {/* Sidebar */}
           <div className="lg:w-80 w-full">
-            <div className="bg-gradient-to-br from-slate-800/50 to-[#192a3a]/50 backdrop-blur-xl rounded-3xl border border-slate-700/50 p-6 shadow-2xl">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
               <div className="text-center mb-8">
-                <div className="w-20 h-20 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <div className="w-20 h-20 bg-[#192a3a] rounded-full mx-auto mb-4 flex items-center justify-center">
                   <FaUser className="text-2xl text-white" />
                 </div>
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                <h2 className="text-2xl font-bold text-[#192a3a]">
                   {user?.user_metadata?.given_name || user?.email?.split('@')[0] || 'User'}
                 </h2>
-                <p className="text-slate-400 text-sm">{user?.email}</p>
+                <p className="text-gray-600 text-sm">{user?.email}</p>
               </div>
               
               <div className="space-y-2">
@@ -239,10 +298,10 @@ const AccountPage = () => {
                   <button
                     key={item.id}
                     onClick={() => handleTabChange(item.id)}
-                    className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 ${
+                    className={`w-full flex items-center gap-4 p-4 rounded-lg transition-all duration-200 ${
                       activeTab === item.id
-                        ? `bg-gradient-to-r ${item.color} text-white shadow-lg scale-105`
-                        : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
+                        ? "bg-[#192a3a] text-white"
+                        : "text-gray-600 hover:bg-gray-100"
                     }`}
                   >
                     <span className="text-lg">{item.icon}</span>
@@ -252,7 +311,7 @@ const AccountPage = () => {
                 
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-4 p-4 rounded-2xl text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all duration-300 mt-6"
+                  className="w-full flex items-center gap-4 p-4 rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200 mt-6"
                 >
                   <FaSignOutAlt className="text-lg" />
                   <span className="font-medium">Logout</span>
@@ -266,177 +325,391 @@ const AccountPage = () => {
             {/* Dashboard */}
             {activeTab === "dashboard" && (
               <div className="space-y-8">
-                <div className="bg-gradient-to-br from-slate-800/50 to-[#192a3a]/50 backdrop-blur-xl rounded-3xl border border-slate-700/50 p-8 shadow-2xl">
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-2">
-                    Welcome back!
-                  </h1>
-                  <p className="text-slate-400 mb-8">Here's your account overview</p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-2xl p-6 border border-blue-500/20">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
-                          <FaBox className="text-white" />
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-3xl text-[#192a3a]">Welcome back!</CardTitle>
+                    <p className="text-gray-600">Here's your account overview</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="p-6 bg-[#192a3a] text-white rounded-xl">
+                        <div className="flex items-center gap-4">
+                          <FaBox className="text-2xl" />
+                          <div>
+                            <p className="text-sm opacity-80">Total Orders</p>
+                            <p className="text-2xl font-bold">{orders.length}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-slate-400 text-sm">Total Orders</p>
-                          <p className="text-2xl font-bold text-white">{orders.length}</p>
+                      </div>
+                      
+                      <div className="p-6 bg-gray-100 rounded-xl">
+                        <div className="flex items-center gap-4">
+                          <FaGift className="text-2xl text-[#192a3a]" />
+                          <div>
+                            <p className="text-sm text-gray-600">Reward Points</p>
+                            <p className="text-2xl font-bold text-[#192a3a]">{rewards?.points_balance || 0}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-6 bg-gray-100 rounded-xl">
+                        <div className="flex items-center gap-4">
+                          <FaAddressBook className="text-2xl text-[#192a3a]" />
+                          <div>
+                            <p className="text-sm text-gray-600">Saved Addresses</p>
+                            <p className="text-2xl font-bold text-[#192a3a]">{addresses.length}</p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-2xl p-6 border border-emerald-500/20">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
-                          <FaShoppingBag className="text-white" />
-                        </div>
-                        <div>
-                          <p className="text-slate-400 text-sm">Total Spent</p>
-                          <p className="text-2xl font-bold text-white">
-                            ₹{orders.reduce((sum, order) => sum + order.total_amount, 0).toFixed(2)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-2xl p-6 border border-yellow-500/20">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
-                          <FaGift className="text-white" />
-                        </div>
-                        <div>
-                          <p className="text-slate-400 text-sm">Reward Points</p>
-                          <p className="text-2xl font-bold text-white">{rewards?.points_balance || 0}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               </div>
             )}
 
             {/* Orders */}
             {activeTab === "orders" && (
-              <div className="bg-gradient-to-br from-slate-800/50 to-[#192a3a]/50 backdrop-blur-xl rounded-3xl border border-slate-700/50 p-8 shadow-2xl">
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-8">
-                  Your Orders ({orders.length})
-                </h2>
-                
-                {orders.length > 0 ? (
-                  <div className="space-y-6">
-                    {orders.map((order) => (
-                      <div key={order.id} className="bg-slate-700/30 rounded-2xl p-6 border border-slate-600/50">
-                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
-                          <div>
-                            <h3 className="text-xl font-semibold text-white mb-2">
-                              Order #{order.id.slice(0, 8)}...
-                            </h3>
-                            <div className="flex items-center gap-4 text-sm">
-                              <span className="text-slate-400">
-                                {new Date(order.created_at).toLocaleDateString()}
-                              </span>
-                              <Badge className={`${getStatusColor(order.status)} border`}>
-                                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                              </Badge>
-                            </div>
-                          </div>
-                          
-                          <div className="flex flex-col lg:items-end gap-3">
-                            <div className="text-2xl font-bold text-white">₹{order.total_amount.toFixed(2)}</div>
-                            <div className="flex flex-wrap gap-2">
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => setSelectedOrder(order)}
-                                className="bg-blue-500/20 border-blue-500/50 text-blue-300 hover:bg-blue-500/30"
-                              >
-                                <FaEye className="mr-2" />
-                                View
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => handleDownloadInvoice(order.id)}
-                                className="bg-emerald-500/20 border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/30"
-                              >
-                                <FaDownload className="mr-2" />
-                                Invoice
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => handleReorder(order)}
-                                className="bg-purple-500/20 border-purple-500/50 text-purple-300 hover:bg-purple-500/30"
-                              >
-                                <FaRedo className="mr-2" />
-                                Reorder
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => handleTrackOrder(order.id)}
-                                className="bg-orange-500/20 border-orange-500/50 text-orange-300 hover:bg-orange-500/30"
-                              >
-                                <FaTruck className="mr-2" />
-                                Track
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Order Items */}
-                        {order.order_items && order.order_items.length > 0 && (
-                          <div className="space-y-3 mt-4">
-                            {order.order_items.map((item, index) => (
-                              <div key={index} className="flex items-center gap-4 p-3 bg-slate-600/30 rounded-xl">
-                                <img
-                                  src={item.products.image_url}
-                                  alt={item.products.name}
-                                  className="w-12 h-12 object-cover rounded-lg"
-                                />
-                                <div className="flex-1">
-                                  <h4 className="font-medium text-white">{item.products.name}</h4>
-                                  <p className="text-sm text-slate-400">Qty: {item.quantity}</p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-semibold text-white">₹{(item.price * item.quantity).toFixed(2)}</p>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => handleViewProduct(item.products.id)}
-                                    className="text-cyan-400 hover:text-cyan-300 p-0 h-auto"
-                                  >
-                                    View Product
-                                  </Button>
-                                </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl text-[#192a3a]">Your Orders ({orders.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {orders.length > 0 ? (
+                    <div className="space-y-6">
+                      {orders.map((order) => (
+                        <div key={order.id} className="border rounded-xl p-6">
+                          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+                            <div>
+                              <h3 className="text-xl font-semibold text-[#192a3a] mb-2">
+                                Order #{order.id.slice(0, 8)}...
+                              </h3>
+                              <div className="flex items-center gap-4 text-sm">
+                                <span className="text-gray-600">
+                                  {new Date(order.created_at).toLocaleDateString()}
+                                </span>
+                                <Badge className={getStatusColor(order.status)}>
+                                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                </Badge>
                               </div>
-                            ))}
+                            </div>
+                            
+                            <div className="flex flex-col lg:items-end gap-3">
+                              <div className="text-2xl font-bold text-[#192a3a]">₹{order.total_amount.toFixed(2)}</div>
+                              <div className="flex flex-wrap gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => setSelectedOrder(order)}
+                                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
+                                >
+                                  <FaEye className="mr-2" />
+                                  View
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => handleDownloadInvoice(order.id)}
+                                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
+                                >
+                                  <FaDownload className="mr-2" />
+                                  Invoice
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => handleReorder(order)}
+                                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
+                                >
+                                  <FaRedo className="mr-2" />
+                                  Reorder
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => handleTrackOrder(order.id)}
+                                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
+                                >
+                                  <FaTruck className="mr-2" />
+                                  Track
+                                </Button>
+                              </div>
+                            </div>
                           </div>
-                        )}
+
+                          {order.order_items && order.order_items.length > 0 && (
+                            <div className="space-y-3 mt-4">
+                              {order.order_items.map((item, index) => (
+                                <div key={index} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                                  <img
+                                    src={item.products.image_url}
+                                    alt={item.products.name}
+                                    className="w-12 h-12 object-cover rounded-lg"
+                                  />
+                                  <div className="flex-1">
+                                    <h4 className="font-medium text-[#192a3a]">{item.products.name}</h4>
+                                    <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-semibold text-[#192a3a]">₹{(item.price * item.quantity).toFixed(2)}</p>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleViewProduct(item.products.id)}
+                                      className="text-[#192a3a] hover:text-[#0f1a26] p-0 h-auto"
+                                    >
+                                      View Product
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-16">
+                      <FaBox className="mx-auto text-6xl text-gray-400 mb-6" />
+                      <h3 className="text-2xl font-semibold text-[#192a3a] mb-4">No orders yet</h3>
+                      <p className="text-gray-600 mb-8">Start shopping to see your orders here</p>
+                      <Button onClick={() => navigate("/shop-all")} className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
+                        Start Shopping
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Addresses */}
+            {activeTab === "addresses" && (
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-2xl text-[#192a3a]">Saved Addresses</CardTitle>
+                    <Button className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
+                      <FaPlus className="mr-2" />
+                      Add Address
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {addresses.map((address) => (
+                      <div key={address.id} className="border rounded-xl p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className="font-semibold text-[#192a3a]">{address.name}</h3>
+                          {address.is_default && (
+                            <Badge className="bg-[#192a3a] text-white">Default</Badge>
+                          )}
+                        </div>
+                        <div className="space-y-2 text-gray-600 mb-4">
+                          <p>{address.address_line_1}</p>
+                          {address.address_line_2 && <p>{address.address_line_2}</p>}
+                          <p>{address.city}, {address.state} {address.pincode}</p>
+                          <p>{address.phone}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white">
+                            <FaEdit className="mr-2" />
+                            Edit
+                          </Button>
+                          <Button size="sm" variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white">
+                            <FaTrash className="mr-2" />
+                            Delete
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="text-center py-16">
-                    <FaBox className="mx-auto text-6xl text-slate-600 mb-6" />
-                    <h3 className="text-2xl font-semibold text-white mb-4">No orders yet</h3>
-                    <p className="text-slate-400 mb-8">Start shopping to see your orders here</p>
-                    <Button onClick={() => navigate("/shop-all")} className="bg-gradient-to-r from-cyan-500 to-blue-500">
-                      Start Shopping
-                    </Button>
-                  </div>
-                )}
-              </div>
+                </CardContent>
+              </Card>
             )}
 
-            {/* Other tabs with placeholder content */}
-            {activeTab !== "dashboard" && activeTab !== "orders" && (
-              <div className="bg-gradient-to-br from-slate-800/50 to-[#192a3a]/50 backdrop-blur-xl rounded-3xl border border-slate-700/50 p-8 shadow-2xl">
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-8">
-                  {sidebarItems.find(item => item.id === activeTab)?.label}
-                </h2>
-                <p className="text-slate-400">This section is under development. Full functionality coming soon!</p>
-              </div>
+            {/* Payment Methods */}
+            {activeTab === "payments" && (
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-2xl text-[#192a3a]">Payment Methods</CardTitle>
+                    <Button className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
+                      <FaPlus className="mr-2" />
+                      Add Payment Method
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {paymentMethods.map((method) => (
+                      <div key={method.id} className="border rounded-xl p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex items-center gap-3">
+                            <FaCreditCard className="text-2xl text-[#192a3a]" />
+                            <div>
+                              <h3 className="font-semibold text-[#192a3a]">
+                                {method.card_type} •••• {method.card_last_four}
+                              </h3>
+                              <p className="text-sm text-gray-600">{method.card_holder_name}</p>
+                            </div>
+                          </div>
+                          {method.is_default && (
+                            <Badge className="bg-[#192a3a] text-white">Default</Badge>
+                          )}
+                        </div>
+                        <p className="text-gray-600 mb-4">
+                          Expires {method.expiry_month.toString().padStart(2, '0')}/{method.expiry_year}
+                        </p>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white">
+                            <FaEdit className="mr-2" />
+                            Edit
+                          </Button>
+                          <Button size="sm" variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white">
+                            <FaTrash className="mr-2" />
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Rewards */}
+            {activeTab === "rewards" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl text-[#192a3a]">Rewards Program</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="text-center p-6 bg-[#192a3a] text-white rounded-xl">
+                      <FaGift className="text-3xl mx-auto mb-2" />
+                      <p className="text-sm opacity-80">Points Balance</p>
+                      <p className="text-3xl font-bold">{rewards?.points_balance || 0}</p>
+                    </div>
+                    <div className="text-center p-6 bg-gray-100 rounded-xl">
+                      <p className="text-sm text-gray-600">Total Earned</p>
+                      <p className="text-3xl font-bold text-[#192a3a]">{rewards?.total_earned || 0}</p>
+                    </div>
+                    <div className="text-center p-6 bg-gray-100 rounded-xl">
+                      <p className="text-sm text-gray-600">Total Redeemed</p>
+                      <p className="text-3xl font-bold text-[#192a3a]">{rewards?.total_redeemed || 0}</p>
+                    </div>
+                  </div>
+                  <div className="border rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-[#192a3a] mb-4">How to Earn Points</h3>
+                    <ul className="space-y-2 text-gray-600">
+                      <li>• Make a purchase - 1 point per ₹1 spent</li>
+                      <li>• Refer a friend - 100 bonus points</li>
+                      <li>• Write a product review - 25 points</li>
+                      <li>• Birthday bonus - 50 points annually</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Preferences */}
+            {activeTab === "preferences" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl text-[#192a3a]">Communication Preferences</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-base font-medium">Email Notifications</Label>
+                        <p className="text-sm text-gray-600">Receive order updates and account notifications</p>
+                      </div>
+                      <Switch checked={preferences?.email_notifications || false} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-base font-medium">SMS Notifications</Label>
+                        <p className="text-sm text-gray-600">Receive text messages for important updates</p>
+                      </div>
+                      <Switch checked={preferences?.sms_notifications || false} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-base font-medium">Marketing Emails</Label>
+                        <p className="text-sm text-gray-600">Receive promotional emails and special offers</p>
+                      </div>
+                      <Switch checked={preferences?.marketing_emails || false} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-base font-medium">Newsletter Subscription</Label>
+                        <p className="text-sm text-gray-600">Stay updated with our latest news and tips</p>
+                      </div>
+                      <Switch checked={preferences?.newsletter_subscription || false} />
+                    </div>
+                  </div>
+                  <div className="mt-8">
+                    <Button className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
+                      Save Preferences
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Security */}
+            {activeTab === "security" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl text-[#192a3a]">Security Settings</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-8">
+                    <div>
+                      <h3 className="text-lg font-semibold text-[#192a3a] mb-4">Change Password</h3>
+                      <div className="space-y-4 max-w-md">
+                        <div>
+                          <Label>Current Password</Label>
+                          <Input type="password" className="mt-1" />
+                        </div>
+                        <div>
+                          <Label>New Password</Label>
+                          <Input type="password" className="mt-1" />
+                        </div>
+                        <div>
+                          <Label>Confirm New Password</Label>
+                          <Input type="password" className="mt-1" />
+                        </div>
+                        <Button className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
+                          Update Password
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-8">
+                      <h3 className="text-lg font-semibold text-[#192a3a] mb-4">Two-Factor Authentication</h3>
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <p className="font-medium">SMS Authentication</p>
+                          <p className="text-sm text-gray-600">Add extra security with SMS verification</p>
+                        </div>
+                        <Switch checked={security?.two_factor_enabled || false} />
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-8">
+                      <h3 className="text-lg font-semibold text-[#192a3a] mb-4">Login Notifications</h3>
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <p className="font-medium">Email Login Alerts</p>
+                          <p className="text-sm text-gray-600">Get notified of new device logins</p>
+                        </div>
+                        <Switch checked={security?.login_notifications || false} />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </div>
         </div>
@@ -444,54 +717,54 @@ const AccountPage = () => {
 
       {/* Order Details Modal */}
       {selectedOrder && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-slate-800 to-[#192a3a] rounded-3xl border border-slate-700/50 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-8">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                <h3 className="text-2xl font-bold text-[#192a3a]">
                   Order Details #{selectedOrder.id.slice(0, 8)}...
                 </h3>
-                <Button variant="ghost" onClick={() => setSelectedOrder(null)} className="text-slate-400 hover:text-white">
+                <Button variant="ghost" onClick={() => setSelectedOrder(null)} className="text-gray-600 hover:text-[#192a3a]">
                   ✕
                 </Button>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="bg-slate-700/30 rounded-2xl p-4">
-                  <p className="text-slate-400 text-sm mb-1">Order Date</p>
-                  <p className="text-white font-medium">{new Date(selectedOrder.created_at).toLocaleDateString()}</p>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-gray-600 text-sm mb-1">Order Date</p>
+                  <p className="font-medium text-[#192a3a]">{new Date(selectedOrder.created_at).toLocaleDateString()}</p>
                 </div>
-                <div className="bg-slate-700/30 rounded-2xl p-4">
-                  <p className="text-slate-400 text-sm mb-1">Status</p>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-gray-600 text-sm mb-1">Status</p>
                   <Badge className={getStatusColor(selectedOrder.status)}>
                     {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
                   </Badge>
                 </div>
-                <div className="bg-slate-700/30 rounded-2xl p-4">
-                  <p className="text-slate-400 text-sm mb-1">Total Amount</p>
-                  <p className="text-2xl font-bold text-white">₹{selectedOrder.total_amount.toFixed(2)}</p>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-gray-600 text-sm mb-1">Total Amount</p>
+                  <p className="text-2xl font-bold text-[#192a3a]">₹{selectedOrder.total_amount.toFixed(2)}</p>
                 </div>
               </div>
 
               {selectedOrder.order_items && selectedOrder.order_items.length > 0 && (
                 <div className="mb-6">
-                  <h4 className="font-semibold text-white mb-4 text-lg">Order Items</h4>
+                  <h4 className="font-semibold text-[#192a3a] mb-4 text-lg">Order Items</h4>
                   <div className="space-y-3">
                     {selectedOrder.order_items.map((item, index) => (
-                      <div key={index} className="flex items-center gap-4 p-4 bg-slate-700/30 rounded-2xl">
+                      <div key={index} className="flex items-center gap-4 p-4 border rounded-lg">
                         <img
                           src={item.products.image_url}
                           alt={item.products.name}
-                          className="w-16 h-16 object-cover rounded-xl"
+                          className="w-16 h-16 object-cover rounded-lg"
                         />
                         <div className="flex-1">
-                          <h5 className="font-semibold text-white">{item.products.name}</h5>
-                          <p className="text-sm text-slate-400">
+                          <h5 className="font-semibold text-[#192a3a]">{item.products.name}</h5>
+                          <p className="text-sm text-gray-600">
                             Quantity: {item.quantity} × ₹{item.price.toFixed(2)}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold text-white">₹{(item.quantity * item.price).toFixed(2)}</p>
+                          <p className="font-semibold text-[#192a3a]">₹{(item.quantity * item.price).toFixed(2)}</p>
                           <Button
                             size="sm"
                             variant="ghost"
@@ -499,7 +772,7 @@ const AccountPage = () => {
                               setSelectedOrder(null);
                               handleViewProduct(item.products.id);
                             }}
-                            className="text-cyan-400 hover:text-cyan-300 p-0 h-auto"
+                            className="text-[#192a3a] hover:text-[#0f1a26] p-0 h-auto"
                           >
                             View Product
                           </Button>
@@ -513,7 +786,7 @@ const AccountPage = () => {
               <div className="flex flex-wrap gap-3">
                 <Button 
                   onClick={() => handleDownloadInvoice(selectedOrder.id)}
-                  className="bg-gradient-to-r from-emerald-500 to-teal-500"
+                  className="bg-[#192a3a] hover:bg-[#0f1a26] text-white"
                 >
                   <FaDownload className="mr-2" />
                   Download Invoice
@@ -523,14 +796,16 @@ const AccountPage = () => {
                     handleReorder(selectedOrder);
                     setSelectedOrder(null);
                   }}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500"
+                  variant="outline"
+                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
                 >
                   <FaRedo className="mr-2" />
                   Reorder Items
                 </Button>
                 <Button 
                   onClick={() => handleTrackOrder(selectedOrder.id)}
-                  className="bg-gradient-to-r from-orange-500 to-red-500"
+                  variant="outline"
+                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
                 >
                   <FaTruck className="mr-2" />
                   Track Order
