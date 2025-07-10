@@ -1,107 +1,97 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   /**
-   * Custom color palette based on user specifications
-   * All colors are expressed as HSL values for Tailwind compatibility.
+   * Tailwind CSS theme
+   * tailwind.config.ts expects the following color variables to be expressed as HSL values.
+   * A different format will require also updating the theme in tailwind.config.ts.
   */
   :root {
-    /* Custom palette colors converted to HSL */
-    --color-1: 210 14% 89%; /* #e0e3e6 */
-    --color-2: 212 17% 73%; /* #b2b8c0 */
-    --color-3: 210 16% 58%; /* #87919c */
-    --color-4: 210 19% 44%; /* #626e7c */
-    --color-5: 214 22% 33%; /* #425060 */
-    --color-6: 214 33% 22%; /* #283849 */
-    --color-7: 210 47% 15%; /* #152636 */
-    --color-8: 208 61% 10%; /* #091a28 */
-    --color-9: 206 100% 6%; /* #00111e */
-    --color-10: 212 100% 3%; /* #000816 */
-    --color-11: 210 100% 2%; /* #000310 */
-    --color-12: 150 100% 0%; /* #000108 */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
-    /* Theme mapping using the custom palette */
-    --background: var(--color-1);
-    --foreground: var(--color-9);
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
 
-    --card: var(--color-1);
-    --card-foreground: var(--color-8);
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    --popover: var(--color-1);
-    --popover-foreground: var(--color-9);
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
 
-    --primary: var(--color-6);
-    --primary-foreground: var(--color-1);
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: var(--color-2);
-    --secondary-foreground: var(--color-8);
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --muted: var(--color-2);
-    --muted-foreground: var(--color-5);
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    --accent: var(--color-3);
-    --accent-foreground: var(--color-8);
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: var(--color-1);
-
-    --border: var(--color-3);
-    --input: var(--color-3);
-    --ring: var(--color-6);
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: var(--color-2);
-    --sidebar-foreground: var(--color-8);
-    --sidebar-primary: var(--color-6);
-    --sidebar-primary-foreground: var(--color-1);
-    --sidebar-accent: var(--color-3);
-    --sidebar-accent-foreground: var(--color-8);
-    --sidebar-border: var(--color-4);
-    --sidebar-ring: var(--color-6);
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    /* Dark theme using darker colors from the palette */
-    --background: var(--color-9);
-    --foreground: var(--color-1);
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
 
-    --card: var(--color-8);
-    --card-foreground: var(--color-1);
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: var(--color-8);
-    --popover-foreground: var(--color-1);
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: var(--color-3);
-    --primary-foreground: var(--color-9);
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: var(--color-7);
-    --secondary-foreground: var(--color-2);
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: var(--color-7);
-    --muted-foreground: var(--color-3);
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: var(--color-6);
-    --accent-foreground: var(--color-2);
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 63% 31%;
-    --destructive-foreground: var(--color-1);
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: var(--color-6);
-    --input: var(--color-6);
-    --ring: var(--color-3);
-
-    --sidebar-background: var(--color-8);
-    --sidebar-foreground: var(--color-2);
-    --sidebar-primary: var(--color-3);
-    --sidebar-primary-foreground: var(--color-9);
-    --sidebar-accent: var(--color-6);
-    --sidebar-accent-foreground: var(--color-2);
-    --sidebar-border: var(--color-6);
-    --sidebar-ring: var(--color-3);
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 

@@ -59,35 +59,35 @@ const ContactSubmissionsTab = () => {
   };
 
   return (
-    <Card className="bg-card border-border">
+    <Card className="bg-white">
       <CardHeader>
-        <CardTitle className="text-xl font-semibold text-foreground">User Messages</CardTitle>
-        <p className="text-muted-foreground">Manage customer inquiries and responses</p>
+        <CardTitle className="text-xl font-semibold text-gray-900">User Messages</CardTitle>
+        <p className="text-gray-600">Manage customer inquiries and responses</p>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
-            <TableRow className="border-border">
-              <TableHead className="text-muted-foreground">Name</TableHead>
-              <TableHead className="text-muted-foreground">Email</TableHead>
-              <TableHead className="text-muted-foreground">Subject</TableHead>
-              <TableHead className="text-muted-foreground">Status</TableHead>
-              <TableHead className="text-muted-foreground">Date</TableHead>
-              <TableHead className="text-muted-foreground">Actions</TableHead>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Subject</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {contactSubmissions.map((contact) => (
-              <TableRow key={contact.id} className="border-border">
-                <TableCell className="font-medium text-foreground">{contact.name}</TableCell>
-                <TableCell className="text-foreground">{contact.email}</TableCell>
-                <TableCell className="text-foreground">{contact.subject || "No Subject"}</TableCell>
+              <TableRow key={contact.id}>
+                <TableCell className="font-medium">{contact.name}</TableCell>
+                <TableCell>{contact.email}</TableCell>
+                <TableCell>{contact.subject || "No Subject"}</TableCell>
                 <TableCell>
                   <Badge variant={contact.status === "read" ? "default" : contact.status === "replied" ? "secondary" : "destructive"}>
                     {contact.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-foreground">
+                <TableCell>
                   {new Date(contact.created_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
@@ -96,7 +96,6 @@ const ContactSubmissionsTab = () => {
                       size="sm"
                       variant="outline"
                       onClick={() => handleViewMessage(contact)}
-                      className="border-border"
                     >
                       <FaEye className="mr-1" />
                       View & Reply

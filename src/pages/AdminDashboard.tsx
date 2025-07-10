@@ -581,33 +581,33 @@ const AdminDashboard = () => {
 
   if (adminLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-xl text-foreground">Loading...</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
       </div>
     );
   }
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 text-foreground">Access Denied</h1>
-          <p className="text-muted-foreground">You don't have permission to access this page.</p>
+          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+          <p>You don't have permission to access this page.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-gray-50 flex">
       <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       
       <div className="flex-1 overflow-auto">
         <div className="p-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-            <p className="text-muted-foreground mt-2">Manage your store and orders</p>
+            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <p className="text-gray-600 mt-2">Manage your store and orders</p>
           </div>
 
           {/* Dashboard Overview */}
@@ -615,9 +615,9 @@ const AdminDashboard = () => {
 
           {/* Products Tab */}
           {activeTab === "products" && (
-            <Card className="bg-card border-border">
+            <Card className="bg-white">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-foreground">Products Management</CardTitle>
+                <CardTitle className="text-xl font-semibold text-gray-900">Products Management</CardTitle>
                 <Dialog open={isProductModalOpen} onOpenChange={setIsProductModalOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
@@ -722,30 +722,30 @@ const AdminDashboard = () => {
               <CardContent>
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-border">
-                      <TableHead className="text-muted-foreground">Image</TableHead>
-                      <TableHead className="text-muted-foreground">Name</TableHead>
-                      <TableHead className="text-muted-foreground">Price</TableHead>
-                      <TableHead className="text-muted-foreground">Stock</TableHead>
-                      <TableHead className="text-muted-foreground">Category</TableHead>
-                      <TableHead className="text-muted-foreground">Status</TableHead>
-                      <TableHead className="text-muted-foreground">Actions</TableHead>
+                    <TableRow>
+                      <TableHead>Image</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Stock</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {products.map((product) => (
-                      <TableRow key={product.id} className="border-border">
+                      <TableRow key={product.id}>
                         <TableCell>
                           <img
                             src={product.image_url}
                             alt={product.name}
-                            className="w-12 h-12 object-cover rounded border border-border"
+                            className="w-12 h-12 object-cover rounded"
                           />
                         </TableCell>
-                        <TableCell className="font-medium text-foreground">{product.name}</TableCell>
-                        <TableCell className="text-foreground">${product.price}</TableCell>
-                        <TableCell className="text-foreground">{product.stock_quantity}</TableCell>
-                        <TableCell className="text-foreground">{product.category}</TableCell>
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell>${product.price}</TableCell>
+                        <TableCell>{product.stock_quantity}</TableCell>
+                        <TableCell>{product.category}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <Badge variant={product.is_active ? "default" : "secondary"}>
@@ -755,7 +755,6 @@ const AdminDashboard = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => toggleProductStock(product.id, product.is_active)}
-                              className="border-border"
                             >
                               {product.is_active ? "Disable" : "Enable"}
                             </Button>
@@ -782,35 +781,35 @@ const AdminDashboard = () => {
 
           {/* Orders Tab */}
           {activeTab === "orders" && (
-            <Card className="bg-card border-border">
+            <Card className="bg-white">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-foreground">Orders Management</CardTitle>
+                <CardTitle className="text-xl font-semibold text-gray-900">Orders Management</CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-border">
-                      <TableHead className="text-muted-foreground">Order #</TableHead>
-                      <TableHead className="text-muted-foreground">Customer</TableHead>
-                      <TableHead className="text-muted-foreground">Total</TableHead>
-                      <TableHead className="text-muted-foreground">Status</TableHead>
-                      <TableHead className="text-muted-foreground">Date</TableHead>
-                      <TableHead className="text-muted-foreground">Actions</TableHead>
+                    <TableRow>
+                      <TableHead>Order #</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {orders.map((order) => (
-                      <TableRow key={order.id} className="border-border">
-                        <TableCell className="font-mono text-sm text-foreground">
+                      <TableRow key={order.id}>
+                        <TableCell className="font-mono text-sm">
                           #{generateOrderNumber(order.id)}
                         </TableCell>
-                        <TableCell className="text-foreground">{order.user_email || "N/A"}</TableCell>
-                        <TableCell className="text-foreground">${order.total_amount}</TableCell>
+                        <TableCell>{order.user_email || "N/A"}</TableCell>
+                        <TableCell>${order.total_amount}</TableCell>
                         <TableCell>
                           <select
                             value={order.status}
                             onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                            className="border border-border rounded px-2 py-1 text-sm bg-background text-foreground"
+                            className="border rounded px-2 py-1 text-sm"
                           >
                             <option value="pending">Pending</option>
                             <option value="processing">Processing</option>
@@ -819,7 +818,7 @@ const AdminDashboard = () => {
                             <option value="cancelled">Cancelled</option>
                           </select>
                         </TableCell>
-                        <TableCell className="text-foreground">
+                        <TableCell>
                           {new Date(order.created_at).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
@@ -844,9 +843,9 @@ const AdminDashboard = () => {
 
           {/* Journals Tab */}
           {activeTab === "journals" && (
-            <Card className="bg-card border-border">
+            <Card className="bg-white">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-foreground">Journals Management</CardTitle>
+                <CardTitle className="text-xl font-semibold text-gray-900">Journals Management</CardTitle>
                 <Dialog open={isJournalModalOpen} onOpenChange={setIsJournalModalOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
@@ -951,11 +950,11 @@ const AdminDashboard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-muted-foreground">Title</TableHead>
-                      <TableHead className="text-muted-foreground">Author</TableHead>
-                      <TableHead className="text-muted-foreground">Status</TableHead>
-                      <TableHead className="text-muted-foreground">Created</TableHead>
-                      <TableHead className="text-muted-foreground">Actions</TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Author</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -992,9 +991,9 @@ const AdminDashboard = () => {
 
           {/* Coupons Tab */}
           {activeTab === "coupons" && (
-            <Card className="bg-card border-border">
+            <Card className="bg-white">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-foreground">Coupon Codes Management</CardTitle>
+                <CardTitle className="text-xl font-semibold text-gray-900">Coupon Codes Management</CardTitle>
                 <Dialog open={isCouponModalOpen} onOpenChange={setIsCouponModalOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
@@ -1110,14 +1109,14 @@ const AdminDashboard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-muted-foreground">Code</TableHead>
-                      <TableHead className="text-muted-foreground">Type</TableHead>
-                      <TableHead className="text-muted-foreground">Value</TableHead>
-                      <TableHead className="text-muted-foreground">Min Order</TableHead>
-                      <TableHead className="text-muted-foreground">Used/Max</TableHead>
-                      <TableHead className="text-muted-foreground">Expires</TableHead>
-                      <TableHead className="text-muted-foreground">Status</TableHead>
-                      <TableHead className="text-muted-foreground">Actions</TableHead>
+                      <TableHead>Code</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead>Min Order</TableHead>
+                      <TableHead>Used/Max</TableHead>
+                      <TableHead>Expires</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1164,9 +1163,9 @@ const AdminDashboard = () => {
 
           {/* Shipping Tab */}
           {activeTab === "shipping" && (
-            <Card className="bg-card border-border">
+            <Card className="bg-white">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-foreground">Shipping Methods Management</CardTitle>
+                <CardTitle className="text-xl font-semibold text-gray-900">Shipping Methods Management</CardTitle>
                 <Dialog open={isShippingModalOpen} onOpenChange={setIsShippingModalOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
@@ -1252,12 +1251,12 @@ const AdminDashboard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-muted-foreground">Name</TableHead>
-                      <TableHead className="text-muted-foreground">Description</TableHead>
-                      <TableHead className="text-muted-foreground">Price</TableHead>
-                      <TableHead className="text-muted-foreground">Estimated Days</TableHead>
-                      <TableHead className="text-muted-foreground">Status</TableHead>
-                      <TableHead className="text-muted-foreground">Actions</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Estimated Days</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

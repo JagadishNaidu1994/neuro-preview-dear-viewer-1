@@ -44,12 +44,12 @@ const Header = () => {
 
   return (
     <>
-      <header className="bg-card shadow-sm sticky top-0 z-30 border-b border-border">
+      <header className="bg-[#F8F8F5] shadow-sm sticky top-0 z-30">
         <div className="max-w-[1400px] mx-auto px-4 md:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center">
-              <span className="text-2xl font-bold text-primary">DearNeuro</span>
+              <span className="text-2xl font-bold text-[#514B3D]">DearNeuro</span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -58,7 +58,7 @@ const Header = () => {
                 <Link
                   key={item.href}
                   to={item.href}
-                  className="text-foreground hover:text-primary font-medium transition-colors"
+                  className="text-[#514B3D] hover:text-[#3f3a2f] font-medium transition-colors"
                 >
                   {item.label}
                 </Link>
@@ -90,7 +90,7 @@ const Header = () => {
               >
                 <ShoppingCart className="w-5 h-5" />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-[#514B3D] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {totalItems}
                   </span>
                 )}
