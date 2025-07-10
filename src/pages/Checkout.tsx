@@ -153,7 +153,7 @@ const Checkout = () => {
           user_id: user.id,
           total_amount: finalTotal,
           status: "pending",
-          shipping_address: selectedAddressData as unknown as any,
+          shipping_address: selectedAddressData as any,
         })
         .select()
         .single();

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthProvider";
 import { useCart } from "@/context/CartProvider";
 import { useCartDrawer } from "@/hooks/useCartDrawer";
+import { supabase } from "@/integrations/supabase/client";
 import AuthModal from "./AuthModal";
 import CartDrawer from "./CartDrawer";
 import MobileDrawer from "./MobileDrawer";
@@ -24,6 +25,11 @@ const Header = () => {
     } else {
       setShowAuthModal(true);
     }
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
   };
 
   const navItems = [
@@ -89,7 +95,7 @@ const Header = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowMobileDrawer(true)}
+                onClick={() => setShowMobileDrawner(true)}
                 className="lg:hidden"
               >
                 <Menu className="w-5 h-5" />
