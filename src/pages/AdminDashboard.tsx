@@ -221,7 +221,7 @@ const AdminDashboard = () => {
 
   const fetchJournals = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("journals")
         .select("*")
         .order("created_at", { ascending: false });
@@ -235,7 +235,7 @@ const AdminDashboard = () => {
 
   const fetchContactSubmissions = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("contact_submissions")
         .select("*")
         .order("created_at", { ascending: false });
@@ -249,7 +249,7 @@ const AdminDashboard = () => {
 
   const fetchCoupons = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("coupon_codes")
         .select("*")
         .order("created_at", { ascending: false });
@@ -361,7 +361,7 @@ const AdminDashboard = () => {
       };
 
       if (editingJournal) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("journals")
           .update({ ...journalData, updated_at: new Date().toISOString() })
           .eq("id", editingJournal.id);
@@ -369,7 +369,7 @@ const AdminDashboard = () => {
         if (error) throw error;
         toast({ title: "Success", description: "Journal updated successfully" });
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("journals")
           .insert([journalData]);
 
@@ -397,7 +397,7 @@ const AdminDashboard = () => {
     if (!confirm("Are you sure you want to delete this journal?")) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("journals")
         .delete()
         .eq("id", journalId);
@@ -431,7 +431,7 @@ const AdminDashboard = () => {
       };
 
       if (editingCoupon) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("coupon_codes")
           .update({ ...couponData, updated_at: new Date().toISOString() })
           .eq("id", editingCoupon.id);
@@ -439,7 +439,7 @@ const AdminDashboard = () => {
         if (error) throw error;
         toast({ title: "Success", description: "Coupon updated successfully" });
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("coupon_codes")
           .insert([couponData]);
 
@@ -467,7 +467,7 @@ const AdminDashboard = () => {
     if (!confirm("Are you sure you want to delete this coupon?")) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("coupon_codes")
         .delete()
         .eq("id", couponId);
@@ -575,7 +575,7 @@ const AdminDashboard = () => {
 
   const markContactAsRead = async (contactId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("contact_submissions")
         .update({ status: 'read' })
         .eq("id", contactId);
