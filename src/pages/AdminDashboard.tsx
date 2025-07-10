@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/useAdmin";
-import Header from "@/components/Header";
+import AdminSidebar from "@/components/admin/AdminSidebar";
+import DashboardOverview from "@/components/admin/DashboardOverview";
 import ContactSubmissionsTab from "@/components/admin/ContactSubmissionsTab";
 import OrderViewDialog from "@/components/admin/OrderViewDialog";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaPlus, FaEdit, FaTrash, FaEye } from "react-icons/fa";
 import { useToast } from "@/hooks/use-toast";
 
@@ -83,7 +85,7 @@ interface ShippingMethod {
 const AdminDashboard = () => {
   const { isAdmin, loading: adminLoading } = useAdmin();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("products");
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [journals, setJournals] = useState<Journal[]>([]);
@@ -579,7 +581,7 @@ const AdminDashboard = () => {
 
   if (adminLoading) {
     return (
-      <div className="min-h-screen bg-[#F8F8F5] flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-xl">Loading...</div>
       </div>
     );
@@ -587,7 +589,7 @@ const AdminDashboard = () => {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-[#F8F8F5] flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p>You don't have permission to access this page.</p>
@@ -597,731 +599,697 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F8F5]">
-      <Header />
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
-
-        {/* Tab Navigation */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          <Button
-            variant={activeTab === "products" ? "default" : "outline"}
-            onClick={() => setActiveTab("products")}
-          >
-            Products
-          </Button>
-          <Button
-            variant={activeTab === "orders" ? "default" : "outline"}
-            onClick={() => setActiveTab("orders")}
-          >
-            Orders
-          </Button>
-          <Button
-            variant={activeTab === "journals" ? "default" : "outline"}
-            onClick={() => setActiveTab("journals")}
-          >
-            Journals
-          </Button>
-          <Button
-            variant={activeTab === "contacts" ? "default" : "outline"}
-            onClick={() => setActiveTab("contacts")}
-          >
-            User Responses
-          </Button>
-          <Button
-            variant={activeTab === "coupons" ? "default" : "outline"}
-            onClick={() => setActiveTab("coupons")}
-          >
-            Coupons
-          </Button>
-          <Button
-            variant={activeTab === "shipping" ? "default" : "outline"}
-            onClick={() => setActiveTab("shipping")}
-          >
-            Shipping
-          </Button>
-        </div>
-
-        {/* Products Tab */}
-        {activeTab === "products" && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold">Products Management</h2>
-              <Dialog open={isProductModalOpen} onOpenChange={setIsProductModalOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={() => {
-                    setEditingProduct(null);
-                    resetProductForm();
-                  }}>
-                    <FaPlus className="mr-2" />
-                    Add Product
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingProduct ? "Edit Product" : "Add New Product"}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleProductSubmit} className="space-y-4">
-                    <div>
-                      <Label htmlFor="name">Product Name</Label>
-                      <Input
-                        id="name"
-                        value={productForm.name}
-                        onChange={(e) =>
-                          setProductForm({ ...productForm, name: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="description">Description</Label>
-                      <Textarea
-                        id="description"
-                        value={productForm.description}
-                        onChange={(e) =>
-                          setProductForm({ ...productForm, description: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="price">Price ($)</Label>
-                        <Input
-                          id="price"
-                          type="number"
-                          step="0.01"
-                          value={productForm.price}
-                          onChange={(e) =>
-                            setProductForm({ ...productForm, price: e.target.value })
-                          }
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="stock">Stock Quantity</Label>
-                        <Input
-                          id="stock"
-                          type="number"
-                          value={productForm.stock_quantity}
-                          onChange={(e) =>
-                            setProductForm({ ...productForm, stock_quantity: e.target.value })
-                          }
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="category">Category</Label>
-                      <Input
-                        id="category"
-                        value={productForm.category}
-                        onChange={(e) =>
-                          setProductForm({ ...productForm, category: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="image_url">Image URL</Label>
-                      <Input
-                        id="image_url"
-                        value={productForm.image_url}
-                        onChange={(e) =>
-                          setProductForm({ ...productForm, image_url: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsProductModalOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button type="submit" disabled={loading}>
-                        {loading ? "Saving..." : "Save Product"}
-                      </Button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            <div className="bg-white rounded-lg shadow">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Image</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {products.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <img
-                          src={product.image_url}
-                          alt={product.name}
-                          className="w-12 h-12 object-cover rounded"
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>${product.price}</TableCell>
-                      <TableCell>{product.stock_quantity}</TableCell>
-                      <TableCell>{product.category}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant={product.is_active ? "default" : "secondary"}>
-                            {product.is_active ? "Active" : "Out of Stock"}
-                          </Badge>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => toggleProductStock(product.id, product.is_active)}
-                          >
-                            {product.is_active ? "Disable" : "Enable"}
-                          </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEditProduct(product)}
-                          >
-                            <FaEdit />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+    <div className="min-h-screen bg-gray-50 flex">
+      <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      
+      <div className="flex-1 overflow-auto">
+        <div className="p-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <p className="text-gray-600 mt-2">Manage your store and orders</p>
           </div>
-        )}
 
-        {/* Orders Tab */}
-        {activeTab === "orders" && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold">Orders Management</h2>
-            </div>
-            <div className="bg-white rounded-lg shadow">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {orders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-mono text-sm">
-                        #{generateOrderNumber(order.id)}
-                      </TableCell>
-                      <TableCell>{order.user_email || "N/A"}</TableCell>
-                      <TableCell>${order.total_amount}</TableCell>
-                      <TableCell>
-                        <select
-                          value={order.status}
-                          onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                          className="border rounded px-2 py-1 text-sm"
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="processing">Processing</option>
-                          <option value="shipped">Shipped</option>
-                          <option value="delivered">Delivered</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
-                      </TableCell>
-                      <TableCell>
-                        {new Date(order.created_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
+          {/* Dashboard Overview */}
+          {activeTab === "dashboard" && <DashboardOverview />}
+
+          {/* Products Tab */}
+          {activeTab === "products" && (
+            <Card className="bg-white">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-xl font-semibold text-gray-900">Products Management</CardTitle>
+                <Dialog open={isProductModalOpen} onOpenChange={setIsProductModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => {
+                      setEditingProduct(null);
+                      resetProductForm();
+                    }}>
+                      <FaPlus className="mr-2" />
+                      Add Product
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingProduct ? "Edit Product" : "Add New Product"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleProductSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="name">Product Name</Label>
+                        <Input
+                          id="name"
+                          value={productForm.name}
+                          onChange={(e) =>
+                            setProductForm({ ...productForm, name: e.target.value })
+                          }
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                          id="description"
+                          value={productForm.description}
+                          onChange={(e) =>
+                            setProductForm({ ...productForm, description: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="price">Price ($)</Label>
+                          <Input
+                            id="price"
+                            type="number"
+                            step="0.01"
+                            value={productForm.price}
+                            onChange={(e) =>
+                              setProductForm({ ...productForm, price: e.target.value })
+                            }
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="stock">Stock Quantity</Label>
+                          <Input
+                            id="stock"
+                            type="number"
+                            value={productForm.stock_quantity}
+                            onChange={(e) =>
+                              setProductForm({ ...productForm, stock_quantity: e.target.value })
+                            }
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="category">Category</Label>
+                        <Input
+                          id="category"
+                          value={productForm.category}
+                          onChange={(e) =>
+                            setProductForm({ ...productForm, category: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="image_url">Image URL</Label>
+                        <Input
+                          id="image_url"
+                          value={productForm.image_url}
+                          onChange={(e) =>
+                            setProductForm({ ...productForm, image_url: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="flex justify-end space-x-2">
                         <Button
-                          size="sm"
+                          type="button"
                           variant="outline"
-                          onClick={() => handleViewOrder(order)}
+                          onClick={() => setIsProductModalOpen(false)}
                         >
-                          <FaEye />
+                          Cancel
                         </Button>
-                      </TableCell>
+                        <Button type="submit" disabled={loading}>
+                          {loading ? "Saving..." : "Save Product"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Image</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Stock</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        )}
+                  </TableHeader>
+                  <TableBody>
+                    {products.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell>
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell>${product.price}</TableCell>
+                        <TableCell>{product.stock_quantity}</TableCell>
+                        <TableCell>{product.category}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={product.is_active ? "default" : "secondary"}>
+                              {product.is_active ? "Active" : "Out of Stock"}
+                            </Badge>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => toggleProductStock(product.id, product.is_active)}
+                            >
+                              {product.is_active ? "Disable" : "Enable"}
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditProduct(product)}
+                            >
+                              <FaEdit />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Journals Tab */}
-        {activeTab === "journals" && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold">Journals Management</h2>
-              <Dialog open={isJournalModalOpen} onOpenChange={setIsJournalModalOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={() => {
-                    setEditingJournal(null);
-                    resetJournalForm();
-                  }}>
-                    <FaPlus className="mr-2" />
-                    Add Journal
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingJournal ? "Edit Journal" : "Add New Journal"}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleJournalSubmit} className="space-y-4">
-                    <div>
-                      <Label htmlFor="title">Title</Label>
-                      <Input
-                        id="title"
-                        value={journalForm.title}
-                        onChange={(e) =>
-                          setJournalForm({ ...journalForm, title: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="excerpt">Excerpt</Label>
-                      <Textarea
-                        id="excerpt"
-                        value={journalForm.excerpt}
-                        onChange={(e) =>
-                          setJournalForm({ ...journalForm, excerpt: e.target.value })
-                        }
-                        rows={2}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="content">Content</Label>
-                      <Textarea
-                        id="content"
-                        value={journalForm.content}
-                        onChange={(e) =>
-                          setJournalForm({ ...journalForm, content: e.target.value })
-                        }
-                        rows={10}
-                        required
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="author">Author</Label>
-                        <Input
-                          id="author"
-                          value={journalForm.author}
-                          onChange={(e) =>
-                            setJournalForm({ ...journalForm, author: e.target.value })
-                          }
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="journal_image_url">Image URL</Label>
-                        <Input
-                          id="journal_image_url"
-                          value={journalForm.image_url}
-                          onChange={(e) =>
-                            setJournalForm({ ...journalForm, image_url: e.target.value })
-                          }
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="published"
-                        checked={journalForm.published}
-                        onChange={(e) =>
-                          setJournalForm({ ...journalForm, published: e.target.checked })
-                        }
-                      />
-                      <Label htmlFor="published">Published</Label>
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsJournalModalOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button type="submit" disabled={loading}>
-                        {loading ? "Saving..." : "Save Journal"}
-                      </Button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            <div className="bg-white rounded-lg shadow">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Author</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {journals.map((journal) => (
-                    <TableRow key={journal.id}>
-                      <TableCell className="font-medium">{journal.title}</TableCell>
-                      <TableCell>{journal.author}</TableCell>
-                      <TableCell>
-                        <Badge variant={journal.published ? "default" : "secondary"}>
-                          {journal.published ? "Published" : "Draft"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {new Date(journal.created_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
+          {/* Orders Tab */}
+          {activeTab === "orders" && (
+            <Card className="bg-white">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-gray-900">Orders Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Order #</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {orders.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-mono text-sm">
+                          #{generateOrderNumber(order.id)}
+                        </TableCell>
+                        <TableCell>{order.user_email || "N/A"}</TableCell>
+                        <TableCell>${order.total_amount}</TableCell>
+                        <TableCell>
+                          <select
+                            value={order.status}
+                            onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                            className="border rounded px-2 py-1 text-sm"
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(order.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleEditJournal(journal)}
+                            onClick={() => handleViewOrder(order)}
                           >
-                            <FaEdit />
+                            <FaEye />
                           </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Contact Submissions Tab */}
-        {activeTab === "contacts" && <ContactSubmissionsTab />}
+          {/* Messages Tab */}
+          {activeTab === "messages" && <ContactSubmissionsTab />}
 
-        {/* Coupons Tab */}
-        {activeTab === "coupons" && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold">Coupon Codes Management</h2>
-              <Dialog open={isCouponModalOpen} onOpenChange={setIsCouponModalOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={() => {
-                    setEditingCoupon(null);
-                    resetCouponForm();
-                  }}>
-                    <FaPlus className="mr-2" />
-                    Add Coupon
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingCoupon ? "Edit Coupon" : "Add New Coupon"}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleCouponSubmit} className="space-y-4">
-                    <div>
-                      <Label htmlFor="code">Coupon Code</Label>
-                      <Input
-                        id="code"
-                        value={couponForm.code}
-                        onChange={(e) =>
-                          setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })
-                        }
-                        required
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
+          {/* Journals Tab */}
+          {activeTab === "journals" && (
+            <Card className="bg-white">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-xl font-semibold text-gray-900">Journals Management</CardTitle>
+                <Dialog open={isJournalModalOpen} onOpenChange={setIsJournalModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => {
+                      setEditingJournal(null);
+                      resetJournalForm();
+                    }}>
+                      <FaPlus className="mr-2" />
+                      Add Journal
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingJournal ? "Edit Journal" : "Add New Journal"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleJournalSubmit} className="space-y-4">
                       <div>
-                        <Label htmlFor="discount_type">Discount Type</Label>
-                        <select
-                          id="discount_type"
-                          value={couponForm.discount_type}
+                        <Label htmlFor="title">Title</Label>
+                        <Input
+                          id="title"
+                          value={journalForm.title}
                           onChange={(e) =>
-                            setCouponForm({ ...couponForm, discount_type: e.target.value })
+                            setJournalForm({ ...journalForm, title: e.target.value })
                           }
-                          className="w-full border rounded px-3 py-2"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="excerpt">Excerpt</Label>
+                        <Textarea
+                          id="excerpt"
+                          value={journalForm.excerpt}
+                          onChange={(e) =>
+                            setJournalForm({ ...journalForm, excerpt: e.target.value })
+                          }
+                          rows={2}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="content">Content</Label>
+                        <Textarea
+                          id="content"
+                          value={journalForm.content}
+                          onChange={(e) =>
+                            setJournalForm({ ...journalForm, content: e.target.value })
+                          }
+                          rows={10}
+                          required
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="author">Author</Label>
+                          <Input
+                            id="author"
+                            value={journalForm.author}
+                            onChange={(e) =>
+                              setJournalForm({ ...journalForm, author: e.target.value })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="journal_image_url">Image URL</Label>
+                          <Input
+                            id="journal_image_url"
+                            value={journalForm.image_url}
+                            onChange={(e) =>
+                              setJournalForm({ ...journalForm, image_url: e.target.value })
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="published"
+                          checked={journalForm.published}
+                          onChange={(e) =>
+                            setJournalForm({ ...journalForm, published: e.target.checked })
+                          }
+                        />
+                        <Label htmlFor="published">Published</Label>
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsJournalModalOpen(false)}
                         >
-                          <option value="percentage">Percentage</option>
-                          <option value="fixed">Fixed Amount</option>
-                        </select>
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={loading}>
+                          {loading ? "Saving..." : "Save Journal"}
+                        </Button>
                       </div>
-                      <div>
-                        <Label htmlFor="discount_value">
-                          Discount Value {couponForm.discount_type === "percentage" ? "(%)" : "($)"}
-                        </Label>
-                        <Input
-                          id="discount_value"
-                          type="number"
-                          step="0.01"
-                          value={couponForm.discount_value}
-                          onChange={(e) =>
-                            setCouponForm({ ...couponForm, discount_value: e.target.value })
-                          }
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="minimum_order_amount">Minimum Order Amount ($)</Label>
-                        <Input
-                          id="minimum_order_amount"
-                          type="number"
-                          step="0.01"
-                          value={couponForm.minimum_order_amount}
-                          onChange={(e) =>
-                            setCouponForm({ ...couponForm, minimum_order_amount: e.target.value })
-                          }
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="max_uses">Max Uses (optional)</Label>
-                        <Input
-                          id="max_uses"
-                          type="number"
-                          value={couponForm.max_uses}
-                          onChange={(e) =>
-                            setCouponForm({ ...couponForm, max_uses: e.target.value })
-                          }
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="expires_at">Expiry Date (optional)</Label>
-                      <Input
-                        id="expires_at"
-                        type="date"
-                        value={couponForm.expires_at}
-                        onChange={(e) =>
-                          setCouponForm({ ...couponForm, expires_at: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsCouponModalOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button type="submit" disabled={loading}>
-                        {loading ? "Saving..." : "Save Coupon"}
-                      </Button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            <div className="bg-white rounded-lg shadow">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Code</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Value</TableHead>
-                    <TableHead>Min Order</TableHead>
-                    <TableHead>Used/Max</TableHead>
-                    <TableHead>Expires</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {coupons.map((coupon) => (
-                    <TableRow key={coupon.id}>
-                      <TableCell className="font-mono font-medium">{coupon.code}</TableCell>
-                      <TableCell>{coupon.discount_type}</TableCell>
-                      <TableCell>
-                        {coupon.discount_type === "percentage" ? `${coupon.discount_value}%` : `$${coupon.discount_value}`}
-                      </TableCell>
-                      <TableCell>${coupon.minimum_order_amount}</TableCell>
-                      <TableCell>
-                        {coupon.used_count}/{coupon.max_uses || "∞"}
-                      </TableCell>
-                      <TableCell>
-                        {coupon.expires_at 
-                          ? new Date(coupon.expires_at).toLocaleDateString()
-                          : "Never"
-                        }
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={coupon.is_active ? "default" : "secondary"}>
-                          {coupon.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEditCoupon(coupon)}
-                          >
-                            <FaEdit />
-                          </Button>
-                        </div>
-                      </TableCell>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Author</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        )}
+                  </TableHeader>
+                  <TableBody>
+                    {journals.map((journal) => (
+                      <TableRow key={journal.id}>
+                        <TableCell className="font-medium">{journal.title}</TableCell>
+                        <TableCell>{journal.author}</TableCell>
+                        <TableCell>
+                          <Badge variant={journal.published ? "default" : "secondary"}>
+                            {journal.published ? "Published" : "Draft"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(journal.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditJournal(journal)}
+                            >
+                              <FaEdit />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Shipping Tab */}
-        {activeTab === "shipping" && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold">Shipping Methods Management</h2>
-              <Dialog open={isShippingModalOpen} onOpenChange={setIsShippingModalOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={() => {
-                    setEditingShipping(null);
-                    resetShippingForm();
-                  }}>
-                    <FaPlus className="mr-2" />
-                    Add Shipping Method
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingShipping ? "Edit Shipping Method" : "Add New Shipping Method"}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleShippingSubmit} className="space-y-4">
-                    <div>
-                      <Label htmlFor="shipping_name">Name</Label>
-                      <Input
-                        id="shipping_name"
-                        value={shippingForm.name}
-                        onChange={(e) =>
-                          setShippingForm({ ...shippingForm, name: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="shipping_description">Description</Label>
-                      <Textarea
-                        id="shipping_description"
-                        value={shippingForm.description}
-                        onChange={(e) =>
-                          setShippingForm({ ...shippingForm, description: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
+          {/* Coupons Tab */}
+          {activeTab === "coupons" && (
+            <Card className="bg-white">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-xl font-semibold text-gray-900">Coupon Codes Management</CardTitle>
+                <Dialog open={isCouponModalOpen} onOpenChange={setIsCouponModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => {
+                      setEditingCoupon(null);
+                      resetCouponForm();
+                    }}>
+                      <FaPlus className="mr-2" />
+                      Add Coupon
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingCoupon ? "Edit Coupon" : "Add New Coupon"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleCouponSubmit} className="space-y-4">
                       <div>
-                        <Label htmlFor="shipping_price">Price ($)</Label>
+                        <Label htmlFor="code">Coupon Code</Label>
                         <Input
-                          id="shipping_price"
-                          type="number"
-                          step="0.01"
-                          value={shippingForm.price}
+                          id="code"
+                          value={couponForm.code}
                           onChange={(e) =>
-                            setShippingForm({ ...shippingForm, price: e.target.value })
+                            setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })
                           }
                           required
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="estimated_days">Estimated Days</Label>
-                        <Input
-                          id="estimated_days"
-                          value={shippingForm.estimated_days}
-                          onChange={(e) =>
-                            setShippingForm({ ...shippingForm, estimated_days: e.target.value })
-                          }
-                          placeholder="e.g., 3-5 days"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsShippingModalOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button type="submit" disabled={loading}>
-                        {loading ? "Saving..." : "Save Shipping Method"}
-                      </Button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            <div className="bg-white rounded-lg shadow">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Estimated Days</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {shippingMethods.map((shipping) => (
-                    <TableRow key={shipping.id}>
-                      <TableCell className="font-medium">{shipping.name}</TableCell>
-                      <TableCell>{shipping.description || "N/A"}</TableCell>
-                      <TableCell>${shipping.price}</TableCell>
-                      <TableCell>{shipping.estimated_days}</TableCell>
-                      <TableCell>
-                        <Badge variant={shipping.is_active ? "default" : "secondary"}>
-                          {shipping.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEditShipping(shipping)}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="discount_type">Discount Type</Label>
+                          <select
+                            id="discount_type"
+                            value={couponForm.discount_type}
+                            onChange={(e) =>
+                              setCouponForm({ ...couponForm, discount_type: e.target.value })
+                            }
+                            className="w-full border rounded px-3 py-2"
                           >
-                            <FaEdit />
-                          </Button>
+                            <option value="percentage">Percentage</option>
+                            <option value="fixed">Fixed Amount</option>
+                          </select>
                         </div>
-                      </TableCell>
+                        <div>
+                          <Label htmlFor="discount_value">
+                            Discount Value {couponForm.discount_type === "percentage" ? "(%)" : "($)"}
+                          </Label>
+                          <Input
+                            id="discount_value"
+                            type="number"
+                            step="0.01"
+                            value={couponForm.discount_value}
+                            onChange={(e) =>
+                              setCouponForm({ ...couponForm, discount_value: e.target.value })
+                            }
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="minimum_order_amount">Minimum Order Amount ($)</Label>
+                          <Input
+                            id="minimum_order_amount"
+                            type="number"
+                            step="0.01"
+                            value={couponForm.minimum_order_amount}
+                            onChange={(e) =>
+                              setCouponForm({ ...couponForm, minimum_order_amount: e.target.value })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="max_uses">Max Uses (optional)</Label>
+                          <Input
+                            id="max_uses"
+                            type="number"
+                            value={couponForm.max_uses}
+                            onChange={(e) =>
+                              setCouponForm({ ...couponForm, max_uses: e.target.value })
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="expires_at">Expiry Date (optional)</Label>
+                        <Input
+                          id="expires_at"
+                          type="date"
+                          value={couponForm.expires_at}
+                          onChange={(e) =>
+                            setCouponForm({ ...couponForm, expires_at: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsCouponModalOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={loading}>
+                          {loading ? "Saving..." : "Save Coupon"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Code</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead>Min Order</TableHead>
+                      <TableHead>Used/Max</TableHead>
+                      <TableHead>Expires</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        )}
+                  </TableHeader>
+                  <TableBody>
+                    {coupons.map((coupon) => (
+                      <TableRow key={coupon.id}>
+                        <TableCell className="font-mono font-medium">{coupon.code}</TableCell>
+                        <TableCell>{coupon.discount_type}</TableCell>
+                        <TableCell>
+                          {coupon.discount_type === "percentage" ? `${coupon.discount_value}%` : `$${coupon.discount_value}`}
+                        </TableCell>
+                        <TableCell>${coupon.minimum_order_amount}</TableCell>
+                        <TableCell>
+                          {coupon.used_count}/{coupon.max_uses || "∞"}
+                        </TableCell>
+                        <TableCell>
+                          {coupon.expires_at 
+                            ? new Date(coupon.expires_at).toLocaleDateString()
+                            : "Never"
+                          }
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={coupon.is_active ? "default" : "secondary"}>
+                            {coupon.is_active ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditCoupon(coupon)}
+                            >
+                              <FaEdit />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Shipping Tab */}
+          {activeTab === "shipping" && (
+            <Card className="bg-white">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-xl font-semibold text-gray-900">Shipping Methods Management</CardTitle>
+                <Dialog open={isShippingModalOpen} onOpenChange={setIsShippingModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => {
+                      setEditingShipping(null);
+                      resetShippingForm();
+                    }}>
+                      <FaPlus className="mr-2" />
+                      Add Shipping Method
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingShipping ? "Edit Shipping Method" : "Add New Shipping Method"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleShippingSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="shipping_name">Name</Label>
+                        <Input
+                          id="shipping_name"
+                          value={shippingForm.name}
+                          onChange={(e) =>
+                            setShippingForm({ ...shippingForm, name: e.target.value })
+                          }
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="shipping_description">Description</Label>
+                        <Textarea
+                          id="shipping_description"
+                          value={shippingForm.description}
+                          onChange={(e) =>
+                            setShippingForm({ ...shippingForm, description: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="shipping_price">Price ($)</Label>
+                          <Input
+                            id="shipping_price"
+                            type="number"
+                            step="0.01"
+                            value={shippingForm.price}
+                            onChange={(e) =>
+                              setShippingForm({ ...shippingForm, price: e.target.value })
+                            }
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="estimated_days">Estimated Days</Label>
+                          <Input
+                            id="estimated_days"
+                            value={shippingForm.estimated_days}
+                            onChange={(e) =>
+                              setShippingForm({ ...shippingForm, estimated_days: e.target.value })
+                            }
+                            placeholder="e.g., 3-5 days"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsShippingModalOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={loading}>
+                          {loading ? "Saving..." : "Save Shipping Method"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Estimated Days</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {shippingMethods.map((shipping) => (
+                      <TableRow key={shipping.id}>
+                        <TableCell className="font-medium">{shipping.name}</TableCell>
+                        <TableCell>{shipping.description || "N/A"}</TableCell>
+                        <TableCell>${shipping.price}</TableCell>
+                        <TableCell>{shipping.estimated_days}</TableCell>
+                        <TableCell>
+                          <Badge variant={shipping.is_active ? "default" : "secondary"}>
+                            {shipping.is_active ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditShipping(shipping)}
+                            >
+                              <FaEdit />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
 
       {/* Order View Dialog */}

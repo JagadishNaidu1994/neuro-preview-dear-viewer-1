@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaEye, FaReply } from "react-icons/fa";
 import MessageViewDialog from "./MessageViewDialog";
 
@@ -58,9 +59,12 @@ const ContactSubmissionsTab = () => {
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-semibold mb-6">User Contact Responses</h2>
-      <div className="bg-white rounded-lg shadow">
+    <Card className="bg-white">
+      <CardHeader>
+        <CardTitle className="text-xl font-semibold text-gray-900">User Messages</CardTitle>
+        <p className="text-gray-600">Manage customer inquiries and responses</p>
+      </CardHeader>
+      <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
@@ -102,7 +106,7 @@ const ContactSubmissionsTab = () => {
             ))}
           </TableBody>
         </Table>
-      </div>
+      </CardContent>
 
       <MessageViewDialog
         contact={selectedContact}
@@ -110,7 +114,7 @@ const ContactSubmissionsTab = () => {
         onClose={handleCloseDialog}
         onUpdate={fetchContactSubmissions}
       />
-    </div>
+    </Card>
   );
 };
 
