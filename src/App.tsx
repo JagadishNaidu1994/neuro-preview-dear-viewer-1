@@ -1,3 +1,4 @@
+
 // src/App.tsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -34,6 +35,7 @@ import PaymentMethods from "@/pages/PaymentMethods";
 import AccountSampleData from "@/components/AccountSampleData";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { CartProvider } from "@/context/CartProvider";
 
 const queryClient = new QueryClient();
@@ -148,9 +150,9 @@ const App = () => (
             <Route
               path="/admin"
               element={
-                <ProtectedRoute>
+                <AdminProtectedRoute>
                   <AdminDashboard />
-                </ProtectedRoute>
+                </AdminProtectedRoute>
               }
             />
             <Route path="*" element={<NotFound />} />

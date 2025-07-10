@@ -15,11 +15,14 @@ import { ShoppingCart, User, Menu, Settings } from "lucide-react";
 const Header = () => {
   const { user } = useAuth();
   const { totalItems } = useCart();
-  const { isAdmin } = useAdmin();
+  const { isAdmin, loading: adminLoading } = useAdmin();
   const { isOpen: isCartOpen, openCart, closeCart } = useCartDrawer();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
   const navigate = useNavigate();
+
+  // Debug logging
+  console.log("Header - user:", user?.email, "isAdmin:", isAdmin, "adminLoading:", adminLoading);
 
   const handleAccountClick = () => {
     if (user) {
@@ -68,12 +71,12 @@ const Header = () => {
             {/* Right Side Actions */}
             <div className="flex items-center space-x-4">
               {/* Admin Link - Only show for admin users */}
-              {user && isAdmin && (
+              {user && isAdmin && !adminLoading && (
                 <Link to="/admin">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="relative p-2"
+                    className="relative p-2 hidden md:flex"
                     title="Admin Dashboard"
                   >
                     <Settings className="w-5 h-5" />
