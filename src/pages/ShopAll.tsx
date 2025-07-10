@@ -32,7 +32,6 @@ export default function ShopAll() {
       const { data, error } = await supabase
         .from("products")
         .select("*")
-        .eq("is_active", true)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -72,7 +71,11 @@ export default function ShopAll() {
             {products.map((product) => (
               <div
                 key={product.id}
-                className="group overflow-hidden rounded-xl bg-white shadow-sm hover:shadow-lg transition-shadow duration-300 border"
+                className={`group overflow-hidden rounded-xl bg-white shadow-sm hover:shadow-lg transition-shadow duration-300 border ${
+                  !product.is_active || product.stock_quantity === 0 
+                    ? 'opacity-75 bg-gray-50' 
+                    : ''
+                }`}
               >
                 <Link to={`/product?id=${product.id}`}>
                   <div className="relative aspect-square overflow-hidden">
@@ -81,6 +84,13 @@ export default function ShopAll() {
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
+                    {(!product.is_active || product.stock_quantity === 0) && (
+                      <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                        <span className="bg-red-500 text-white px-3 py-1 rounded-lg font-semibold">
+                          Out of Stock
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </Link>
                 <div className="p-4">
@@ -100,13 +110,13 @@ export default function ShopAll() {
                       size="sm"
                       onClick={() => handleAddToCart(product.id)}
                       className="bg-[#514B3D] hover:bg-[#3f3a2f] text-white"
-                      disabled={product.stock_quantity === 0}
+                      disabled={!product.is_active || product.stock_quantity === 0}
                     >
                       <FaShoppingCart className="mr-2" />
-                      {product.stock_quantity === 0 ? "Out of Stock" : "Add to Cart"}
+                      {!product.is_active || product.stock_quantity === 0 ? "Out of Stock" : "Add to Cart"}
                     </Button>
                   </div>
-                  {product.stock_quantity > 0 && product.stock_quantity <= 10 && (
+                  {product.is_active && product.stock_quantity > 0 && product.stock_quantity <= 10 && (
                     <p className="text-xs text-orange-600 mt-2">
                       Only {product.stock_quantity} left in stock!
                     </p>

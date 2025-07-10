@@ -1,4 +1,3 @@
-
 // src/App.tsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -26,6 +25,7 @@ import FAQ from "@/pages/FAQ";
 import ShippingReturns from "@/pages/ShippingReturns";
 import Rewards from "@/pages/Rewards";
 import Footer from "@/components/Footer";
+import SampleJournalContent from "@/components/SampleJournalContent";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
@@ -41,6 +41,7 @@ const App = () => (
       <CartProvider>
         <BrowserRouter>
           <AccountSampleData />
+          <SampleJournalContent />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/shop-all" element={<><ShopAll /><Footer /></>} />

@@ -281,6 +281,14 @@ const AdminDashboard = () => {
     });
   };
 
+  // Generate consistent order number function
+  const generateOrderNumber = (orderId: string) => {
+    // Use the order creation timestamp or database position to generate consistent serial numbers
+    const orderIndex = orders.findIndex(o => o.id === orderId);
+    const serialNumber = orders.length - orderIndex;
+    return String(serialNumber).padStart(3, '0');
+  };
+
   // CRUD operations
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -294,6 +302,7 @@ const AdminDashboard = () => {
         image_url: productForm.image_url,
         category: productForm.category,
         stock_quantity: parseInt(productForm.stock_quantity),
+        is_active: productForm.stock_quantity === "0" ? false : true, // Auto-disable if no stock
       };
 
       if (editingProduct) {
@@ -326,6 +335,30 @@ const AdminDashboard = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Toggle product stock status
+  const toggleProductStock = async (productId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("products")
+        .update({ is_active: !currentStatus })
+        .eq("id", productId);
+
+      if (error) throw error;
+      toast({ 
+        title: "Success", 
+        description: `Product ${!currentStatus ? 'activated' : 'deactivated'} successfully` 
+      });
+      await fetchProducts();
+    } catch (error) {
+      console.error("Error toggling product status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update product status",
+        variant: "destructive",
+      });
     }
   };
 
@@ -544,11 +577,6 @@ const AdminDashboard = () => {
     setIsOrderDialogOpen(true);
   };
 
-  // Generate serial order number
-  const generateOrderNumber = (order: Order, index: number) => {
-    return String(orders.length - index).padStart(3, '0');
-  };
-
   if (adminLoading) {
     return (
       <div className="min-h-screen bg-[#F8F8F5] flex items-center justify-center">
@@ -749,9 +777,18 @@ const AdminDashboard = () => {
                       <TableCell>{product.stock_quantity}</TableCell>
                       <TableCell>{product.category}</TableCell>
                       <TableCell>
-                        <Badge variant={product.is_active ? "default" : "secondary"}>
-                          {product.is_active ? "Active" : "Inactive"}
-                        </Badge>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={product.is_active ? "default" : "secondary"}>
+                            {product.is_active ? "Active" : "Out of Stock"}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => toggleProductStock(product.id, product.is_active)}
+                          >
+                            {product.is_active ? "Disable" : "Enable"}
+                          </Button>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
@@ -791,10 +828,10 @@ const AdminDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {orders.map((order, index) => (
+                  {orders.map((order) => (
                     <TableRow key={order.id}>
                       <TableCell className="font-mono text-sm">
-                        #{generateOrderNumber(order, index)}
+                        #{generateOrderNumber(order.id)}
                       </TableCell>
                       <TableCell>{order.user_email || "N/A"}</TableCell>
                       <TableCell>${order.total_amount}</TableCell>
