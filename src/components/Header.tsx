@@ -1,8 +1,8 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, Menu, X, User, LogOut } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { ShoppingCart, Menu, User, LogOut } from "lucide-react";
+import { useAuth } from "@/context/AuthProvider";
 import { useCartDrawer } from "@/hooks/useCartDrawer";
 import AuthModal from "./AuthModal";
 import MobileDrawer from "./MobileDrawer";
@@ -13,16 +13,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { supabase } from "@/integrations/supabase/client";
 
 const Header = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { openCart } = useCartDrawer();
   const navigate = useNavigate();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
-    await signOut();
+    await supabase.auth.signOut();
     navigate("/");
   };
 
@@ -119,7 +120,7 @@ const Header = () => {
       <MobileDrawer
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
-        navItems={navItems}
+        onAccountClick={() => setIsAuthModalOpen(true)}
       />
     </header>
   );
