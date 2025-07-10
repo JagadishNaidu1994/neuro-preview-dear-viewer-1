@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/useAdmin";
 import Header from "@/components/Header";
 import ContactSubmissionsTab from "@/components/admin/ContactSubmissionsTab";
+import OrderViewDialog from "@/components/admin/OrderViewDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,6 +45,7 @@ interface Order {
   status: string;
   created_at: string;
   user_email?: string;
+  shipping_address?: any;
 }
 
 interface Journal {
@@ -95,12 +96,14 @@ const AdminDashboard = () => {
   const [isJournalModalOpen, setIsJournalModalOpen] = useState(false);
   const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
   const [isShippingModalOpen, setIsShippingModalOpen] = useState(false);
+  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   
   // Editing states
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editingJournal, setEditingJournal] = useState<Journal | null>(null);
   const [editingCoupon, setEditingCoupon] = useState<CouponCode | null>(null);
   const [editingShipping, setEditingShipping] = useState<ShippingMethod | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   // Form states
   const [productForm, setProductForm] = useState({
@@ -536,6 +539,16 @@ const AdminDashboard = () => {
     setIsShippingModalOpen(true);
   };
 
+  const handleViewOrder = (order: Order) => {
+    setSelectedOrder(order);
+    setIsOrderDialogOpen(true);
+  };
+
+  // Generate serial order number
+  const generateOrderNumber = (order: Order, index: number) => {
+    return String(orders.length - index).padStart(3, '0');
+  };
+
   if (adminLoading) {
     return (
       <div className="min-h-screen bg-[#F8F8F5] flex items-center justify-center">
@@ -778,10 +791,10 @@ const AdminDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {orders.map((order) => (
+                  {orders.map((order, index) => (
                     <TableRow key={order.id}>
                       <TableCell className="font-mono text-sm">
-                        {order.id.slice(0, 8)}...
+                        #{generateOrderNumber(order, index)}
                       </TableCell>
                       <TableCell>{order.user_email || "N/A"}</TableCell>
                       <TableCell>${order.total_amount}</TableCell>
@@ -802,7 +815,11 @@ const AdminDashboard = () => {
                         {new Date(order.created_at).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
-                        <Button size="sm" variant="outline">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleViewOrder(order)}
+                        >
                           <FaEye />
                         </Button>
                       </TableCell>
@@ -1269,6 +1286,13 @@ const AdminDashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Order View Dialog */}
+      <OrderViewDialog
+        order={selectedOrder}
+        isOpen={isOrderDialogOpen}
+        onClose={() => setIsOrderDialogOpen(false)}
+      />
     </div>
   );
 };

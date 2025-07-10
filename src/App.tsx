@@ -25,18 +25,12 @@ import ContactUs from "@/pages/ContactUs";
 import FAQ from "@/pages/FAQ";
 import ShippingReturns from "@/pages/ShippingReturns";
 import Rewards from "@/pages/Rewards";
-import ProfileSettings from "@/pages/ProfileSettings";
-import Subscriptions from "@/pages/Subscriptions";
-import OrderHistory from "@/pages/OrderHistory";
-import Preferences from "@/pages/Preferences";
-import Security from "@/pages/Security";
-import AddressBook from "@/pages/AddressBook";
-import PaymentMethods from "@/pages/PaymentMethods";
-import AccountSampleData from "@/components/AccountSampleData";
+import Footer from "@/components/Footer";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { CartProvider } from "@/context/CartProvider";
+import AccountSampleData from "@/components/AccountSampleData";
 
 const queryClient = new QueryClient();
 
@@ -49,22 +43,22 @@ const App = () => (
           <AccountSampleData />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/shop-all" element={<ShopAll />} />
-            <Route path="/product" element={<ProductPage />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/order-success" element={<OrderSuccess />} />
-            <Route path="/the-science" element={<TheScience />} />
-            <Route path="/ethos" element={<Ethos />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/herbal-index" element={<HerbalIndex />} />
-            <Route path="/journal" element={<Journal />} />
-            <Route path="/journal/:id" element={<JournalPost />} />
-            <Route path="/refer" element={<ReferFriend />} />
-            <Route path="/contact" element={<ContactUs />} />
-            <Route path="/faqs" element={<FAQ />} />
-            <Route path="/shipping" element={<ShippingReturns />} />
-            <Route path="/rewards" element={<Rewards />} />
+            <Route path="/shop-all" element={<><ShopAll /><Footer /></>} />
+            <Route path="/product" element={<><ProductPage /><Footer /></>} />
+            <Route path="/cart" element={<><Cart /><Footer /></>} />
+            <Route path="/checkout" element={<><Checkout /><Footer /></>} />
+            <Route path="/order-success" element={<><OrderSuccess /><Footer /></>} />
+            <Route path="/the-science" element={<><TheScience /><Footer /></>} />
+            <Route path="/ethos" element={<><Ethos /><Footer /></>} />
+            <Route path="/reset-password" element={<><ResetPassword /><Footer /></>} />
+            <Route path="/herbal-index" element={<><HerbalIndex /><Footer /></>} />
+            <Route path="/journal" element={<><Journal /><Footer /></>} />
+            <Route path="/journal/:id" element={<><JournalPost /><Footer /></>} />
+            <Route path="/refer" element={<><ReferFriend /><Footer /></>} />
+            <Route path="/contact" element={<><ContactUs /><Footer /></>} />
+            <Route path="/faqs" element={<><FAQ /><Footer /></>} />
+            <Route path="/shipping" element={<><ShippingReturns /><Footer /></>} />
+            <Route path="/rewards" element={<><Rewards /><Footer /></>} />
 
             {/* Account routes - all handled by AccountPage */}
             <Route
@@ -72,6 +66,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AccountPage />
+                  <Footer />
                 </ProtectedRoute>
               }
             />
@@ -80,6 +75,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AccountPage />
+                  <Footer />
                 </ProtectedRoute>
               }
             />
@@ -88,6 +84,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AccountPage />
+                  <Footer />
                 </ProtectedRoute>
               }
             />
@@ -96,6 +93,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AccountPage />
+                  <Footer />
                 </ProtectedRoute>
               }
             />
@@ -104,6 +102,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AccountPage />
+                  <Footer />
                 </ProtectedRoute>
               }
             />
@@ -112,6 +111,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AccountPage />
+                  <Footer />
                 </ProtectedRoute>
               }
             />
@@ -120,6 +120,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AccountPage />
+                  <Footer />
                 </ProtectedRoute>
               }
             />
@@ -128,6 +129,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AccountPage />
+                  <Footer />
                 </ProtectedRoute>
               }
             />
@@ -136,6 +138,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AccountPage />
+                  <Footer />
                 </ProtectedRoute>
               }
             />
@@ -144,6 +147,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AccountPage />
+                  <Footer />
                 </ProtectedRoute>
               }
             />
@@ -155,7 +159,7 @@ const App = () => (
                 </AdminProtectedRoute>
               }
             />
-            <Route path="*" element={<NotFound />} />
+            <Route path="*" element={<><NotFound /><Footer /></>} />
           </Routes>
         </BrowserRouter>
       </CartProvider>
