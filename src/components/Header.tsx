@@ -1,9 +1,10 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, Menu, X, User, LogOut } from "lucide-react";
+import { ShoppingCart, Menu, User, LogOut } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCartDrawer } from "@/hooks/useCartDrawer";
+import { supabase } from "@/integrations/supabase/client";
 import AuthModal from "./AuthModal";
 import MobileDrawer from "./MobileDrawer";
 import { Button } from "./ui/button";
@@ -15,14 +16,14 @@ import {
 } from "./ui/dropdown-menu";
 
 const Header = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { openCart } = useCartDrawer();
   const navigate = useNavigate();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
-    await signOut();
+    await supabase.auth.signOut();
     navigate("/");
   };
 
@@ -63,7 +64,7 @@ const Header = () => {
               variant="ghost"
               size="sm"
               onClick={openCart}
-              className="text-color-8 hover:text-color-6 hover:bg-color-1"
+              className="text-color-8 hover:text-color-6 hover:bg-color-0"
             >
               <ShoppingCart className="h-5 w-5" />
             </Button>
@@ -71,7 +72,7 @@ const Header = () => {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-color-8 hover:text-color-6 hover:bg-color-1">
+                  <Button variant="ghost" size="sm" className="text-color-8 hover:text-color-6 hover:bg-color-0">
                     <User className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -92,7 +93,7 @@ const Header = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => setIsAuthModalOpen(true)}
-                className="border-color-3 text-color-8 hover:bg-color-1"
+                className="border-color-3 text-color-8 hover:bg-color-0"
               >
                 Sign In
               </Button>
@@ -102,7 +103,7 @@ const Header = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden text-color-8 hover:text-color-6 hover:bg-color-1"
+              className="md:hidden text-color-8 hover:text-color-6 hover:bg-color-0"
               onClick={() => setIsMobileMenuOpen(true)}
             >
               <Menu className="h-5 w-5" />
@@ -119,7 +120,14 @@ const Header = () => {
       <MobileDrawer
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
-        navItems={navItems}
+        onAccountClick={() => {
+          setIsMobileMenuOpen(false);
+          if (!user) {
+            setIsAuthModalOpen(true);
+          } else {
+            navigate("/account");
+          }
+        }}
       />
     </header>
   );

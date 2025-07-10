@@ -5,99 +5,99 @@
 
 @layer base {
   /**
-   * Custom color palette
+   * Custom color palette - using only specified colors
    */
   :root {
     /* Custom color palette */
-    --color-1: 224 227 230; /* #e0e3e6 */
-    --color-2: 178 184 192; /* #b2b8c0 */
-    --color-3: 135 145 156; /* #87919c */
-    --color-4: 98 110 124; /* #626e7c */
-    --color-5: 66 80 96; /* #425060 */
-    --color-6: 40 56 73; /* #283849 */
-    --color-7: 21 38 54; /* #152636 */
-    --color-8: 9 26 40; /* #091a28 */
-    --color-9: 0 17 30; /* #00111e */
-    --color-10: 0 8 22; /* #000816 */
-    --color-11: 0 3 16; /* #000310 */
-    --color-12: 0 1 8; /* #000108 */
+    --color-0: #e5e7e9;
+    --color-1: #bfc3c9;
+    --color-2: #9ba2aa;
+    --color-3: #7b838d;
+    --color-4: #5f6873;
+    --color-5: #48525d;
+    --color-6: #353f49;
+    --color-7: #273039;
+    --color-8: #1c242c;
+    --color-9: #151b22;
+    --color-10: #0f1419;
+    --color-11: #080b0f;
 
     /* Semantic color mappings */
-    --background: var(--color-1);
-    --foreground: var(--color-12);
+    --background: 255 255 255; /* white */
+    --foreground: var(--color-11);
 
-    --card: 0 0% 100%;
-    --card-foreground: var(--color-12);
+    --card: 255 255 255; /* white */
+    --card-foreground: var(--color-11);
 
-    --popover: 0 0% 100%;
-    --popover-foreground: var(--color-12);
+    --popover: 255 255 255; /* white */
+    --popover-foreground: var(--color-11);
 
     --primary: var(--color-6);
-    --primary-foreground: 0 0% 100%;
+    --primary-foreground: 255 255 255; /* white */
 
-    --secondary: var(--color-2);
-    --secondary-foreground: var(--color-12);
+    --secondary: var(--color-1);
+    --secondary-foreground: var(--color-11);
 
-    --muted: var(--color-2);
+    --muted: var(--color-1);
     --muted-foreground: var(--color-5);
 
-    --accent: var(--color-3);
-    --accent-foreground: var(--color-12);
+    --accent: var(--color-2);
+    --accent-foreground: var(--color-11);
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 255 255 255; /* white */
 
-    --border: var(--color-3);
-    --input: var(--color-3);
+    --border: var(--color-2);
+    --input: var(--color-2);
     --ring: var(--color-6);
 
     --radius: 0.5rem;
 
-    --sidebar-background: var(--color-1);
+    --sidebar-background: var(--color-0);
     --sidebar-foreground: var(--color-8);
     --sidebar-primary: var(--color-6);
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: var(--color-2);
+    --sidebar-primary-foreground: 255 255 255; /* white */
+    --sidebar-accent: var(--color-1);
     --sidebar-accent-foreground: var(--color-8);
-    --sidebar-border: var(--color-3);
+    --sidebar-border: var(--color-2);
     --sidebar-ring: var(--color-6);
   }
 
   .dark {
-    --background: var(--color-12);
-    --foreground: var(--color-1);
+    --background: var(--color-11);
+    --foreground: var(--color-0);
 
-    --card: var(--color-11);
-    --card-foreground: var(--color-1);
+    --card: var(--color-10);
+    --card-foreground: var(--color-0);
 
-    --popover: var(--color-11);
-    --popover-foreground: var(--color-1);
+    --popover: var(--color-10);
+    --popover-foreground: var(--color-0);
 
     --primary: var(--color-4);
-    --primary-foreground: 0 0% 100%;
+    --primary-foreground: 255 255 255; /* white */
 
     --secondary: var(--color-8);
-    --secondary-foreground: var(--color-1);
+    --secondary-foreground: var(--color-0);
 
     --muted: var(--color-8);
     --muted-foreground: var(--color-4);
 
     --accent: var(--color-7);
-    --accent-foreground: var(--color-1);
+    --accent-foreground: var(--color-0);
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 255 255 255; /* white */
 
     --border: var(--color-8);
     --input: var(--color-8);
     --ring: var(--color-4);
 
-    --sidebar-background: var(--color-11);
-    --sidebar-foreground: var(--color-2);
+    --sidebar-background: var(--color-10);
+    --sidebar-foreground: var(--color-1);
     --sidebar-primary: var(--color-5);
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary-foreground: 255 255 255; /* white */
     --sidebar-accent: var(--color-9);
-    --sidebar-accent-foreground: var(--color-2);
+    --sidebar-accent-foreground: var(--color-1);
     --sidebar-border: var(--color-9);
     --sidebar-ring: var(--color-4);
   }
@@ -114,35 +114,41 @@
 }
 
 /* Custom utility classes */
-.bg-color-1 { background-color: hsl(var(--color-1)); }
-.bg-color-2 { background-color: hsl(var(--color-2)); }
-.bg-color-3 { background-color: hsl(var(--color-3)); }
-.bg-color-4 { background-color: hsl(var(--color-4)); }
-.bg-color-5 { background-color: hsl(var(--color-5)); }
-.bg-color-6 { background-color: hsl(var(--color-6)); }
-.bg-color-7 { background-color: hsl(var(--color-7)); }
-.bg-color-8 { background-color: hsl(var(--color-8)); }
-.bg-color-9 { background-color: hsl(var(--color-9)); }
-.bg-color-10 { background-color: hsl(var(--color-10)); }
-.bg-color-11 { background-color: hsl(var(--color-11)); }
-.bg-color-12 { background-color: hsl(var(--color-12)); }
+.bg-color-0 { background-color: var(--color-0); }
+.bg-color-1 { background-color: var(--color-1); }
+.bg-color-2 { background-color: var(--color-2); }
+.bg-color-3 { background-color: var(--color-3); }
+.bg-color-4 { background-color: var(--color-4); }
+.bg-color-5 { background-color: var(--color-5); }
+.bg-color-6 { background-color: var(--color-6); }
+.bg-color-7 { background-color: var(--color-7); }
+.bg-color-8 { background-color: var(--color-8); }
+.bg-color-9 { background-color: var(--color-9); }
+.bg-color-10 { background-color: var(--color-10); }
+.bg-color-11 { background-color: var(--color-11); }
 
-.text-color-1 { color: hsl(var(--color-1)); }
-.text-color-2 { color: hsl(var(--color-2)); }
-.text-color-3 { color: hsl(var(--color-3)); }
-.text-color-4 { color: hsl(var(--color-4)); }
-.text-color-5 { color: hsl(var(--color-5)); }
-.text-color-6 { color: hsl(var(--color-6)); }
-.text-color-7 { color: hsl(var(--color-7)); }
-.text-color-8 { color: hsl(var(--color-8)); }
-.text-color-9 { color: hsl(var(--color-9)); }
-.text-color-10 { color: hsl(var(--color-10)); }
-.text-color-11 { color: hsl(var(--color-11)); }
-.text-color-12 { color: hsl(var(--color-12)); }
+.text-color-0 { color: var(--color-0); }
+.text-color-1 { color: var(--color-1); }
+.text-color-2 { color: var(--color-2); }
+.text-color-3 { color: var(--color-3); }
+.text-color-4 { color: var(--color-4); }
+.text-color-5 { color: var(--color-5); }
+.text-color-6 { color: var(--color-6); }
+.text-color-7 { color: var(--color-7); }
+.text-color-8 { color: var(--color-8); }
+.text-color-9 { color: var(--color-9); }
+.text-color-10 { color: var(--color-10); }
+.text-color-11 { color: var(--color-11); }
 
-.border-color-1 { border-color: hsl(var(--color-1)); }
-.border-color-2 { border-color: hsl(var(--color-2)); }
-.border-color-3 { border-color: hsl(var(--color-3)); }
-.border-color-4 { border-color: hsl(var(--color-4)); }
-.border-color-5 { border-color: hsl(var(--color-5)); }
-.border-color-6 { border-color: hsl(var(--color-6)); }
+.border-color-0 { border-color: var(--color-0); }
+.border-color-1 { border-color: var(--color-1); }
+.border-color-2 { border-color: var(--color-2); }
+.border-color-3 { border-color: var(--color-3); }
+.border-color-4 { border-color: var(--color-4); }
+.border-color-5 { border-color: var(--color-5); }
+.border-color-6 { border-color: var(--color-6); }
+.border-color-7 { border-color: var(--color-7); }
+.border-color-8 { border-color: var(--color-8); }
+.border-color-9 { border-color: var(--color-9); }
+.border-color-10 { border-color: var(--color-10); }
+.border-color-11 { border-color: var(--color-11); }
