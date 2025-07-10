@@ -522,6 +522,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_admin_by_email: {
+        Args: { admin_email: string }
+        Returns: undefined
+      }
       add_current_user_as_admin: {
         Args: Record<PropertyKey, never>
         Returns: undefined

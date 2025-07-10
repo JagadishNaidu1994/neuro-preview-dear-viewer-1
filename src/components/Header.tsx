@@ -5,15 +5,17 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthProvider";
 import { useCart } from "@/context/CartProvider";
 import { useCartDrawer } from "@/hooks/useCartDrawer";
+import { useAdmin } from "@/hooks/useAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import AuthModal from "./AuthModal";
 import CartDrawer from "./CartDrawer";
 import MobileDrawer from "./MobileDrawer";
-import { ShoppingCart, User, Menu } from "lucide-react";
+import { ShoppingCart, User, Menu, Settings } from "lucide-react";
 
 const Header = () => {
   const { user } = useAuth();
   const { totalItems } = useCart();
+  const { isAdmin } = useAdmin();
   const { isOpen: isCartOpen, openCart, closeCart } = useCartDrawer();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
@@ -65,6 +67,20 @@ const Header = () => {
 
             {/* Right Side Actions */}
             <div className="flex items-center space-x-4">
+              {/* Admin Link - Only show for admin users */}
+              {user && isAdmin && (
+                <Link to="/admin">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="relative p-2"
+                    title="Admin Dashboard"
+                  >
+                    <Settings className="w-5 h-5" />
+                  </Button>
+                </Link>
+              )}
+
               {/* Cart Icon */}
               <Button
                 variant="ghost"

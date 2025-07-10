@@ -1,7 +1,16 @@
-// src/components/MobileDrawer.tsx
-import React from "react";
-import { FaTimes, FaUser, FaChevronRight } from "react-icons/fa";
+
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthProvider";
+import { useAdmin } from "@/hooks/useAdmin";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { User, Settings, LogOut } from "lucide-react";
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -10,76 +19,95 @@ interface MobileDrawerProps {
 }
 
 const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) => {
-  const navItems = [
-    { label: "Shop All", path: "/shop-all" },
-    { label: "Science", path: "/the-science" },
-    { label: "Our Story", path: "/ethos" },
-    { label: "Journal", path: "/journal" },
-    { label: "Refer a Friend", path: "/refer" },
-    { label: "Rewards", path: "/rewards" },
-  ];
+  const { user } = useAuth();
+  const { isAdmin } = useAdmin();
 
-  const extraItems = [
-    { label: "Contact Us", path: "/contact" },
-    { label: "FAQs", path: "/faqs" },
-    { label: "Shipping & Returns", path: "/shipping" },
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    onClose();
+  };
+
+  const navItems = [
+    { label: "Shop All", href: "/shop-all" },
+    { label: "The Science", href: "/the-science" },
+    { label: "Ethos", href: "/ethos" },
+    { label: "Herbal Index", href: "/herbal-index" },
+    { label: "Journal", href: "/journal" },
   ];
 
   return (
-    <>
-      {/* Overlay */}
-      <div
-        className={`fixed inset-0 bg-black/40 z-40 transition-opacity ${
-          isOpen ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
-        onClick={onClose}
-      />
-
-      {/* Drawer */}
-      <div
-        className={`fixed top-0 left-0 z-50 bg-[#FAFAF5] w-[280px] h-full overflow-y-auto transition-transform duration-300 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        {/* Top Bar */}
-        <div className="flex justify-between items-center px-4 py-4 border-b">
-          <span className="text-xl font-extrabold tracking-wide">DearNeuro</span>
-          <div className="flex items-center gap-4">
-            <button onClick={onAccountClick}><FaUser className="text-xl" /></button>
-            <button onClick={onClose}><FaTimes className="text-xl" /></button>
-          </div>
-        </div>
-
-        {/* Main Nav */}
-        <div className="divide-y divide-gray-200 text-sm font-semibold text-[#161616]">
-          {navItems.map((item, idx) => (
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent side="right" className="w-[300px]">
+        <SheetHeader>
+          <SheetTitle>Menu</SheetTitle>
+        </SheetHeader>
+        <div className="flex flex-col mt-8 space-y-4">
+          {/* Navigation Links */}
+          {navItems.map((item) => (
             <Link
-              key={idx}
-              to={item.path}
+              key={item.href}
+              to={item.href}
               onClick={onClose}
-              className="flex justify-between items-center px-4 py-4 hover:bg-gray-100"
-            >
-              <span>{item.label}</span>
-              <FaChevronRight />
-            </Link>
-          ))}
-        </div>
-
-        {/* Extra Nav */}
-        <div className="mt-4 border-t text-sm text-[#555] font-medium">
-          {extraItems.map((item, idx) => (
-            <Link
-              key={idx}
-              to={item.path}
-              onClick={onClose}
-              className="block px-4 py-3 hover:bg-gray-100"
+              className="text-[#514B3D] hover:text-[#3f3a2f] font-medium transition-colors py-2"
             >
               {item.label}
             </Link>
           ))}
+
+          <div className="border-t pt-4 mt-4">
+            {user ? (
+              <div className="space-y-2">
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    onAccountClick();
+                    onClose();
+                  }}
+                  className="w-full justify-start"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Account
+                </Button>
+                
+                {/* Admin Link - Only show for admin users */}
+                {isAdmin && (
+                  <Link to="/admin" onClick={onClose}>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Admin Dashboard
+                    </Button>
+                  </Link>
+                )}
+                
+                <Button
+                  variant="ghost"
+                  onClick={handleSignOut}
+                  className="w-full justify-start"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  onAccountClick();
+                  onClose();
+                }}
+                className="w-full justify-start"
+              >
+                <User className="w-4 h-4 mr-2" />
+                Sign In
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
-    </>
+      </SheetContent>
+    </Sheet>
   );
 };
 
