@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/useAdmin";
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { FaPlus, FaEdit, FaTrash, FaEye } from "react-icons/fa";
+import { useToast } from "@/hooks/use-toast";
 
 interface Product {
   id: string;
@@ -44,15 +46,73 @@ interface Order {
   user_email?: string;
 }
 
+interface Journal {
+  id: string;
+  title: string;
+  content: string;
+  excerpt?: string;
+  author?: string;
+  image_url?: string;
+  published: boolean;
+  created_at: string;
+}
+
+interface ContactSubmission {
+  id: string;
+  name: string;
+  email: string;
+  subject?: string;
+  message: string;
+  status: string;
+  created_at: string;
+}
+
+interface CouponCode {
+  id: string;
+  code: string;
+  discount_type: string;
+  discount_value: number;
+  minimum_order_amount: number;
+  max_uses?: number;
+  used_count: number;
+  expires_at?: string;
+  is_active: boolean;
+}
+
+interface ShippingMethod {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  estimated_days: string;
+  is_active: boolean;
+}
+
 const AdminDashboard = () => {
   const { isAdmin, loading: adminLoading } = useAdmin();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("products");
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [journals, setJournals] = useState<Journal[]>([]);
+  const [contactSubmissions, setContactSubmissions] = useState<ContactSubmission[]>([]);
+  const [coupons, setCoupons] = useState<CouponCode[]>([]);
+  const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
   const [loading, setLoading] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  
+  // Modal states
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [isJournalModalOpen, setIsJournalModalOpen] = useState(false);
+  const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
+  const [isShippingModalOpen, setIsShippingModalOpen] = useState(false);
+  
+  // Editing states
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingJournal, setEditingJournal] = useState<Journal | null>(null);
+  const [editingCoupon, setEditingCoupon] = useState<CouponCode | null>(null);
+  const [editingShipping, setEditingShipping] = useState<ShippingMethod | null>(null);
 
+  // Form states
   const [productForm, setProductForm] = useState({
     name: "",
     description: "",
@@ -62,15 +122,53 @@ const AdminDashboard = () => {
     stock_quantity: "",
   });
 
+  const [journalForm, setJournalForm] = useState({
+    title: "",
+    content: "",
+    excerpt: "",
+    author: "DearNeuro Team",
+    image_url: "",
+    published: false,
+  });
+
+  const [couponForm, setCouponForm] = useState({
+    code: "",
+    discount_type: "percentage",
+    discount_value: "",
+    minimum_order_amount: "",
+    max_uses: "",
+    expires_at: "",
+  });
+
+  const [shippingForm, setShippingForm] = useState({
+    name: "",
+    description: "",
+    price: "",
+    estimated_days: "",
+  });
+
   useEffect(() => {
     if (isAdmin) {
-      fetchProducts();
-      fetchOrders();
+      fetchAllData();
+      
+      // Set up real-time updates for orders
+      const ordersInterval = setInterval(fetchOrders, 10000);
+      return () => clearInterval(ordersInterval);
     }
   }, [isAdmin]);
 
+  const fetchAllData = async () => {
+    await Promise.all([
+      fetchProducts(),
+      fetchOrders(),
+      fetchJournals(),
+      fetchContactSubmissions(),
+      fetchCoupons(),
+      fetchShippingMethods(),
+    ]);
+  };
+
   const fetchProducts = async () => {
-    setLoading(true);
     try {
       const { data, error } = await supabase
         .from("products")
@@ -81,8 +179,11 @@ const AdminDashboard = () => {
       setProducts(data || []);
     } catch (error) {
       console.error("Error fetching products:", error);
-    } finally {
-      setLoading(false);
+      toast({
+        title: "Error",
+        description: "Failed to fetch products",
+        variant: "destructive",
+      });
     }
   };
 
@@ -118,6 +219,63 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchJournals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("journals")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setJournals(data || []);
+    } catch (error) {
+      console.error("Error fetching journals:", error);
+    }
+  };
+
+  const fetchContactSubmissions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("contact_submissions")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setContactSubmissions(data || []);
+    } catch (error) {
+      console.error("Error fetching contact submissions:", error);
+    }
+  };
+
+  const fetchCoupons = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("coupon_codes")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setCoupons(data || []);
+    } catch (error) {
+      console.error("Error fetching coupons:", error);
+    }
+  };
+
+  const fetchShippingMethods = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("shipping_methods")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setShippingMethods(data || []);
+    } catch (error) {
+      console.error("Error fetching shipping methods:", error);
+    }
+  };
+
+  // Product CRUD operations
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -139,32 +297,340 @@ const AdminDashboard = () => {
           .eq("id", editingProduct.id);
 
         if (error) throw error;
+        toast({ title: "Success", description: "Product updated successfully" });
       } else {
         const { error } = await supabase
           .from("products")
           .insert([productData]);
 
         if (error) throw error;
+        toast({ title: "Success", description: "Product created successfully" });
       }
 
       setIsProductModalOpen(false);
       setEditingProduct(null);
-      setProductForm({
-        name: "",
-        description: "",
-        price: "",
-        image_url: "",
-        category: "",
-        stock_quantity: "",
-      });
+      resetProductForm();
       await fetchProducts();
     } catch (error) {
       console.error("Error saving product:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save product",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
+  const handleDeleteProduct = async (productId: string) => {
+    if (!confirm("Are you sure you want to delete this product?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", productId);
+
+      if (error) throw error;
+      toast({ title: "Success", description: "Product deleted successfully" });
+      await fetchProducts();
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Journal CRUD operations
+  const handleJournalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const journalData = {
+        title: journalForm.title,
+        content: journalForm.content,
+        excerpt: journalForm.excerpt,
+        author: journalForm.author,
+        image_url: journalForm.image_url,
+        published: journalForm.published,
+      };
+
+      if (editingJournal) {
+        const { error } = await supabase
+          .from("journals")
+          .update({ ...journalData, updated_at: new Date().toISOString() })
+          .eq("id", editingJournal.id);
+
+        if (error) throw error;
+        toast({ title: "Success", description: "Journal updated successfully" });
+      } else {
+        const { error } = await supabase
+          .from("journals")
+          .insert([journalData]);
+
+        if (error) throw error;
+        toast({ title: "Success", description: "Journal created successfully" });
+      }
+
+      setIsJournalModalOpen(false);
+      setEditingJournal(null);
+      resetJournalForm();
+      await fetchJournals();
+    } catch (error) {
+      console.error("Error saving journal:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save journal",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteJournal = async (journalId: string) => {
+    if (!confirm("Are you sure you want to delete this journal?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("journals")
+        .delete()
+        .eq("id", journalId);
+
+      if (error) throw error;
+      toast({ title: "Success", description: "Journal deleted successfully" });
+      await fetchJournals();
+    } catch (error) {
+      console.error("Error deleting journal:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete journal",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Coupon CRUD operations
+  const handleCouponSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const couponData = {
+        code: couponForm.code.toUpperCase(),
+        discount_type: couponForm.discount_type,
+        discount_value: parseFloat(couponForm.discount_value),
+        minimum_order_amount: parseFloat(couponForm.minimum_order_amount) || 0,
+        max_uses: couponForm.max_uses ? parseInt(couponForm.max_uses) : null,
+        expires_at: couponForm.expires_at ? new Date(couponForm.expires_at).toISOString() : null,
+      };
+
+      if (editingCoupon) {
+        const { error } = await supabase
+          .from("coupon_codes")
+          .update({ ...couponData, updated_at: new Date().toISOString() })
+          .eq("id", editingCoupon.id);
+
+        if (error) throw error;
+        toast({ title: "Success", description: "Coupon updated successfully" });
+      } else {
+        const { error } = await supabase
+          .from("coupon_codes")
+          .insert([couponData]);
+
+        if (error) throw error;
+        toast({ title: "Success", description: "Coupon created successfully" });
+      }
+
+      setIsCouponModalOpen(false);
+      setEditingCoupon(null);
+      resetCouponForm();
+      await fetchCoupons();
+    } catch (error) {
+      console.error("Error saving coupon:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save coupon",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCoupon = async (couponId: string) => {
+    if (!confirm("Are you sure you want to delete this coupon?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("coupon_codes")
+        .delete()
+        .eq("id", couponId);
+
+      if (error) throw error;
+      toast({ title: "Success", description: "Coupon deleted successfully" });
+      await fetchCoupons();
+    } catch (error) {
+      console.error("Error deleting coupon:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete coupon",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Shipping CRUD operations
+  const handleShippingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const shippingData = {
+        name: shippingForm.name,
+        description: shippingForm.description,
+        price: parseFloat(shippingForm.price),
+        estimated_days: shippingForm.estimated_days,
+      };
+
+      if (editingShipping) {
+        const { error } = await supabase
+          .from("shipping_methods")
+          .update(shippingData)
+          .eq("id", editingShipping.id);
+
+        if (error) throw error;
+        toast({ title: "Success", description: "Shipping method updated successfully" });
+      } else {
+        const { error } = await supabase
+          .from("shipping_methods")
+          .insert([shippingData]);
+
+        if (error) throw error;
+        toast({ title: "Success", description: "Shipping method created successfully" });
+      }
+
+      setIsShippingModalOpen(false);
+      setEditingShipping(null);
+      resetShippingForm();
+      await fetchShippingMethods();
+    } catch (error) {
+      console.error("Error saving shipping method:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save shipping method",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteShipping = async (shippingId: string) => {
+    if (!confirm("Are you sure you want to delete this shipping method?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("shipping_methods")
+        .delete()
+        .eq("id", shippingId);
+
+      if (error) throw error;
+      toast({ title: "Success", description: "Shipping method deleted successfully" });
+      await fetchShippingMethods();
+    } catch (error) {
+      console.error("Error deleting shipping method:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete shipping method",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateOrderStatus = async (orderId: string, status: string) => {
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({ status })
+        .eq("id", orderId);
+
+      if (error) throw error;
+      toast({ title: "Success", description: "Order status updated successfully" });
+      await fetchOrders();
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update order status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const markContactAsRead = async (contactId: string) => {
+    try {
+      const { error } = await supabase
+        .from("contact_submissions")
+        .update({ status: 'read' })
+        .eq("id", contactId);
+
+      if (error) throw error;
+      await fetchContactSubmissions();
+    } catch (error) {
+      console.error("Error marking contact as read:", error);
+    }
+  };
+
+  // Reset form functions
+  const resetProductForm = () => {
+    setProductForm({
+      name: "",
+      description: "",
+      price: "",
+      image_url: "",
+      category: "",
+      stock_quantity: "",
+    });
+  };
+
+  const resetJournalForm = () => {
+    setJournalForm({
+      title: "",
+      content: "",
+      excerpt: "",
+      author: "DearNeuro Team",
+      image_url: "",
+      published: false,
+    });
+  };
+
+  const resetCouponForm = () => {
+    setCouponForm({
+      code: "",
+      discount_type: "percentage",
+      discount_value: "",
+      minimum_order_amount: "",
+      max_uses: "",
+      expires_at: "",
+    });
+  };
+
+  const resetShippingForm = () => {
+    setShippingForm({
+      name: "",
+      description: "",
+      price: "",
+      estimated_days: "",
+    });
+  };
+
+  // Edit handlers
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
     setProductForm({
@@ -178,34 +644,41 @@ const AdminDashboard = () => {
     setIsProductModalOpen(true);
   };
 
-  const handleDeleteProduct = async (productId: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
-
-    try {
-      const { error } = await supabase
-        .from("products")
-        .delete()
-        .eq("id", productId);
-
-      if (error) throw error;
-      await fetchProducts();
-    } catch (error) {
-      console.error("Error deleting product:", error);
-    }
+  const handleEditJournal = (journal: Journal) => {
+    setEditingJournal(journal);
+    setJournalForm({
+      title: journal.title,
+      content: journal.content,
+      excerpt: journal.excerpt || "",
+      author: journal.author || "DearNeuro Team",
+      image_url: journal.image_url || "",
+      published: journal.published,
+    });
+    setIsJournalModalOpen(true);
   };
 
-  const updateOrderStatus = async (orderId: string, status: string) => {
-    try {
-      const { error } = await supabase
-        .from("orders")
-        .update({ status })
-        .eq("id", orderId);
+  const handleEditCoupon = (coupon: CouponCode) => {
+    setEditingCoupon(coupon);
+    setCouponForm({
+      code: coupon.code,
+      discount_type: coupon.discount_type,
+      discount_value: coupon.discount_value.toString(),
+      minimum_order_amount: coupon.minimum_order_amount.toString(),
+      max_uses: coupon.max_uses?.toString() || "",
+      expires_at: coupon.expires_at ? new Date(coupon.expires_at).toISOString().split('T')[0] : "",
+    });
+    setIsCouponModalOpen(true);
+  };
 
-      if (error) throw error;
-      await fetchOrders();
-    } catch (error) {
-      console.error("Error updating order status:", error);
-    }
+  const handleEditShipping = (shipping: ShippingMethod) => {
+    setEditingShipping(shipping);
+    setShippingForm({
+      name: shipping.name,
+      description: shipping.description || "",
+      price: shipping.price.toString(),
+      estimated_days: shipping.estimated_days,
+    });
+    setIsShippingModalOpen(true);
   };
 
   if (adminLoading) {
@@ -234,7 +707,7 @@ const AdminDashboard = () => {
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
 
         {/* Tab Navigation */}
-        <div className="flex space-x-4 mb-8">
+        <div className="flex flex-wrap gap-2 mb-8">
           <Button
             variant={activeTab === "products" ? "default" : "outline"}
             onClick={() => setActiveTab("products")}
@@ -247,6 +720,30 @@ const AdminDashboard = () => {
           >
             Orders
           </Button>
+          <Button
+            variant={activeTab === "journals" ? "default" : "outline"}
+            onClick={() => setActiveTab("journals")}
+          >
+            Journals
+          </Button>
+          <Button
+            variant={activeTab === "contacts" ? "default" : "outline"}
+            onClick={() => setActiveTab("contacts")}
+          >
+            User Responses
+          </Button>
+          <Button
+            variant={activeTab === "coupons" ? "default" : "outline"}
+            onClick={() => setActiveTab("coupons")}
+          >
+            Coupons
+          </Button>
+          <Button
+            variant={activeTab === "shipping" ? "default" : "outline"}
+            onClick={() => setActiveTab("shipping")}
+          >
+            Shipping
+          </Button>
         </div>
 
         {/* Products Tab */}
@@ -258,14 +755,7 @@ const AdminDashboard = () => {
                 <DialogTrigger asChild>
                   <Button onClick={() => {
                     setEditingProduct(null);
-                    setProductForm({
-                      name: "",
-                      description: "",
-                      price: "",
-                      image_url: "",
-                      category: "",
-                      stock_quantity: "",
-                    });
+                    resetProductForm();
                   }}>
                     <FaPlus className="mr-2" />
                     Add Product
@@ -424,7 +914,10 @@ const AdminDashboard = () => {
         {/* Orders Tab */}
         {activeTab === "orders" && (
           <div>
-            <h2 className="text-2xl font-semibold mb-6">Orders Management</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold">Orders Management</h2>
+              <p className="text-sm text-gray-600">Auto-refreshes every 10 seconds</p>
+            </div>
             <div className="bg-white rounded-lg shadow">
               <Table>
                 <TableHeader>
@@ -465,6 +958,531 @@ const AdminDashboard = () => {
                         <Button size="sm" variant="outline">
                           <FaEye />
                         </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+
+        {/* Journals Tab */}
+        {activeTab === "journals" && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold">Journals Management</h2>
+              <Dialog open={isJournalModalOpen} onOpenChange={setIsJournalModalOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => {
+                    setEditingJournal(null);
+                    resetJournalForm();
+                  }}>
+                    <FaPlus className="mr-2" />
+                    Add Journal
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingJournal ? "Edit Journal" : "Add New Journal"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleJournalSubmit} className="space-y-4">
+                    <div>
+                      <Label htmlFor="title">Title</Label>
+                      <Input
+                        id="title"
+                        value={journalForm.title}
+                        onChange={(e) =>
+                          setJournalForm({ ...journalForm, title: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="excerpt">Excerpt</Label>
+                      <Textarea
+                        id="excerpt"
+                        value={journalForm.excerpt}
+                        onChange={(e) =>
+                          setJournalForm({ ...journalForm, excerpt: e.target.value })
+                        }
+                        rows={2}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="content">Content</Label>
+                      <Textarea
+                        id="content"
+                        value={journalForm.content}
+                        onChange={(e) =>
+                          setJournalForm({ ...journalForm, content: e.target.value })
+                        }
+                        rows={10}
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="author">Author</Label>
+                        <Input
+                          id="author"
+                          value={journalForm.author}
+                          onChange={(e) =>
+                            setJournalForm({ ...journalForm, author: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="journal_image_url">Image URL</Label>
+                        <Input
+                          id="journal_image_url"
+                          value={journalForm.image_url}
+                          onChange={(e) =>
+                            setJournalForm({ ...journalForm, image_url: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="published"
+                        checked={journalForm.published}
+                        onChange={(e) =>
+                          setJournalForm({ ...journalForm, published: e.target.checked })
+                        }
+                      />
+                      <Label htmlFor="published">Published</Label>
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsJournalModalOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="submit" disabled={loading}>
+                        {loading ? "Saving..." : "Save Journal"}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="bg-white rounded-lg shadow">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Author</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {journals.map((journal) => (
+                    <TableRow key={journal.id}>
+                      <TableCell className="font-medium">{journal.title}</TableCell>
+                      <TableCell>{journal.author}</TableCell>
+                      <TableCell>
+                        <Badge variant={journal.published ? "default" : "secondary"}>
+                          {journal.published ? "Published" : "Draft"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {new Date(journal.created_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditJournal(journal)}
+                          >
+                            <FaEdit />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteJournal(journal.id)}
+                          >
+                            <FaTrash />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+
+        {/* Contact Submissions Tab */}
+        {activeTab === "contacts" && (
+          <div>
+            <h2 className="text-2xl font-semibold mb-6">User Contact Responses</h2>
+            <div className="bg-white rounded-lg shadow">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Subject</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {contactSubmissions.map((contact) => (
+                    <TableRow key={contact.id}>
+                      <TableCell className="font-medium">{contact.name}</TableCell>
+                      <TableCell>{contact.email}</TableCell>
+                      <TableCell>{contact.subject || "No Subject"}</TableCell>
+                      <TableCell>
+                        <Badge variant={contact.status === "read" ? "default" : "destructive"}>
+                          {contact.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {new Date(contact.created_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              alert(`Message: ${contact.message}`);
+                              markContactAsRead(contact.id);
+                            }}
+                          >
+                            <FaEye />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+
+        {/* Coupons Tab */}
+        {activeTab === "coupons" && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold">Coupon Codes Management</h2>
+              <Dialog open={isCouponModalOpen} onOpenChange={setIsCouponModalOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => {
+                    setEditingCoupon(null);
+                    resetCouponForm();
+                  }}>
+                    <FaPlus className="mr-2" />
+                    Add Coupon
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingCoupon ? "Edit Coupon" : "Add New Coupon"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleCouponSubmit} className="space-y-4">
+                    <div>
+                      <Label htmlFor="code">Coupon Code</Label>
+                      <Input
+                        id="code"
+                        value={couponForm.code}
+                        onChange={(e) =>
+                          setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })
+                        }
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="discount_type">Discount Type</Label>
+                        <select
+                          id="discount_type"
+                          value={couponForm.discount_type}
+                          onChange={(e) =>
+                            setCouponForm({ ...couponForm, discount_type: e.target.value })
+                          }
+                          className="w-full border rounded px-3 py-2"
+                        >
+                          <option value="percentage">Percentage</option>
+                          <option value="fixed">Fixed Amount</option>
+                        </select>
+                      </div>
+                      <div>
+                        <Label htmlFor="discount_value">
+                          Discount Value {couponForm.discount_type === "percentage" ? "(%)" : "($)"}
+                        </Label>
+                        <Input
+                          id="discount_value"
+                          type="number"
+                          step="0.01"
+                          value={couponForm.discount_value}
+                          onChange={(e) =>
+                            setCouponForm({ ...couponForm, discount_value: e.target.value })
+                          }
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="minimum_order_amount">Minimum Order Amount ($)</Label>
+                        <Input
+                          id="minimum_order_amount"
+                          type="number"
+                          step="0.01"
+                          value={couponForm.minimum_order_amount}
+                          onChange={(e) =>
+                            setCouponForm({ ...couponForm, minimum_order_amount: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="max_uses">Max Uses (optional)</Label>
+                        <Input
+                          id="max_uses"
+                          type="number"
+                          value={couponForm.max_uses}
+                          onChange={(e) =>
+                            setCouponForm({ ...couponForm, max_uses: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="expires_at">Expiry Date (optional)</Label>
+                      <Input
+                        id="expires_at"
+                        type="date"
+                        value={couponForm.expires_at}
+                        onChange={(e) =>
+                          setCouponForm({ ...couponForm, expires_at: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsCouponModalOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="submit" disabled={loading}>
+                        {loading ? "Saving..." : "Save Coupon"}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="bg-white rounded-lg shadow">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Code</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Value</TableHead>
+                    <TableHead>Min Order</TableHead>
+                    <TableHead>Used/Max</TableHead>
+                    <TableHead>Expires</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {coupons.map((coupon) => (
+                    <TableRow key={coupon.id}>
+                      <TableCell className="font-mono font-medium">{coupon.code}</TableCell>
+                      <TableCell>{coupon.discount_type}</TableCell>
+                      <TableCell>
+                        {coupon.discount_type === "percentage" ? `${coupon.discount_value}%` : `$${coupon.discount_value}`}
+                      </TableCell>
+                      <TableCell>${coupon.minimum_order_amount}</TableCell>
+                      <TableCell>
+                        {coupon.used_count}/{coupon.max_uses || "∞"}
+                      </TableCell>
+                      <TableCell>
+                        {coupon.expires_at 
+                          ? new Date(coupon.expires_at).toLocaleDateString()
+                          : "Never"
+                        }
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={coupon.is_active ? "default" : "secondary"}>
+                          {coupon.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditCoupon(coupon)}
+                          >
+                            <FaEdit />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteCoupon(coupon.id)}
+                          >
+                            <FaTrash />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+
+        {/* Shipping Tab */}
+        {activeTab === "shipping" && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold">Shipping Methods Management</h2>
+              <Dialog open={isShippingModalOpen} onOpenChange={setIsShippingModalOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => {
+                    setEditingShipping(null);
+                    resetShippingForm();
+                  }}>
+                    <FaPlus className="mr-2" />
+                    Add Shipping Method
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingShipping ? "Edit Shipping Method" : "Add New Shipping Method"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleShippingSubmit} className="space-y-4">
+                    <div>
+                      <Label htmlFor="shipping_name">Name</Label>
+                      <Input
+                        id="shipping_name"
+                        value={shippingForm.name}
+                        onChange={(e) =>
+                          setShippingForm({ ...shippingForm, name: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="shipping_description">Description</Label>
+                      <Textarea
+                        id="shipping_description"
+                        value={shippingForm.description}
+                        onChange={(e) =>
+                          setShippingForm({ ...shippingForm, description: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="shipping_price">Price ($)</Label>
+                        <Input
+                          id="shipping_price"
+                          type="number"
+                          step="0.01"
+                          value={shippingForm.price}
+                          onChange={(e) =>
+                            setShippingForm({ ...shippingForm, price: e.target.value })
+                          }
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="estimated_days">Estimated Days</Label>
+                        <Input
+                          id="estimated_days"
+                          value={shippingForm.estimated_days}
+                          onChange={(e) =>
+                            setShippingForm({ ...shippingForm, estimated_days: e.target.value })
+                          }
+                          placeholder="e.g., 3-5 days"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsShippingModalOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="submit" disabled={loading}>
+                        {loading ? "Saving..." : "Save Shipping Method"}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="bg-white rounded-lg shadow">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Estimated Days</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {shippingMethods.map((shipping) => (
+                    <TableRow key={shipping.id}>
+                      <TableCell className="font-medium">{shipping.name}</TableCell>
+                      <TableCell>{shipping.description || "N/A"}</TableCell>
+                      <TableCell>${shipping.price}</TableCell>
+                      <TableCell>{shipping.estimated_days}</TableCell>
+                      <TableCell>
+                        <Badge variant={shipping.is_active ? "default" : "secondary"}>
+                          {shipping.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditShipping(shipping)}
+                          >
+                            <FaEdit />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteShipping(shipping.id)}
+                          >
+                            <FaTrash />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

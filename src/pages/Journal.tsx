@@ -1,173 +1,157 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Breadcrumb from "@/components/Breadcrumb";
+import { FaCalendar, FaClock, FaTag } from "react-icons/fa";
 
-interface JournalPost {
+interface Journal {
   id: string;
   title: string;
-  excerpt: string;
-  image: string;
-  date: string;
-  category: string;
-  readTime: string;
+  content: string;
+  excerpt?: string;
+  author?: string;
+  image_url?: string;
+  published: boolean;
+  created_at: string;
 }
 
-const samplePosts: JournalPost[] = [
-  {
-    id: "1",
-    title: "The Science Behind Adaptogenic Mushrooms",
-    excerpt: "Discover how Lion's Mane, Reishi, and Cordyceps work synergistically to support cognitive function and stress resilience.",
-    image: "https://images.pexels.com/photos/5938567/pexels-photo-5938567.jpeg",
-    date: "2025-01-15",
-    category: "Science",
-    readTime: "5 min read"
-  },
-  {
-    id: "2",
-    title: "Morning Rituals for Mental Clarity",
-    excerpt: "Simple practices to incorporate into your morning routine for enhanced focus and cognitive performance throughout the day.",
-    image: "https://images.pexels.com/photos/6975474/pexels-photo-6975474.jpeg",
-    date: "2025-01-12",
-    category: "Wellness",
-    readTime: "3 min read"
-  },
-  {
-    id: "3",
-    title: "Understanding Nootropics: A Beginner's Guide",
-    excerpt: "Everything you need to know about cognitive enhancers and how they can support your mental performance naturally.",
-    image: "https://images.pexels.com/photos/3683107/pexels-photo-3683107.jpeg",
-    date: "2025-01-10",
-    category: "Education",
-    readTime: "7 min read"
-  },
-  {
-    id: "4",
-    title: "The Role of Sleep in Cognitive Health",
-    excerpt: "How quality sleep impacts memory consolidation, focus, and overall brain health, plus tips for better rest.",
-    image: "https://images.pexels.com/photos/3771069/pexels-photo-3771069.jpeg",
-    date: "2025-01-08",
-    category: "Sleep",
-    readTime: "4 min read"
-  },
-  {
-    id: "5",
-    title: "Stress Management Through Plant Medicine",
-    excerpt: "Exploring how traditional herbs and modern science combine to create effective stress-relief solutions.",
-    image: "https://images.pexels.com/photos/4041392/pexels-photo-4041392.jpeg",
-    date: "2025-01-05",
-    category: "Stress Relief",
-    readTime: "6 min read"
-  },
-  {
-    id: "6",
-    title: "Nutrition for Brain Health",
-    excerpt: "Essential nutrients and foods that support cognitive function and long-term brain health.",
-    image: "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg",
-    date: "2025-01-03",
-    category: "Nutrition",
-    readTime: "5 min read"
-  }
-];
-
 const Journal = () => {
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  
-  const categories = ["All", "Science", "Wellness", "Education", "Sleep", "Stress Relief", "Nutrition"];
-  
-  const filteredPosts = selectedCategory === "All" 
-    ? samplePosts 
-    : samplePosts.filter(post => post.category === selectedCategory);
+  const [journals, setJournals] = useState<Journal[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchJournals();
+  }, []);
+
+  const fetchJournals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("journals")
+        .select("*")
+        .eq("published", true)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setJournals(data || []);
+    } catch (error) {
+      console.error("Error fetching journals:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getReadTime = (content: string) => {
+    const wordsPerMinute = 200;
+    const words = content.trim().split(/\s+/).length;
+    const readTime = Math.ceil(words / wordsPerMinute);
+    return `${readTime} min read`;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F8F8F5]">
+        <Header />
+        <div className="max-w-6xl mx-auto px-6 py-12">
+          <div className="text-center">
+            <div className="text-xl">Loading journals...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F8F5]">
       <Header />
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="max-w-6xl mx-auto px-6 py-12">
         <Breadcrumb />
         
-        {/* Hero Section */}
+        {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-semibold mb-8 text-[#161616]">
-            DearNeuro Journal
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold mb-6 text-[#161616]">
+            Journal
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Daily insights on cognitive wellness, nutrition science, and the latest research 
-            in plant-based mental health solutions.
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Insights, research, and stories from the world of cognitive wellness and functional nutrition.
           </p>
         </div>
 
-        {/* Category Filter */}
-        <div className="flex flex-wrap justify-center gap-4 mb-12">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-6 py-3 rounded-full font-medium transition-all ${
-                selectedCategory === category
-                  ? "bg-[#514B3D] text-white"
-                  : "bg-white text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-
-        {/* Posts Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredPosts.map((post) => (
-            <Link
-              key={post.id}
-              to={`/journal/${post.id}`}
-              className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
-            >
-              <div className="aspect-[4/3] overflow-hidden">
-                <img
-                  src={post.image}
-                  alt={post.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-medium text-[#514B3D] bg-[#514B3D]/10 px-3 py-1 rounded-full">
-                    {post.category}
-                  </span>
-                  <span className="text-sm text-gray-500">{post.readTime}</span>
+        {/* Articles Grid */}
+        {journals.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {journals.map((journal) => (
+              <Link
+                key={journal.id}
+                to={`/journal/${journal.id}`}
+                className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300"
+              >
+                <div className="aspect-[16/10] overflow-hidden">
+                  <img
+                    src={journal.image_url || "https://images.pexels.com/photos/5946071/pexels-photo-5946071.jpeg?auto=compress&cs=tinysrgb&w=800"}
+                    alt={journal.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
-                <h3 className="text-xl font-semibold mb-3 text-[#161616] group-hover:text-[#514B3D] transition-colors">
-                  {post.title}
-                </h3>
-                <p className="text-gray-600 mb-4 leading-relaxed">
-                  {post.excerpt}
-                </p>
-                <div className="text-sm text-gray-500">
-                  {new Date(post.date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
+                <div className="p-8">
+                  <div className="flex items-center gap-4 mb-4 text-sm text-gray-500">
+                    <div className="flex items-center">
+                      <FaCalendar className="mr-2" />
+                      {new Date(journal.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </div>
+                    <div className="flex items-center">
+                      <FaClock className="mr-2" />
+                      {getReadTime(journal.content)}
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-xl font-semibold mb-3 text-[#161616] group-hover:text-[#514B3D] transition-colors">
+                    {journal.title}
+                  </h3>
+                  
+                  <p className="text-gray-600 mb-4 line-clamp-3">
+                    {journal.excerpt || journal.content.substring(0, 150) + "..."}
+                  </p>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">
+                      By {journal.author || "DearNeuro Team"}
+                    </span>
+                    <span className="text-[#514B3D] font-medium text-sm group-hover:underline">
+                      Read More →
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <h2 className="text-2xl font-semibold mb-4">No articles published yet</h2>
+            <p className="text-gray-600">Check back soon for insights and stories from our team!</p>
+          </div>
+        )}
 
         {/* Newsletter Signup */}
         <div className="bg-white rounded-2xl p-12 mt-16 text-center">
-          <h2 className="text-3xl font-semibold mb-6 text-[#161616]">
+          <h2 className="text-3xl font-semibold mb-4 text-[#161616]">
             Stay Updated
           </h2>
-          <p className="text-gray-600 mb-8 max-w-2xl mx-auto text-lg">
-            Get the latest insights on cognitive wellness and nutrition science delivered to your inbox.
+          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+            Get the latest insights on cognitive wellness, nutrition science, and product updates delivered to your inbox.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
             <input
               type="email"
               placeholder="Enter your email"
-              className="flex-1 px-6 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#514B3D]"
+              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#514B3D]"
             />
-            <button className="px-8 py-3 bg-[#514B3D] text-white rounded-xl hover:bg-[#3f3a2f] transition-colors font-medium">
+            <button className="px-6 py-3 bg-[#514B3D] text-white rounded-lg hover:bg-[#3f3a2f] transition-colors">
               Subscribe
             </button>
           </div>
