@@ -12,7 +12,7 @@ const Footer = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
             <input type="email" placeholder="Enter your email" className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#514B3D]" />
-            <button className="px-6 py-3 bg-[#514B3D] text-white rounded-lg hover:bg-[#3f3a2f] transition-colors">
+            <button className="px-6 py-3 text-white rounded-lg transition-colors bg-gray-950 hover:bg-gray-800">
               Subscribe
             </button>
           </div>
