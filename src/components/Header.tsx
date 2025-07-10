@@ -1,26 +1,33 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, Menu, User, LogOut } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthProvider";
+import { useCart } from "@/context/CartProvider";
 import { useCartDrawer } from "@/hooks/useCartDrawer";
+import { useAdmin } from "@/hooks/useAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import AuthModal from "./AuthModal";
+import CartDrawer from "./CartDrawer";
 import MobileDrawer from "./MobileDrawer";
-import { Button } from "./ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+import { ShoppingCart, User, Menu, Settings } from "lucide-react";
 
 const Header = () => {
   const { user } = useAuth();
-  const { openCart } = useCartDrawer();
+  const { totalItems } = useCart();
+  const { isAdmin, loading: adminLoading } = useAdmin();
+  const { isOpen: isCartOpen, openCart, closeCart } = useCartDrawer();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showMobileDrawer, setShowMobileDrawer] = useState(false);
   const navigate = useNavigate();
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleAccountClick = () => {
+    if (user) {
+      navigate("/account");
+    } else {
+      setShowAuthModal(true);
+    }
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -28,108 +35,108 @@ const Header = () => {
   };
 
   const navItems = [
-    { name: "Shop All", href: "/shop-all" },
-    { name: "Herbal Index", href: "/herbal-index" },
-    { name: "The Science", href: "/the-science" },
-    { name: "Ethos", href: "/ethos" },
-    { name: "Journal", href: "/journal" },
-    { name: "Contact", href: "/contact" },
+    { label: "Shop All", href: "/shop-all" },
+    { label: "The Science", href: "/the-science" },
+    { label: "Ethos", href: "/ethos" },
+    { label: "Herbal Index", href: "/herbal-index" },
+    { label: "Journal", href: "/journal" },
   ];
 
   return (
-    <header className="bg-white shadow-sm border-b border-color-2 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-color-8">DearNeuro</span>
-          </Link>
+    <>
+      <header className="bg-[#F8F8F5] shadow-sm sticky top-0 z-30">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link to="/" className="flex items-center">
+              <span className="text-2xl font-bold text-[#514B3D]">DearNeuro</span>
+            </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className="text-color-8 hover:text-color-6 transition-colors duration-200 font-medium"
-              >
-                {item.name}
-              </Link>
-            ))}
-          </nav>
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center space-x-8">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className="text-[#514B3D] hover:text-[#3f3a2f] font-medium transition-colors"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
 
-          {/* Right side actions */}
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={openCart}
-              className="text-color-8 hover:text-color-6 hover:bg-color-0"
-            >
-              <ShoppingCart className="h-5 w-5" />
-            </Button>
-
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-color-8 hover:text-color-6 hover:bg-color-0">
-                    <User className="h-5 w-5" />
+            {/* Right Side Actions */}
+            <div className="flex items-center space-x-4">
+              {/* Admin Link - Only show for admin users */}
+              {user && isAdmin && !adminLoading && (
+                <Link to="/admin">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="relative p-2 hidden md:flex"
+                    title="Admin Dashboard"
+                  >
+                    <Settings className="w-5 h-5" />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-white border-color-2">
-                  <DropdownMenuItem asChild>
-                    <Link to="/account" className="text-color-8 hover:text-color-6">
-                      My Account
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleSignOut} className="text-color-8 hover:text-color-6">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsAuthModalOpen(true)}
-                className="border-color-3 text-color-8 hover:bg-color-0"
-              >
-                Sign In
-              </Button>
-            )}
+                </Link>
+              )}
 
-            {/* Mobile menu button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden text-color-8 hover:text-color-6 hover:bg-color-0"
-              onClick={() => setIsMobileMenuOpen(true)}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
+              {/* Cart Icon */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={openCart}
+                className="relative p-2"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-[#514B3D] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {totalItems}
+                  </span>
+                )}
+              </Button>
+
+              {/* User Account */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleAccountClick}
+                className="hidden md:flex items-center gap-2"
+              >
+                <User className="w-4 h-4" />
+                {user ? "Account" : "Sign In"}
+              </Button>
+
+              {/* Mobile Menu */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowMobileDrawer(true)}
+                className="lg:hidden"
+              >
+                <Menu className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
+      {/* Cart Drawer */}
+      <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
+
+      {/* Auth Modal */}
       <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
       />
 
+      {/* Mobile Drawer */}
       <MobileDrawer
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-        onAccountClick={() => {
-          setIsMobileMenuOpen(false);
-          if (!user) {
-            setIsAuthModalOpen(true);
-          } else {
-            navigate("/account");
-          }
-        }}
+        isOpen={showMobileDrawer}
+        onClose={() => setShowMobileDrawer(false)}
+        onAccountClick={handleAccountClick}
       />
-    </header>
+    </>
   );
 };
 
