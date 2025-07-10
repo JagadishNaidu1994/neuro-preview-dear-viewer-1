@@ -6,7 +6,6 @@ import { useCart } from "@/context/CartProvider";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { FaShoppingCart } from "react-icons/fa";
-
 interface Product {
   id: string;
   name: string;
@@ -17,23 +16,23 @@ interface Product {
   stock_quantity: number;
   is_active: boolean;
 }
-
 export default function ShopAll() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const { addToCart } = useCart();
-
+  const {
+    addToCart
+  } = useCart();
   useEffect(() => {
     fetchProducts();
   }, []);
-
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("created_at", { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase.from("products").select("*").order("created_at", {
+        ascending: false
+      });
       if (error) throw error;
       setProducts(data || []);
     } catch (error) {
@@ -42,25 +41,19 @@ export default function ShopAll() {
       setLoading(false);
     }
   };
-
   const handleAddToCart = async (productId: string) => {
     await addToCart(productId, 1);
     // You could add a toast notification here
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#F8F8F5]">
+    return <div className="min-h-screen bg-[#F8F8F5]">
         <Header />
         <div className="w-full px-4 md:px-8 py-8 text-center">
           <div className="text-xl">Loading products...</div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-[#F8F8F5]">
+  return <div className="min-h-screen bg-[#F8F8F5]">
       <Header />
 
       <main className="w-full px-4 md:px-8 py-8">
@@ -68,29 +61,15 @@ export default function ShopAll() {
           <h1 className="text-3xl font-bold mb-8 text-center">Shop All Products</h1>
           
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {products.map((product) => (
-              <div
-                key={product.id}
-                className={`group overflow-hidden rounded-xl bg-white shadow-sm hover:shadow-lg transition-shadow duration-300 border ${
-                  !product.is_active || product.stock_quantity === 0 
-                    ? 'opacity-75 bg-gray-50' 
-                    : ''
-                }`}
-              >
+            {products.map(product => <div key={product.id} className={`group overflow-hidden rounded-xl bg-white shadow-sm hover:shadow-lg transition-shadow duration-300 border ${!product.is_active || product.stock_quantity === 0 ? 'opacity-75 bg-gray-50' : ''}`}>
                 <Link to={`/product?id=${product.id}`}>
                   <div className="relative aspect-square overflow-hidden">
-                    <img
-                      src={product.image_url}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    {(!product.is_active || product.stock_quantity === 0) && (
-                      <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    {(!product.is_active || product.stock_quantity === 0) && <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
                         <span className="bg-red-500 text-white px-3 py-1 rounded-lg font-semibold">
                           Out of Stock
                         </span>
-                      </div>
-                    )}
+                      </div>}
                   </div>
                 </Link>
                 <div className="p-4">
@@ -106,34 +85,23 @@ export default function ShopAll() {
                     <div className="text-lg font-semibold text-gray-900">
                       ${product.price}
                     </div>
-                    <Button
-                      size="sm"
-                      onClick={() => handleAddToCart(product.id)}
-                      className="bg-[#514B3D] hover:bg-[#3f3a2f] text-white"
-                      disabled={!product.is_active || product.stock_quantity === 0}
-                    >
+                    <Button size="sm" onClick={() => handleAddToCart(product.id)} disabled={!product.is_active || product.stock_quantity === 0} className="text-white bg-gray-950 hover:bg-gray-800 text-base font-medium">
                       <FaShoppingCart className="mr-2" />
                       {!product.is_active || product.stock_quantity === 0 ? "Out of Stock" : "Add to Cart"}
                     </Button>
                   </div>
-                  {product.is_active && product.stock_quantity > 0 && product.stock_quantity <= 10 && (
-                    <p className="text-xs text-orange-600 mt-2">
+                  {product.is_active && product.stock_quantity > 0 && product.stock_quantity <= 10 && <p className="text-xs text-orange-600 mt-2">
                       Only {product.stock_quantity} left in stock!
-                    </p>
-                  )}
+                    </p>}
                 </div>
-              </div>
-            ))}
+              </div>)}
           </div>
 
-          {products.length === 0 && (
-            <div className="text-center py-16">
+          {products.length === 0 && <div className="text-center py-16">
               <h2 className="text-2xl font-semibold mb-4">No products available</h2>
               <p className="text-gray-600">Check back soon for new products!</p>
-            </div>
-          )}
+            </div>}
         </div>
       </main>
-    </div>
-  );
+    </div>;
 }
