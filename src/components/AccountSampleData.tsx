@@ -203,4 +203,3 @@ const AccountSampleData = () => {
   return null;
 };
 
-export default AccountSampleData;
