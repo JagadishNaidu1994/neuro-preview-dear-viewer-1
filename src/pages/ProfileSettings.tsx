@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +10,6 @@ import { Label } from "@/components/ui/label";
 const ProfileSettings = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [userProfile, setUserProfile] = useState<any>(null);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -22,30 +20,15 @@ const ProfileSettings = () => {
 
   useEffect(() => {
     if (user) {
-      fetchUserProfile();
-    }
-  }, [user]);
-
-  const fetchUserProfile = async () => {
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    if (!error && data) {
-      setUserProfile(data);
       setFormData({
-        firstName: data.first_name || "",
-        lastName: data.last_name || "",
-        email: data.email || "",
-        phone: data.phone || "",
-        dateOfBirth: data.date_of_birth || "",
+        firstName: user.user_metadata?.given_name || "",
+        lastName: user.user_metadata?.family_name || "",
+        email: user.email || "",
+        phone: user.user_metadata?.phone || "",
+        dateOfBirth: user.user_metadata?.date_of_birth || "",
       });
     }
-  };
+  }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -59,22 +42,7 @@ const ProfileSettings = () => {
     setLoading(true);
 
     try {
-      // Update the users table
-      const { error: dbError } = await supabase
-        .from("users")
-        .update({
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          phone: formData.phone,
-          date_of_birth: formData.dateOfBirth || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user?.id);
-
-      if (dbError) throw dbError;
-
-      // Update auth metadata
-      const { error: authError } = await supabase.auth.updateUser({
+      const { error } = await supabase.auth.updateUser({
         email: formData.email,
         data: {
           given_name: formData.firstName,
@@ -84,21 +52,14 @@ const ProfileSettings = () => {
         },
       });
 
-      if (authError) throw authError;
-
+      if (error) throw error;
       alert("Profile updated successfully!");
-      fetchUserProfile(); // Refresh profile data
     } catch (error) {
       console.error("Error updating profile:", error);
       alert("Error updating profile. Please try again.");
     } finally {
       setLoading(false);
     }
-  };
-
-  // Get avatar URL from user metadata
-  const getAvatarUrl = () => {
-    return user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
   };
 
   return (
@@ -109,32 +70,6 @@ const ProfileSettings = () => {
         
         <div className="bg-white rounded-2xl p-10 shadow-sm">
           <h1 className="text-3xl font-semibold mb-8">Profile Settings</h1>
-          
-          {/* Profile Avatar and Info */}
-          <div className="flex items-center space-x-6 mb-8 pb-8 border-b">
-            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-              {getAvatarUrl() ? (
-                <img 
-                  src={getAvatarUrl()} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-[#514B3D] flex items-center justify-center text-white text-xl font-semibold">
-                  {(formData.firstName?.[0] || user?.email?.[0] || "U").toUpperCase()}
-                </div>
-              )}
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold">
-                {formData.firstName || formData.lastName 
-                  ? `${formData.firstName} ${formData.lastName}`.trim()
-                  : "Your Profile"
-                }
-              </h2>
-              <p className="text-gray-600">{formData.email}</p>
-            </div>
-          </div>
           
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

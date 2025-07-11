@@ -70,15 +70,12 @@ const NotificationDropdown = () => {
         for (const order of orders) {
           let userData = null;
           if (order.user_id) {
-            const { data: user, error: userError } = await supabase
+            const { data: user } = await supabase
               .from("users")
               .select("email, first_name, last_name")
               .eq("id", order.user_id)
               .single();
-            
-            if (!userError && user) {
-              userData = user;
-            }
+            userData = user;
           }
           
           ordersWithUsers.push({
@@ -105,9 +102,9 @@ const NotificationDropdown = () => {
       // Add order notifications
       ordersWithUsers.forEach((order) => {
         const timeAgo = getTimeAgo(order.created_at);
-        const customerName = order.users?.first_name && order.users?.last_name
-          ? `${order.users.first_name} ${order.users.last_name}`
-          : order.users?.first_name || order.users?.email || 'Unknown Customer';
+        const customerName = order.users?.first_name 
+          ? `${order.users.first_name} ${order.users.last_name || ''}`.trim()
+          : order.users?.email || 'Unknown Customer';
         
         notificationsList.push({
           id: `order-${order.id}`,
