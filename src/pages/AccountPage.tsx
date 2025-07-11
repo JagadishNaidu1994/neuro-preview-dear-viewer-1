@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   FaUser,
   FaBox,
@@ -464,7 +465,7 @@ const AccountPage = () => {
   const sidebarItems = [
     { id: "dashboard", icon: <FaUser />, label: "Dashboard" },
     { id: "orders", icon: <FaBox />, label: "Orders" },
-    { id: "subscriptions", icon: <FaSub />, label: "Subscriptions" },
+    { id: "subscriptions", icon: <FaBox />, label: "Subscriptions" },
     { id: "addresses", icon: <FaAddressBook />, label: "Addresses" },
     { id: "payments", icon: <FaCreditCard />, label: "Payments" },
     { id: "rewards", icon: <FaGift />, label: "Rewards" },
