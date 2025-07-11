@@ -18,7 +18,7 @@ const Ethos = () => {
               </p>
             </div>
             <div>
-              <img src="https://cdn.shopify.com/s/files/1/0671/5382/1848/files/chill_editorial_ethos.png" alt="Chill Gummy Hero" className="w-full rounded-xl" />
+              <img alt="Chill Gummy Hero" className="w-full rounded-xl" src="/lovable-uploads/d46adc04-08a7-41e2-a304-7350e17299ce.png" />
             </div>
           </section>
 
