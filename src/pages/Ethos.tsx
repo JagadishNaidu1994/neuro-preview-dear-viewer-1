@@ -18,7 +18,7 @@ const Ethos = () => {
               </p>
             </div>
             <div>
-              <img alt="Chill Gummy Hero" className="w-full rounded-xl" src="/lovable-uploads/930dae26-9966-4eda-aeeb-a6e8c4c35c2b.png" />
+              <img src="https://cdn.shopify.com/s/files/1/0671/5382/1848/files/chill_editorial_ethos.png" alt="Chill Gummy Hero" className="w-full rounded-xl" />
             </div>
           </section>
 
@@ -72,7 +72,7 @@ const Ethos = () => {
                 Proudly transforming 8,000 years of plant wisdom into small, bite-sized delights
               </h2>
               <p className="text-base md:text-lg text-[#3C3C3C]">
-                NOON was born out of our personal experiences of burnout and a return to our roots in Traditional Chinese Medicine to find natural and holistic ways to improve our wellbeing.
+                We were born out of our personal experiences of burnout and a return to our roots in Traditional Chinese Medicine to find natural and holistic ways to improve our wellbeing.
                 But finding and preparing the herbs isn't accessible for everyone—including ourselves.
                 We wanted to find a new way to get the superpowers of the herbs in a more compact and easy form, without compromising on the efficacy.
                 <br /><br />
