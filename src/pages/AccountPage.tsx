@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   FaUser,
   FaBox,
@@ -27,10 +29,14 @@ import {
   FaTrash,
   FaPlus,
   FaSave,
+  FaPaypal,
+  FaGooglePay,
 } from "react-icons/fa";
+import jsPDF from 'jspdf';
 
 interface Order {
   id: string;
+  user_id: string;
   total_amount: number;
   status: string;
   created_at: string;
@@ -105,6 +111,7 @@ const AccountPage = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [profileData, setProfileData] = useState({
     firstName: "",
     lastName: "",
@@ -162,6 +169,28 @@ const AccountPage = () => {
       if (ordersError) throw ordersError;
       setOrders(ordersData || []);
 
+      // Add sample payment methods for demonstration
+      setPaymentMethods([
+        {
+          id: "1",
+          card_type: "Visa",
+          card_last_four: "4242",
+          card_holder_name: "John Doe",
+          expiry_month: 12,
+          expiry_year: 2025,
+          is_default: true,
+        },
+        {
+          id: "2",
+          card_type: "PayPal",
+          card_last_four: "",
+          card_holder_name: "john.doe@example.com",
+          expiry_month: 0,
+          expiry_year: 0,
+          is_default: false,
+        },
+      ]);
+
       // Fetch addresses
       const { data: addressesData, error: addressesError } = await supabase
         .from("user_addresses")
@@ -171,16 +200,6 @@ const AccountPage = () => {
 
       if (addressesError) throw addressesError;
       setAddresses(addressesData || []);
-
-      // Fetch payment methods
-      const { data: paymentData, error: paymentError } = await supabase
-        .from("user_payment_methods")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("is_default", { ascending: false });
-
-      if (paymentError) throw paymentError;
-      setPaymentMethods(paymentData || []);
 
       // Fetch rewards
       const { data: rewardsData, error: rewardsError } = await supabase
@@ -291,9 +310,110 @@ const AccountPage = () => {
     alert("Items have been added to your cart!");
   };
 
-  const handleDownloadInvoice = (orderId: string) => {
-    console.log("Downloading invoice for:", orderId);
-    alert("Invoice download started!");
+  const handleDownloadInvoice = async (order: Order) => {
+    try {
+      console.log("Generating invoice for order:", order.id);
+      
+      const doc = new jsPDF();
+      
+      // Header with brand info
+      doc.setFillColor(52, 152, 219);
+      doc.rect(0, 0, 210, 40, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(24);
+      doc.text('INVOICE', 20, 25);
+      
+      doc.setFontSize(12);
+      doc.text('DearNeuro', 150, 20);
+      doc.text('www.dearneuro.com', 150, 30);
+      
+      // Reset text color
+      doc.setTextColor(0, 0, 0);
+      
+      // Invoice details
+      doc.setFontSize(14);
+      doc.text(`Invoice Number: ${order.id.slice(0, 8).toUpperCase()}`, 20, 60);
+      doc.text(`Date: ${new Date(order.created_at).toLocaleDateString()}`, 20, 70);
+      doc.text(`Status: ${order.status.toUpperCase()}`, 20, 80);
+      
+      // Bill to section
+      doc.setFontSize(16);
+      doc.text('Bill To:', 20, 100);
+      
+      doc.setFontSize(12);
+      const shippingAddress = order.shipping_address;
+      if (shippingAddress) {
+        doc.text(`${shippingAddress.name || 'Customer'}`, 20, 110);
+        doc.text(`${shippingAddress.address_line_1 || ''}`, 20, 120);
+        if (shippingAddress.address_line_2) {
+          doc.text(`${shippingAddress.address_line_2}`, 20, 130);
+        }
+        doc.text(`${shippingAddress.city || ''}, ${shippingAddress.state || ''} ${shippingAddress.pincode || ''}`, 20, 140);
+        if (shippingAddress.phone) {
+          doc.text(`Phone: ${shippingAddress.phone}`, 20, 150);
+        }
+      }
+      
+      // Items table header
+      let yPosition = 170;
+      doc.setFillColor(240, 240, 240);
+      doc.rect(20, yPosition, 170, 10, 'F');
+      
+      doc.setFontSize(12);
+      doc.text('Description', 25, yPosition + 7);
+      doc.text('Qty', 100, yPosition + 7);
+      doc.text('Rate', 130, yPosition + 7);
+      doc.text('Amount', 160, yPosition + 7);
+      
+      yPosition += 15;
+      
+      // Items
+      let subtotal = 0;
+      if (order.order_items) {
+        order.order_items.forEach((item) => {
+          const itemTotal = item.price * item.quantity;
+          subtotal += itemTotal;
+          
+          doc.text(item.products.name, 25, yPosition);
+          doc.text(item.quantity.toString(), 100, yPosition);
+          doc.text(`$${item.price.toFixed(2)}`, 130, yPosition);
+          doc.text(`$${itemTotal.toFixed(2)}`, 160, yPosition);
+          
+          yPosition += 10;
+        });
+      }
+      
+      // Totals
+      yPosition += 10;
+      doc.line(20, yPosition, 190, yPosition);
+      yPosition += 10;
+      
+      doc.text('Subtotal:', 130, yPosition);
+      doc.text(`$${subtotal.toFixed(2)}`, 160, yPosition);
+      
+      yPosition += 10;
+      doc.text('Tax:', 130, yPosition);
+      doc.text('$0.00', 160, yPosition);
+      
+      yPosition += 10;
+      doc.setFontSize(14);
+      doc.text('Total:', 130, yPosition);
+      doc.text(`$${order.total_amount.toFixed(2)}`, 160, yPosition);
+      
+      // Footer
+      yPosition += 30;
+      doc.setFontSize(10);
+      doc.text('Thank you for your business!', 20, yPosition);
+      doc.text('Please pay invoice within 15 days.', 20, yPosition + 10);
+      
+      // Save the PDF
+      doc.save(`invoice-${order.id.slice(0, 8)}.pdf`);
+      
+    } catch (error) {
+      console.error("Error generating invoice:", error);
+      alert("Error generating invoice. Please try again.");
+    }
   };
 
   const handleTrackOrder = (order: Order) => {
@@ -306,6 +426,39 @@ const AccountPage = () => {
 
   const handleViewProduct = (productId: string) => {
     navigate(`/product?id=${productId}`);
+  };
+
+  const getAvatarImage = () => {
+    const firstName = profileData.firstName || user?.user_metadata?.given_name || '';
+    const lastName = profileData.lastName || user?.user_metadata?.family_name || '';
+    
+    // Simple gender detection based on common names (this is a basic implementation)
+    const maleNames = ['john', 'james', 'robert', 'michael', 'william', 'david', 'richard', 'charles', 'joseph', 'thomas'];
+    const femaleNames = ['mary', 'patricia', 'jennifer', 'linda', 'elizabeth', 'barbara', 'susan', 'jessica', 'sarah', 'karen'];
+    
+    const firstNameLower = firstName.toLowerCase();
+    
+    if (maleNames.includes(firstNameLower)) {
+      return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face";
+    }
+    
+    if (femaleNames.includes(firstNameLower)) {
+      return "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face";
+    }
+    
+    // Default professional avatar
+    return "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face";
+  };
+
+  const PaymentMethodIcon = ({ type }: { type: string }) => {
+    switch (type.toLowerCase()) {
+      case 'paypal':
+        return <FaPaypal className="text-blue-600 text-2xl" />;
+      case 'googlepay':
+        return <FaGooglePay className="text-green-600 text-2xl" />;
+      default:
+        return <FaCreditCard className="text-[#192a3a] text-2xl" />;
+    }
   };
 
   const sidebarItems = [
@@ -341,9 +494,12 @@ const AccountPage = () => {
           <div className="lg:w-80 w-full">
             <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
               <div className="text-center mb-8">
-                <div className="w-20 h-20 bg-[#192a3a] rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <FaUser className="text-2xl text-white" />
-                </div>
+                <Avatar className="w-20 h-20 mx-auto mb-4">
+                  <AvatarImage src={getAvatarImage()} alt={userDisplayName} />
+                  <AvatarFallback className="bg-[#192a3a] text-white text-2xl">
+                    <FaUser />
+                  </AvatarFallback>
+                </Avatar>
                 <h2 className="text-2xl font-bold text-[#192a3a]">
                   {userDisplayName}
                 </h2>
@@ -563,7 +719,7 @@ const AccountPage = () => {
                                 <Button 
                                   size="sm" 
                                   variant="outline"
-                                  onClick={() => handleDownloadInvoice(order.id)}
+                                  onClick={() => handleDownloadInvoice(order)}
                                   className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
                                 >
                                   <FaDownload className="mr-2" />
@@ -689,7 +845,10 @@ const AccountPage = () => {
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <CardTitle className="text-2xl text-[#192a3a]">Payment Methods</CardTitle>
-                    <Button className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
+                    <Button 
+                      onClick={() => setShowPaymentModal(true)}
+                      className="bg-[#192a3a] hover:bg-[#0f1a26] text-white"
+                    >
                       <FaPlus className="mr-2" />
                       Add Payment Method
                     </Button>
@@ -701,10 +860,13 @@ const AccountPage = () => {
                       <div key={method.id} className="border rounded-xl p-6">
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex items-center gap-3">
-                            <FaCreditCard className="text-2xl text-[#192a3a]" />
+                            <PaymentMethodIcon type={method.card_type} />
                             <div>
                               <h3 className="font-semibold text-[#192a3a]">
-                                {method.card_type} •••• {method.card_last_four}
+                                {method.card_type === 'PayPal' 
+                                  ? 'PayPal'
+                                  : `${method.card_type} •••• ${method.card_last_four}`
+                                }
                               </h3>
                               <p className="text-sm text-gray-600">{method.card_holder_name}</p>
                             </div>
@@ -713,9 +875,11 @@ const AccountPage = () => {
                             <Badge className="bg-[#192a3a] text-white">Default</Badge>
                           )}
                         </div>
-                        <p className="text-gray-600 mb-4">
-                          Expires {method.expiry_month.toString().padStart(2, '0')}/{method.expiry_year}
-                        </p>
+                        {method.card_type !== 'PayPal' && (
+                          <p className="text-gray-600 mb-4">
+                            Expires {method.expiry_month.toString().padStart(2, '0')}/{method.expiry_year}
+                          </p>
+                        )}
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline" className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white">
                             <FaEdit className="mr-2" />
@@ -872,6 +1036,107 @@ const AccountPage = () => {
         </div>
       </div>
 
+      {/* Add Payment Method Modal */}
+      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Payment Method</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col items-center justify-center gap-2 border-2 hover:border-[#192a3a]"
+              >
+                <FaCreditCard className="text-2xl" />
+                <span>Card</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col items-center justify-center gap-2 border-2 hover:border-blue-600"
+              >
+                <FaPaypal className="text-2xl text-blue-600" />
+                <span>PayPal</span>
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col items-center justify-center gap-2 border-2 hover:border-green-600"
+              >
+                <FaGooglePay className="text-2xl text-green-600" />
+                <span>Google Pay</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col items-center justify-center gap-2 border-2 hover:border-purple-600"
+              >
+                <div className="text-2xl">💳</div>
+                <span>UPI</span>
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="cardNumber">Card Number</Label>
+                <Input
+                  id="cardNumber"
+                  placeholder="1234 5678 9012 3456"
+                  className="mt-1"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="expiryDate">Expiry Date</Label>
+                  <Input
+                    id="expiryDate"
+                    placeholder="MM/YY"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="cvv">CVV</Label>
+                  <Input
+                    id="cvv"
+                    placeholder="123"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="cardName">Name on Card</Label>
+                <Input
+                  id="cardName"
+                  placeholder="John Doe"
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <Button 
+                className="flex-1 bg-[#192a3a] hover:bg-[#0f1a26] text-white"
+                onClick={() => {
+                  setShowPaymentModal(false);
+                  alert("Payment method added successfully!");
+                }}
+              >
+                Add Payment Method
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowPaymentModal(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Order Details Modal */}
       {selectedOrder && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -942,7 +1207,7 @@ const AccountPage = () => {
 
               <div className="flex flex-wrap gap-3">
                 <Button 
-                  onClick={() => handleDownloadInvoice(selectedOrder.id)}
+                  onClick={() => handleDownloadInvoice(selectedOrder)}
                   className="bg-[#192a3a] hover:bg-[#0f1a26] text-white"
                 >
                   <FaDownload className="mr-2" />
@@ -960,7 +1225,7 @@ const AccountPage = () => {
                   Reorder Items
                 </Button>
                 <Button 
-                  onClick={() => handleTrackOrder(selectedOrder.id)}
+                  onClick={() => handleTrackOrder(selectedOrder)}
                   variant="outline"
                   className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
                 >
