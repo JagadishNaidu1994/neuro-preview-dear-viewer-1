@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Bell, Settings, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ interface OrderWithUser {
   total_amount: number;
   status: string;
   created_at: string;
+  user_id: string;
   users: {
     email: string;
     first_name: string | null;
@@ -49,13 +51,10 @@ const NotificationDropdown = () => {
 
   const fetchNotifications = async () => {
     try {
-      // Fetch recent orders with user emails
+      // Fetch recent orders first
       const { data: orders, error: ordersError } = await supabase
         .from("orders")
-        .select(`
-          *,
-          users!orders_user_id_fkey(email, first_name, last_name)
-        `)
+        .select("*")
         .order("created_at", { ascending: false })
         .limit(3);
 
@@ -63,6 +62,27 @@ const NotificationDropdown = () => {
         console.error("Error fetching orders:", ordersError);
         setLoading(false);
         return;
+      }
+
+      // Fetch user details for each order
+      const ordersWithUsers: OrderWithUser[] = [];
+      if (orders) {
+        for (const order of orders) {
+          let userData = null;
+          if (order.user_id) {
+            const { data: user } = await supabase
+              .from("users")
+              .select("email, first_name, last_name")
+              .eq("id", order.user_id)
+              .single();
+            userData = user;
+          }
+          
+          ordersWithUsers.push({
+            ...order,
+            users: userData
+          });
+        }
       }
 
       // Fetch recent contact submissions
@@ -80,7 +100,7 @@ const NotificationDropdown = () => {
       const notificationsList: Notification[] = [];
 
       // Add order notifications
-      (orders as OrderWithUser[])?.forEach((order) => {
+      ordersWithUsers.forEach((order) => {
         const timeAgo = getTimeAgo(order.created_at);
         const customerName = order.users?.first_name 
           ? `${order.users.first_name} ${order.users.last_name || ''}`.trim()

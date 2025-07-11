@@ -180,17 +180,36 @@ const AdminDashboard = () => {
 
   const fetchOrders = async () => {
     try {
+      // Fetch orders first
       const { data: ordersData, error } = await supabase
         .from("orders")
-        .select(`
-          *,
-          users!orders_user_id_fkey(email, first_name, last_name)
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       
-      setOrders(ordersData as OrderWithUser[] || []);
+      // Fetch user details for each order
+      const ordersWithUsers: OrderWithUser[] = [];
+      if (ordersData) {
+        for (const order of ordersData) {
+          let userData = null;
+          if (order.user_id) {
+            const { data: user } = await supabase
+              .from("users")
+              .select("email, first_name, last_name")
+              .eq("id", order.user_id)
+              .single();
+            userData = user;
+          }
+          
+          ordersWithUsers.push({
+            ...order,
+            users: userData
+          });
+        }
+      }
+      
+      setOrders(ordersWithUsers);
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
