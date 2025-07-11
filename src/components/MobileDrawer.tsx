@@ -10,7 +10,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { User, Settings, LogOut } from "lucide-react";
+import { User, Settings, LogOut, Phone, HelpCircle, Truck, Gift, UserPlus } from "lucide-react";
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -35,6 +35,14 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
     { label: "Journal", href: "/journal" },
   ];
 
+  const additionalLinks = [
+    { label: "Contact Us", href: "/contact", icon: Phone },
+    { label: "FAQs", href: "/faq", icon: HelpCircle },
+    { label: "Shipping & Returns", href: "/shipping-returns", icon: Truck },
+    { label: "Rewards", href: "/rewards", icon: Gift },
+    { label: "Refer a Friend", href: "/refer-friend", icon: UserPlus },
+  ];
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="w-[300px]">
@@ -53,6 +61,21 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
               {item.label}
             </Link>
           ))}
+
+          <div className="border-t pt-4 mt-4">
+            {/* Additional Links */}
+            {additionalLinks.map((item) => (
+              <Link
+                key={item.href}
+                to={item.href}
+                onClick={onClose}
+                className="flex items-center text-[#514B3D] hover:text-[#3f3a2f] font-medium transition-colors py-2"
+              >
+                <item.icon className="w-4 h-4 mr-2" />
+                {item.label}
+              </Link>
+            ))}
+          </div>
 
           <div className="border-t pt-4 mt-4">
             {user ? (

@@ -25,21 +25,30 @@ interface Notification {
 const NotificationDropdown = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    // Load read notifications from localStorage
+    const saved = localStorage.getItem('readNotifications');
+    if (saved) {
+      setReadNotifications(new Set(JSON.parse(saved)));
+    }
     fetchNotifications();
   }, []);
 
   const fetchNotifications = async () => {
     try {
-      // Fetch recent orders for order notifications
+      // Fetch recent orders with user emails
       const { data: orders } = await supabase
         .from("orders")
-        .select("*")
+        .select(`
+          *,
+          users!orders_user_id_fkey(email, first_name, last_name)
+        `)
         .order("created_at", { ascending: false })
         .limit(3);
 
-      // Fetch recent contact submissions for message notifications
+      // Fetch recent contact submissions
       const { data: messages } = await supabase
         .from("contact_submissions")
         .select("*")
@@ -52,13 +61,17 @@ const NotificationDropdown = () => {
       // Add order notifications
       orders?.forEach((order) => {
         const timeAgo = getTimeAgo(order.created_at);
+        const customerName = order.users?.first_name 
+          ? `${order.users.first_name} ${order.users.last_name || ''}`.trim()
+          : order.users?.email || 'Unknown Customer';
+        
         notificationsList.push({
           id: `order-${order.id}`,
           type: 'order',
           title: order.status === 'delivered' ? 'Order Delivered' : 'New Order Received',
-          description: `Order #${order.id.slice(0, 8)} - $${order.total_amount}`,
+          description: `Order #${order.id.slice(0, 8)} from ${customerName} - ₹${order.total_amount}`,
           time: timeAgo,
-          isRead: false,
+          isRead: readNotifications.has(`order-${order.id}`),
         });
       });
 
@@ -71,18 +84,8 @@ const NotificationDropdown = () => {
           title: 'New Message',
           description: `${message.name} sent you a message`,
           time: timeAgo,
-          isRead: false,
+          isRead: readNotifications.has(`message-${message.id}`),
         });
-      });
-
-      // Add system notification
-      notificationsList.push({
-        id: 'system-1',
-        type: 'system',
-        title: 'System Update',
-        description: 'New admin features available',
-        time: '2 hours ago',
-        isRead: true,
       });
 
       setNotifications(notificationsList);
@@ -100,13 +103,18 @@ const NotificationDropdown = () => {
     
     if (diffInMinutes < 1) return 'Just now';
     if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hour ago`;
-    return `${Math.floor(diffInMinutes / 1440)} day ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hour${Math.floor(diffInMinutes / 60) === 1 ? '' : 's'} ago`;
+    return `${Math.floor(diffInMinutes / 1440)} day${Math.floor(diffInMinutes / 1440) === 1 ? '' : 's'} ago`;
   };
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const markAsRead = (id: string) => {
+    const newReadNotifications = new Set(readNotifications);
+    newReadNotifications.add(id);
+    setReadNotifications(newReadNotifications);
+    localStorage.setItem('readNotifications', JSON.stringify([...newReadNotifications]));
+
     setNotifications(prev =>
       prev.map(notification =>
         notification.id === id ? { ...notification, isRead: true } : notification
@@ -115,6 +123,11 @@ const NotificationDropdown = () => {
   };
 
   const markAllAsRead = () => {
+    const allIds = notifications.map(n => n.id);
+    const newReadNotifications = new Set([...readNotifications, ...allIds]);
+    setReadNotifications(newReadNotifications);
+    localStorage.setItem('readNotifications', JSON.stringify([...newReadNotifications]));
+
     setNotifications(prev =>
       prev.map(notification => ({ ...notification, isRead: true }))
     );
@@ -147,15 +160,17 @@ const NotificationDropdown = () => {
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-lg">Notifications</h3>
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={markAllAsRead}
-                className="text-blue-600 hover:text-blue-700"
-              >
-                <CheckCircle className="w-4 h-4 mr-1" />
-                Mark all read
-              </Button>
+              {unreadCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={markAllAsRead}
+                  className="text-blue-600 hover:text-blue-700"
+                >
+                  <CheckCircle className="w-4 h-4 mr-1" />
+                  Mark all read
+                </Button>
+              )}
               <Button variant="ghost" size="sm">
                 <Settings className="w-4 h-4" />
               </Button>

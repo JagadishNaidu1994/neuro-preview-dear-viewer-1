@@ -178,20 +178,20 @@ const AdminDashboard = () => {
     try {
       const { data: ordersData, error } = await supabase
         .from("orders")
-        .select("*")
+        .select(`
+          *,
+          users!orders_user_id_fkey(email, first_name, last_name)
+        `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       
-      const userIds = [...new Set((ordersData || []).map(order => order.user_id))];
-      const { data: usersData } = await supabase
-        .from("users")
-        .select("id, email")
-        .in("id", userIds);
-
       const ordersWithEmails = (ordersData || []).map(order => ({
         ...order,
-        user_email: usersData?.find(user => user.id === order.user_id)?.email || "N/A"
+        user_email: order.users?.email || "Guest User",
+        user_name: order.users?.first_name 
+          ? `${order.users.first_name} ${order.users.last_name || ''}`.trim()
+          : order.users?.email || "Guest User"
       }));
       
       setOrders(ordersWithEmails);
@@ -808,8 +808,13 @@ const AdminDashboard = () => {
                         <TableCell className="font-mono text-sm">
                           #{generateOrderNumber(order.id)}
                         </TableCell>
-                        <TableCell>{order.user_email || "N/A"}</TableCell>
-                        <TableCell>${order.total_amount}</TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{order.user_name || "Guest User"}</div>
+                            <div className="text-sm text-gray-500">{order.user_email || "No email"}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>₹{order.total_amount}</TableCell>
                         <TableCell>
                           <select
                             value={order.status}
