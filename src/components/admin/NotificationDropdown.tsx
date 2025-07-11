@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, Settings, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Notification {
   id: string;
@@ -22,48 +23,86 @@ interface Notification {
 }
 
 const NotificationDropdown = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      type: 'order',
-      title: 'New Order Received',
-      description: 'Order #2564 from Jonathon Smith',
-      time: '2 min ago',
-      isRead: false,
-    },
-    {
-      id: '2',
-      type: 'message',
-      title: 'New Message',
-      description: 'Chinese Utthe sent you a message',
-      time: '5 min ago',
-      isRead: false,
-    },
-    {
-      id: '3',
-      type: 'order',
-      title: 'Order Shipped',
-      description: 'Order #2563 has been shipped',
-      time: '1 hour ago',
-      isRead: true,
-    },
-    {
-      id: '4',
-      type: 'system',
-      title: 'System Update',
-      description: 'New features available',
-      time: '2 hours ago',
-      isRead: true,
-    },
-    {
-      id: '5',
-      type: 'message',
-      title: 'Customer Support',
-      description: 'Refund request from customer',
-      time: '3 hours ago',
-      isRead: false,
-    },
-  ]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      // Fetch recent orders for order notifications
+      const { data: orders } = await supabase
+        .from("orders")
+        .select("*, users(email)")
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      // Fetch recent contact submissions for message notifications
+      const { data: messages } = await supabase
+        .from("contact_submissions")
+        .select("*")
+        .eq("status", "unread")
+        .order("created_at", { ascending: false })
+        .limit(2);
+
+      const notificationsList: Notification[] = [];
+
+      // Add order notifications
+      orders?.forEach((order, index) => {
+        const timeAgo = getTimeAgo(order.created_at);
+        notificationsList.push({
+          id: `order-${order.id}`,
+          type: 'order',
+          title: order.status === 'delivered' ? 'Order Delivered' : 'New Order Received',
+          description: `Order from ${order.users?.email || 'Customer'}`,
+          time: timeAgo,
+          isRead: false,
+        });
+      });
+
+      // Add message notifications
+      messages?.forEach((message) => {
+        const timeAgo = getTimeAgo(message.created_at);
+        notificationsList.push({
+          id: `message-${message.id}`,
+          type: 'message',
+          title: 'New Message',
+          description: `${message.name} sent you a message`,
+          time: timeAgo,
+          isRead: false,
+        });
+      });
+
+      // Add system notification
+      notificationsList.push({
+        id: 'system-1',
+        type: 'system',
+        title: 'System Update',
+        description: 'New admin features available',
+        time: '2 hours ago',
+        isRead: true,
+      });
+
+      setNotifications(notificationsList);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hour ago`;
+    return `${Math.floor(diffInMinutes / 1440)} day ago`;
+  };
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -79,15 +118,6 @@ const NotificationDropdown = () => {
     setNotifications(prev =>
       prev.map(notification => ({ ...notification, isRead: true }))
     );
-  };
-
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'order': return '📦';
-      case 'message': return '💬';
-      case 'system': return '⚙️';
-      default: return '🔔';
-    }
   };
 
   const getInitials = (title: string) => {
@@ -136,40 +166,46 @@ const NotificationDropdown = () => {
         {/* Notifications List */}
         <ScrollArea className="max-h-96">
           <div className="p-2">
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                onClick={() => markAsRead(notification.id)}
-                className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                  !notification.isRead 
-                    ? 'bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500' 
-                    : 'hover:bg-gray-50'
-                }`}
-              >
-                <Avatar className="w-10 h-10 mt-1">
-                  <AvatarFallback className={`text-sm ${
-                    notification.type === 'order' ? 'bg-green-100 text-green-700' :
-                    notification.type === 'message' ? 'bg-purple-100 text-purple-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
-                    {getInitials(notification.title)}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-sm">{notification.title}</span>
-                    <span className="text-xs text-gray-500">{notification.time}</span>
+            {loading ? (
+              <div className="p-4 text-center">Loading notifications...</div>
+            ) : notifications.length > 0 ? (
+              notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  onClick={() => markAsRead(notification.id)}
+                  className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                    !notification.isRead 
+                      ? 'bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500' 
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <Avatar className="w-10 h-10 mt-1">
+                    <AvatarFallback className={`text-sm ${
+                      notification.type === 'order' ? 'bg-green-100 text-green-700' :
+                      notification.type === 'message' ? 'bg-purple-100 text-purple-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {getInitials(notification.title)}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-sm">{notification.title}</span>
+                      <span className="text-xs text-gray-500">{notification.time}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 line-clamp-2">
+                      {notification.description}
+                    </p>
+                    {!notification.isRead && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                    )}
                   </div>
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {notification.description}
-                  </p>
-                  {!notification.isRead && (
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                  )}
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <div className="p-4 text-center text-gray-500">No notifications</div>
+            )}
           </div>
         </ScrollArea>
 

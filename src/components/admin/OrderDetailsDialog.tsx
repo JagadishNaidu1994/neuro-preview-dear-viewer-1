@@ -6,15 +6,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface OrderItem {
   id: string;
-  name: string;
+  product_id: string;
   quantity: number;
   price: number;
-  image_url?: string;
+  products: {
+    name: string;
+    image_url?: string;
+  };
 }
 
 interface Order {
@@ -23,9 +27,9 @@ interface Order {
   total_amount: number;
   status: string;
   created_at: string;
-  user_email?: string;
   shipping_address?: any;
-  items?: OrderItem[];
+  order_items?: OrderItem[];
+  user_email?: string;
 }
 
 interface OrderDetailsDialogProps {
@@ -35,13 +39,59 @@ interface OrderDetailsDialogProps {
 }
 
 const OrderDetailsDialog = ({ order, isOpen, onClose }: OrderDetailsDialogProps) => {
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [userEmail, setUserEmail] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (order && isOpen) {
+      fetchOrderDetails();
+    }
+  }, [order, isOpen]);
+
+  const fetchOrderDetails = async () => {
+    if (!order) return;
+    
+    setLoading(true);
+    try {
+      // Fetch order items with product details
+      const { data: items, error: itemsError } = await supabase
+        .from("order_items")
+        .select(`
+          *,
+          products (
+            name,
+            image_url
+          )
+        `)
+        .eq("order_id", order.id);
+
+      if (itemsError) throw itemsError;
+      setOrderItems(items || []);
+
+      // Fetch user email
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("email")
+        .eq("id", order.user_id)
+        .single();
+
+      if (userError) throw userError;
+      setUserEmail(userData?.email || "");
+
+    } catch (error) {
+      console.error("Error fetching order details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!order) return null;
 
   const generateOrderNumber = (orderId: string, createdAt: string) => {
     const date = new Date(createdAt);
     const timestamp = Math.floor(date.getTime() / 1000);
-    const orderNum = timestamp.toString().slice(-6);
-    return String(parseInt(orderNum) % 1000000).padStart(6, '0');
+    return String(timestamp).slice(-6);
   };
 
   const orderNumber = generateOrderNumber(order.id, order.created_at);
@@ -56,12 +106,9 @@ const OrderDetailsDialog = ({ order, isOpen, onClose }: OrderDetailsDialogProps)
     }
   };
 
-  const mockItems = order.items || [
-    { id: '1', name: 'Fjällräven - Foldsack No. 1 Backpack, Fits 15 Laptops', quantity: 1, price: 109.95, image_url: '/placeholder.svg' },
-    { id: '2', name: 'Fjällräven - Foldsack No. 1 Backpack, Fits 15 Laptops', quantity: 1, price: 109.95, image_url: '/placeholder.svg' },
-    { id: '3', name: 'Fjällräven - Foldsack No. 1 Backpack, Fits 15 Laptops', quantity: 1, price: 109.95, image_url: '/placeholder.svg' },
-    { id: '4', name: 'Fjällräven - Foldsack No. 1 Backpack, Fits 15 Laptops', quantity: 1, price: 109.95, image_url: '/placeholder.svg' },
-  ];
+  const subtotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const discount = 5.00;
+  const deliveryFee = 0.00;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -104,16 +151,16 @@ const OrderDetailsDialog = ({ order, isOpen, onClose }: OrderDetailsDialogProps)
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-gray-600">Name</label>
-                    <p className="font-medium">{shippingAddress?.name || 'Jonathon Smith'}</p>
+                    <p className="font-medium">{shippingAddress?.name || 'N/A'}</p>
                   </div>
                   <div>
                     <label className="text-sm text-gray-600">Email</label>
-                    <p className="font-medium text-blue-600">{order.user_email || 'customer1@domain.com'}</p>
+                    <p className="font-medium text-blue-600">{userEmail || 'N/A'}</p>
                   </div>
                 </div>
                 <div>
                   <label className="text-sm text-gray-600">Phone</label>
-                  <p className="font-medium">{shippingAddress?.phone || '+1 215 547654732'}</p>
+                  <p className="font-medium">{shippingAddress?.phone || 'N/A'}</p>
                 </div>
               </div>
             </div>
@@ -127,21 +174,21 @@ const OrderDetailsDialog = ({ order, isOpen, onClose }: OrderDetailsDialogProps)
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-gray-600">Address Line</label>
-                    <p className="font-medium">{shippingAddress?.address_line_1 || '14 Anglesey Road'}</p>
+                    <p className="font-medium">{shippingAddress?.address_line_1 || 'N/A'}</p>
                   </div>
                   <div>
                     <label className="text-sm text-gray-600">Flat / Building Name</label>
-                    <p className="font-medium">{shippingAddress?.address_line_2 || 'James Court'}</p>
+                    <p className="font-medium">{shippingAddress?.address_line_2 || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm text-gray-600">Street Name</label>
-                    <p className="font-medium">Anglesey Road</p>
+                    <label className="text-sm text-gray-600">City</label>
+                    <p className="font-medium">{shippingAddress?.city || 'N/A'}</p>
                   </div>
                   <div>
                     <label className="text-sm text-gray-600">Postcode</label>
-                    <p className="font-medium">{shippingAddress?.pincode || 'En55hy'}</p>
+                    <p className="font-medium">{shippingAddress?.pincode || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -155,26 +202,31 @@ const OrderDetailsDialog = ({ order, isOpen, onClose }: OrderDetailsDialogProps)
                   <div className="col-span-1">QTY</div>
                   <div className="col-span-1">Price</div>
                   <div className="col-span-2">Total Price</div>
-                  <div className="col-span-8"></div>
+                  <div className="col-span-8">Product</div>
                 </div>
-                {mockItems.map((item, index) => (
-                  <div key={item.id} className="grid grid-cols-12 gap-4 p-4 border-b last:border-b-0 items-center">
-                    <div className="col-span-1 text-center font-medium">x{item.quantity}</div>
-                    <div className="col-span-1 font-medium">${item.price}</div>
-                    <div className="col-span-2 font-bold">${(item.price * item.quantity).toFixed(2)}</div>
-                    <div className="col-span-8 flex items-center gap-4">
-                      <img 
-                        src={item.image_url || '/placeholder.svg'} 
-                        alt={item.name}
-                        className="w-12 h-12 object-cover rounded bg-gray-100"
-                      />
-                      <div>
-                        <p className="font-medium text-sm">{item.name}</p>
-                        <p className="text-xs text-gray-500">Colors: Blue</p>
+                {loading ? (
+                  <div className="p-4 text-center">Loading items...</div>
+                ) : orderItems.length > 0 ? (
+                  orderItems.map((item) => (
+                    <div key={item.id} className="grid grid-cols-12 gap-4 p-4 border-b last:border-b-0 items-center">
+                      <div className="col-span-1 text-center font-medium">x{item.quantity}</div>
+                      <div className="col-span-1 font-medium">${item.price}</div>
+                      <div className="col-span-2 font-bold">${(item.price * item.quantity).toFixed(2)}</div>
+                      <div className="col-span-8 flex items-center gap-4">
+                        <img 
+                          src={item.products?.image_url || '/placeholder.svg'} 
+                          alt={item.products?.name || 'Product'}
+                          className="w-12 h-12 object-cover rounded bg-gray-100"
+                        />
+                        <div>
+                          <p className="font-medium text-sm">{item.products?.name || 'Unknown Product'}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-gray-500">No items found</div>
+                )}
               </div>
             </div>
           </div>
@@ -186,31 +238,37 @@ const OrderDetailsDialog = ({ order, isOpen, onClose }: OrderDetailsDialogProps)
               <h3 className="text-lg font-semibold mb-4">Order History</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${order.status === 'delivered' ? 'bg-purple-600' : 'bg-gray-300'}`}></div>
+                  <div>
+                    <p className={`font-medium ${order.status === 'delivered' ? 'text-black' : 'text-gray-600'}`}>Delivered</p>
+                    <p className="text-xs text-gray-500">
+                      {order.status === 'delivered' ? new Date(order.created_at).toLocaleDateString() : 'Pending'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${['shipped', 'delivered'].includes(order.status) ? 'bg-purple-600' : 'bg-gray-300'}`}></div>
+                  <div>
+                    <p className={`${['shipped', 'delivered'].includes(order.status) ? 'text-black' : 'text-gray-600'}`}>Shipped</p>
+                    <p className="text-xs text-gray-500">
+                      {['shipped', 'delivered'].includes(order.status) ? new Date(order.created_at).toLocaleDateString() : 'Pending'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${['processing', 'shipped', 'delivered'].includes(order.status) ? 'bg-purple-600' : 'bg-gray-300'}`}></div>
+                  <div>
+                    <p className={`${['processing', 'shipped', 'delivered'].includes(order.status) ? 'text-black' : 'text-gray-600'}`}>Processing</p>
+                    <p className="text-xs text-gray-500">
+                      {['processing', 'shipped', 'delivered'].includes(order.status) ? new Date(order.created_at).toLocaleDateString() : 'Pending'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
                   <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
                   <div>
-                    <p className="font-medium">Delivered</p>
-                    <p className="text-xs text-gray-500">24 Nov 2022</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                  <div>
-                    <p className="text-gray-600">Shipped</p>
-                    <p className="text-xs text-gray-500">20 Nov 2022</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                  <div>
-                    <p className="text-gray-600">Dispatch from warehouse</p>
-                    <p className="text-xs text-gray-500">18 Nov 2022</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                  <div>
-                    <p className="text-gray-600">Pickup being Prepared</p>
-                    <p className="text-xs text-gray-500">16 Nov 2022</p>
+                    <p className="text-black">Order Placed</p>
+                    <p className="text-xs text-gray-500">{new Date(order.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
               </div>
@@ -222,19 +280,19 @@ const OrderDetailsDialog = ({ order, isOpen, onClose }: OrderDetailsDialogProps)
               <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Payment</span>
-                  <span>Card - 65482</span>
+                  <span>Card - ****</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span>${(order.total_amount * 0.9).toFixed(2)}</span>
+                  <span>${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Discount</span>
-                  <span>$5.00</span>
+                  <span>$${discount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Delivery Fee</span>
-                  <span>$0.00</span>
+                  <span>${deliveryFee.toFixed(2)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-lg">

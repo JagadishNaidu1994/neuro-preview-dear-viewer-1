@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { 
   LayoutDashboard, 
@@ -13,6 +13,7 @@ import {
   Home
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdminSidebarProps {
   activeTab: string;
@@ -20,13 +21,59 @@ interface AdminSidebarProps {
 }
 
 const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
+  const [counts, setCounts] = useState({
+    orders: 0,
+    products: 0,
+    messages: 0,
+    coupons: 0,
+  });
+
+  useEffect(() => {
+    fetchCounts();
+  }, []);
+
+  const fetchCounts = async () => {
+    try {
+      // Fetch orders count
+      const { count: ordersCount } = await supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true });
+
+      // Fetch products count
+      const { count: productsCount } = await supabase
+        .from("products")
+        .select("*", { count: "exact", head: true });
+
+      // Fetch unread messages count
+      const { count: messagesCount } = await supabase
+        .from("contact_submissions")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "unread");
+
+      // Fetch active coupons count
+      const { count: couponsCount } = await supabase
+        .from("coupon_codes")
+        .select("*", { count: "exact", head: true })
+        .eq("is_active", true);
+
+      setCounts({
+        orders: ordersCount || 0,
+        products: productsCount || 0,
+        messages: messagesCount || 0,
+        coupons: couponsCount || 0,
+      });
+    } catch (error) {
+      console.error("Error fetching counts:", error);
+    }
+  };
+
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "orders", label: "Orders", icon: ShoppingCart, count: 7 },
-    { id: "products", label: "Products", icon: Package, count: 120 },
+    { id: "orders", label: "Orders", icon: ShoppingCart, count: counts.orders },
+    { id: "products", label: "Products", icon: Package, count: counts.products },
     { id: "journals", label: "Journals", icon: FileText },
-    { id: "messages", label: "Messages", icon: MessageSquare, count: 1 },
-    { id: "coupons", label: "Coupons", icon: Tag, count: 2 },
+    { id: "messages", label: "Messages", icon: MessageSquare, count: counts.messages },
+    { id: "coupons", label: "Coupons", icon: Tag, count: counts.coupons },
     { id: "shipping", label: "Shipping", icon: Truck },
     { id: "settings", label: "Settings", icon: Settings },
   ];
@@ -59,7 +106,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
                   <item.icon className="h-5 w-5" />
                   <span className="font-medium">{item.label}</span>
                 </div>
-                {item.count && (
+                {item.count !== undefined && item.count > 0 && (
                   <span className={cn(
                     "px-2 py-1 rounded-full text-xs font-medium",
                     activeTab === item.id
