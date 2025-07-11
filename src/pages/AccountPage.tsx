@@ -13,7 +13,7 @@ import {
   FaShoppingBag, 
   FaGift, 
   FaCog, 
-  FaShieldAlt,
+  FaShield,
   FaSignOutAlt,
   FaUsers
 } from "react-icons/fa";
@@ -186,7 +186,7 @@ const AccountPage = () => {
       count: null,
     },
     {
-      icon: FaShieldAlt,
+      icon: FaShield,
       title: "Security",
       description: "Password and security settings",
       path: "/security",
