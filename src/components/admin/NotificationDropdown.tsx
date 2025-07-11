@@ -35,7 +35,7 @@ const NotificationDropdown = () => {
       // Fetch recent orders for order notifications
       const { data: orders } = await supabase
         .from("orders")
-        .select("*, users(email)")
+        .select("*")
         .order("created_at", { ascending: false })
         .limit(3);
 
@@ -50,13 +50,13 @@ const NotificationDropdown = () => {
       const notificationsList: Notification[] = [];
 
       // Add order notifications
-      orders?.forEach((order, index) => {
+      orders?.forEach((order) => {
         const timeAgo = getTimeAgo(order.created_at);
         notificationsList.push({
           id: `order-${order.id}`,
           type: 'order',
           title: order.status === 'delivered' ? 'Order Delivered' : 'New Order Received',
-          description: `Order from ${order.users?.email || 'Customer'}`,
+          description: `Order #${order.id.slice(0, 8)} - $${order.total_amount}`,
           time: timeAgo,
           isRead: false,
         });
