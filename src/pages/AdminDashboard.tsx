@@ -42,14 +42,18 @@ interface Product {
   is_active: boolean;
 }
 
-interface Order {
+interface OrderWithUser {
   id: string;
   user_id: string;
   total_amount: number;
   status: string;
   created_at: string;
-  user_email?: string;
   shipping_address?: any;
+  users: {
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
 }
 
 interface Journal {
@@ -89,7 +93,7 @@ const AdminDashboard = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [products, setProducts] = useState<Product[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderWithUser[]>([]);
   const [journals, setJournals] = useState<Journal[]>([]);
   const [coupons, setCoupons] = useState<CouponCode[]>([]);
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
@@ -107,7 +111,7 @@ const AdminDashboard = () => {
   const [editingJournal, setEditingJournal] = useState<Journal | null>(null);
   const [editingCoupon, setEditingCoupon] = useState<CouponCode | null>(null);
   const [editingShipping, setEditingShipping] = useState<ShippingMethod | null>(null);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderWithUser | null>(null);
 
   // Form states
   const [productForm, setProductForm] = useState({
@@ -186,15 +190,7 @@ const AdminDashboard = () => {
 
       if (error) throw error;
       
-      const ordersWithEmails = (ordersData || []).map(order => ({
-        ...order,
-        user_email: order.users?.email || "Guest User",
-        user_name: order.users?.first_name 
-          ? `${order.users.first_name} ${order.users.last_name || ''}`.trim()
-          : order.users?.email || "Guest User"
-      }));
-      
-      setOrders(ordersWithEmails);
+      setOrders(ordersData as OrderWithUser[] || []);
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
@@ -576,7 +572,7 @@ const AdminDashboard = () => {
     setIsShippingModalOpen(true);
   };
 
-  const handleViewOrder = (order: Order) => {
+  const handleViewOrder = (order: OrderWithUser) => {
     setSelectedOrder(order);
     setIsOrderDialogOpen(true);
   };
@@ -810,8 +806,15 @@ const AdminDashboard = () => {
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{order.user_name || "Guest User"}</div>
-                            <div className="text-sm text-gray-500">{order.user_email || "No email"}</div>
+                            <div className="font-medium">
+                              {order.users?.first_name 
+                                ? `${order.users.first_name} ${order.users.last_name || ''}`.trim()
+                                : order.users?.email || "Guest User"
+                              }
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {order.users?.email || "No email"}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>₹{order.total_amount}</TableCell>

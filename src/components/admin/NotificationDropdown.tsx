@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Bell, Settings, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +21,18 @@ interface Notification {
   avatar?: string;
 }
 
+interface OrderWithUser {
+  id: string;
+  total_amount: number;
+  status: string;
+  created_at: string;
+  users: {
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
+}
+
 const NotificationDropdown = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +50,7 @@ const NotificationDropdown = () => {
   const fetchNotifications = async () => {
     try {
       // Fetch recent orders with user emails
-      const { data: orders } = await supabase
+      const { data: orders, error: ordersError } = await supabase
         .from("orders")
         .select(`
           *,
@@ -48,18 +59,28 @@ const NotificationDropdown = () => {
         .order("created_at", { ascending: false })
         .limit(3);
 
+      if (ordersError) {
+        console.error("Error fetching orders:", ordersError);
+        setLoading(false);
+        return;
+      }
+
       // Fetch recent contact submissions
-      const { data: messages } = await supabase
+      const { data: messages, error: messagesError } = await supabase
         .from("contact_submissions")
         .select("*")
         .eq("status", "unread")
         .order("created_at", { ascending: false })
         .limit(2);
 
+      if (messagesError) {
+        console.error("Error fetching messages:", messagesError);
+      }
+
       const notificationsList: Notification[] = [];
 
       // Add order notifications
-      orders?.forEach((order) => {
+      (orders as OrderWithUser[])?.forEach((order) => {
         const timeAgo = getTimeAgo(order.created_at);
         const customerName = order.users?.first_name 
           ? `${order.users.first_name} ${order.users.last_name || ''}`.trim()
