@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '@/context/AuthProvider';
+import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,26 +37,18 @@ const AccountPage = () => {
     phone: ''
   });
 
-  console.log('Current user:', user);
-
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['userProfile', user?.id],
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated');
       
-      console.log('Fetching profile for user:', user.id);
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', user.id)
         .single();
       
-      if (error) {
-        console.error('Profile fetch error:', error);
-        throw error;
-      }
-      
-      console.log('Profile data:', data);
+      if (error) throw error;
       return data as UserProfile;
     },
     enabled: !!user,
@@ -151,19 +143,9 @@ const AccountPage = () => {
     );
   }
 
-  // Get full name from profile or user metadata
-  let fullName = 'User';
-  if (profile?.first_name || profile?.last_name) {
-    fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
-  } else if (user?.user_metadata) {
-    const firstName = user.user_metadata.given_name || user.user_metadata.first_name || '';
-    const lastName = user.user_metadata.family_name || user.user_metadata.last_name || '';
-    if (firstName || lastName) {
-      fullName = `${firstName} ${lastName}`.trim();
-    }
-  }
-
-  const userEmail = profile?.email || user?.email || '';
+  const fullName = profile?.first_name && profile?.last_name 
+    ? `${profile.first_name} ${profile.last_name}`
+    : profile?.first_name || profile?.last_name || 'User';
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -172,7 +154,7 @@ const AccountPage = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           Welcome back, {fullName}!
         </h1>
-        <p className="text-gray-600">{userEmail}</p>
+        <p className="text-gray-600">{profile?.email}</p>
       </div>
 
       {/* Profile Section */}
@@ -223,7 +205,7 @@ const AccountPage = () => {
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
-                  value={userEmail}
+                  value={profile?.email || ''}
                   disabled
                   className="bg-gray-100 text-gray-500"
                 />
@@ -268,7 +250,7 @@ const AccountPage = () => {
               </div>
               <div>
                 <Label className="text-sm font-medium text-gray-700">Email</Label>
-                <p className="mt-1 text-sm text-gray-900">{userEmail}</p>
+                <p className="mt-1 text-sm text-gray-900">{profile?.email}</p>
               </div>
               <div>
                 <Label className="text-sm font-medium text-gray-700">Phone Number</Label>
