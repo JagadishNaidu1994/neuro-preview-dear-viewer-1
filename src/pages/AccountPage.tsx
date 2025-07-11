@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthProvider';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -14,6 +13,7 @@ import OrderDetailsDialog from '@/components/admin/OrderDetailsDialog';
 
 interface Order {
   id: string;
+  user_id: string;
   total_amount: number;
   status: string;
   created_at: string;
@@ -69,7 +69,7 @@ const AccountPage = () => {
       
       const { data, error } = await supabase
         .from('orders')
-        .select('id, total_amount, status, created_at, tracking_link, shipping_address')
+        .select('id, user_id, total_amount, status, created_at, tracking_link, shipping_address')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
