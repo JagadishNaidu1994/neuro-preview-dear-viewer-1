@@ -280,7 +280,7 @@ const ProductPage = () => {
               <div className="max-w-md mx-auto flex gap-2">
                 <Input 
                   placeholder="Enter your email" 
-                  className="bg-white text-gray-900 border-0"
+                  ClassName="bg-white text-gray-900 border-0"
                 />
                 <Button className="bg-white text-gray-900 hover:bg-gray-100 px-6">
                   Subscribe

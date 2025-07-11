@@ -16,7 +16,7 @@ import {
   FaLock,
   FaGift,
   FaSync,
-  FaShieldAlt
+  FaShield
 } from 'react-icons/fa';
 
 const AccountPage = () => {
@@ -157,7 +157,7 @@ const AccountPage = () => {
                       <span className="text-sm">Payment Methods</span>
                     </Button>
                     <Button variant="outline" className="h-auto p-4 flex flex-col gap-2">
-                      <FaShieldAlt className="w-6 h-6" />
+                      <FaShield className="w-6 h-6" />
                       <span className="text-sm">Security</span>
                     </Button>
                   </div>
