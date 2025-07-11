@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Edit3, Save, X, Eye, Download, RotateCcw, Package } from 'lucide-react';
+import { ExternalLink, Edit3, Save, X, Eye, Download, RotateCcw, Package, User, MapPin, CreditCard, Gift, Settings, Shield, LogOut } from 'lucide-react';
 import OrderDetailsDialog from '@/components/admin/OrderDetailsDialog';
 
 interface Order {
@@ -48,6 +48,7 @@ const AccountPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('orders');
   const [editForm, setEditForm] = useState({
     first_name: '',
     last_name: '',
@@ -257,6 +258,15 @@ const AccountPage = () => {
     return orderId.substring(0, 8).toUpperCase();
   };
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success('Logged out successfully');
+    } catch (error) {
+      toast.error('Failed to logout');
+    }
+  };
+
   if (profileLoading || ordersLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -288,6 +298,16 @@ const AccountPage = () => {
 
   console.log('Display name:', displayName, 'Profile:', profile, 'User metadata:', user?.user_metadata);
 
+  const sidebarItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: User },
+    { id: 'orders', label: 'Orders', icon: Package },
+    { id: 'addresses', label: 'Addresses', icon: MapPin },
+    { id: 'payments', label: 'Payments', icon: CreditCard },
+    { id: 'rewards', label: 'Rewards', icon: Gift },
+    { id: 'preferences', label: 'Preferences', icon: Settings },
+    { id: 'security', label: 'Security', icon: Shield },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
@@ -303,10 +323,30 @@ const AccountPage = () => {
           
           <nav className="px-4">
             <div className="space-y-1">
-              <div className="flex items-center px-4 py-3 text-sm font-medium text-white bg-gray-900 rounded-lg">
-                <Package className="w-5 h-5 mr-3" />
-                Orders
-              </div>
+              {sidebarItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      activeTab === item.id
+                        ? 'text-white bg-gray-900'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5 mr-3" />
+                    {item.label}
+                  </button>
+                );
+              })}
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <LogOut className="w-5 h-5 mr-3" />
+                Logout
+              </button>
             </div>
           </nav>
         </div>
@@ -314,102 +354,148 @@ const AccountPage = () => {
         {/* Main Content */}
         <div className="flex-1 p-8">
           <div className="max-w-6xl">
-            <h1 className="text-2xl font-bold mb-8">Your Orders ({orders.length})</h1>
-            
-            {orders.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No orders found</p>
-            ) : (
-              <div className="space-y-6">
-                {orders.map((order) => {
-                  const orderItems = allOrderItems[order.id] || [];
-                  const orderNumber = generateOrderNumber(order.id);
-                  
-                  return (
-                    <div key={order.id} className="bg-white rounded-lg shadow-sm border p-6">
-                      {/* Order Header */}
-                      <div className="flex items-center justify-between mb-6">
-                        <div>
-                          <h3 className="text-lg font-semibold">Order #{orderNumber}</h3>
-                          <p className="text-sm text-gray-600">
-                            {new Date(order.created_at).toLocaleDateString('en-US', {
-                              day: 'numeric',
-                              month: 'numeric', 
-                              year: 'numeric'
-                            })}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">
-                            {order.status}
-                          </Badge>
-                          <span className="text-xl font-bold">₹{order.total_amount}</span>
-                        </div>
-                      </div>
-
-                      {/* Order Items */}
-                      <div className="space-y-4 mb-6">
-                        {orderItems.map((item) => (
-                          <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                            <img 
-                              src={item.products?.image_url || '/placeholder.svg'} 
-                              alt={item.products?.name || 'Product'}
-                              className="w-16 h-16 object-cover rounded-lg bg-white"
-                            />
-                            <div className="flex-1">
-                              <h4 className="font-medium">{item.products?.name || 'Unknown Product'}</h4>
-                              <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+            {activeTab === 'orders' && (
+              <>
+                <h1 className="text-2xl font-bold mb-8">Your Orders ({orders.length})</h1>
+                
+                {orders.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No orders found</p>
+                ) : (
+                  <div className="space-y-6">
+                    {orders.map((order) => {
+                      const orderItems = allOrderItems[order.id] || [];
+                      const orderNumber = generateOrderNumber(order.id);
+                      
+                      return (
+                        <div key={order.id} className="bg-white rounded-lg shadow-sm border p-6">
+                          {/* Order Header */}
+                          <div className="flex items-center justify-between mb-6">
+                            <div>
+                              <h3 className="text-lg font-semibold">Order #{orderNumber}</h3>
+                              <p className="text-sm text-gray-600">
+                                {new Date(order.created_at).toLocaleDateString('en-US', {
+                                  day: 'numeric',
+                                  month: 'numeric', 
+                                  year: 'numeric'
+                                })}
+                              </p>
                             </div>
-                            <div className="text-right">
-                              <p className="font-semibold">₹{item.price}</p>
-                              <p className="text-sm text-gray-600">View Product</p>
+                            <div className="flex items-center gap-4">
+                              <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">
+                                {order.status}
+                              </Badge>
+                              <span className="text-xl font-bold">₹{order.total_amount}</span>
                             </div>
                           </div>
-                        ))}
-                      </div>
 
-                      {/* Action Buttons */}
-                      <div className="flex gap-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewOrder(order)}
-                          className="flex items-center gap-2"
-                        >
-                          <Eye className="h-4 w-4" />
-                          View
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDownloadInvoice(order)}
-                          className="flex items-center gap-2"
-                        >
-                          <Download className="h-4 w-4" />
-                          Invoice
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex items-center gap-2"
-                        >
-                          <RotateCcw className="h-4 w-4" />
-                          Reorder
-                        </Button>
-                        {order.status === 'shipped' && order.tracking_link && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => window.open(order.tracking_link, '_blank')}
-                            className="flex items-center gap-2"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            Track
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                          {/* Order Items */}
+                          <div className="space-y-4 mb-6">
+                            {orderItems.map((item) => (
+                              <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                                <img 
+                                  src={item.products?.image_url || '/placeholder.svg'} 
+                                  alt={item.products?.name || 'Product'}
+                                  className="w-16 h-16 object-cover rounded-lg bg-white"
+                                />
+                                <div className="flex-1">
+                                  <h4 className="font-medium">{item.products?.name || 'Unknown Product'}</h4>
+                                  <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-semibold">₹{item.price}</p>
+                                  <p className="text-sm text-gray-600">View Product</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex gap-3">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewOrder(order)}
+                              className="flex items-center gap-2"
+                            >
+                              <Eye className="h-4 w-4" />
+                              View
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDownloadInvoice(order)}
+                              className="flex items-center gap-2"
+                            >
+                              <Download className="h-4 w-4" />
+                              Invoice
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex items-center gap-2"
+                            >
+                              <RotateCcw className="h-4 w-4" />
+                              Reorder
+                            </Button>
+                            {order.status === 'shipped' && order.tracking_link && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.open(order.tracking_link, '_blank')}
+                                className="flex items-center gap-2"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                                Track
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+
+            {activeTab === 'dashboard' && (
+              <div>
+                <h1 className="text-2xl font-bold mb-8">Dashboard</h1>
+                <p className="text-gray-600">Welcome to your account dashboard!</p>
+              </div>
+            )}
+
+            {activeTab === 'addresses' && (
+              <div>
+                <h1 className="text-2xl font-bold mb-8">Addresses</h1>
+                <p className="text-gray-600">Manage your shipping addresses here.</p>
+              </div>
+            )}
+
+            {activeTab === 'payments' && (
+              <div>
+                <h1 className="text-2xl font-bold mb-8">Payments</h1>
+                <p className="text-gray-600">Manage your payment methods here.</p>
+              </div>
+            )}
+
+            {activeTab === 'rewards' && (
+              <div>
+                <h1 className="text-2xl font-bold mb-8">Rewards</h1>
+                <p className="text-gray-600">View your rewards and points here.</p>
+              </div>
+            )}
+
+            {activeTab === 'preferences' && (
+              <div>
+                <h1 className="text-2xl font-bold mb-8">Preferences</h1>
+                <p className="text-gray-600">Manage your account preferences here.</p>
+              </div>
+            )}
+
+            {activeTab === 'security' && (
+              <div>
+                <h1 className="text-2xl font-bold mb-8">Security</h1>
+                <p className="text-gray-600">Manage your security settings here.</p>
               </div>
             )}
           </div>
