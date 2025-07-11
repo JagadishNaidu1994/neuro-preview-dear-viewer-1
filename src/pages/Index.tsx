@@ -213,7 +213,7 @@ const Index = () => {
               <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/5eeb8ee4b2ab59e5ded0c9bf065980abc8935f54" alt="Hunger" className="h-6 md:h-10" />
               <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/f9b8a5f574d2bf861d6335d6d7f048fd95c1762c" alt="Bazaar" className="h-6 md:h-10" />
               <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/6def4ee2043594b1f746f42a8a028922876bdbdb" alt="Vanity Fair" className="h-6 md:h-10" />
-              <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/07ff7536b939e5dd4ce4717d7e5a9876c8c01d69" alt="Marie Claire" className="h-6 md:h-10" />
+              
             </div>
             <div className="flex items-center justify-around w-[1200px] md:w-[1708px] flex-shrink-0">
               <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/5128296a9628522dbdca197b9e29a7e3a077757b" alt="Vogue" className="h-6 md:h-10" />
