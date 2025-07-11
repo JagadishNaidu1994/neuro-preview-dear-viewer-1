@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthProvider';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -8,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Edit3, Save, X, Eye, Download } from 'lucide-react';
+import { ExternalLink, Edit3, Save, X, Eye, Download, RotateCcw, Package } from 'lucide-react';
 import OrderDetailsDialog from '@/components/admin/OrderDetailsDialog';
 
 interface Order {
@@ -20,6 +21,17 @@ interface Order {
   tracking_link?: string;
   shipping_address?: any;
   user_email?: string;
+}
+
+interface OrderItem {
+  id: string;
+  product_id: string;
+  quantity: number;
+  price: number;
+  products: {
+    name: string;
+    image_url?: string;
+  };
 }
 
 interface UserProfile {
@@ -80,6 +92,39 @@ const AccountPage = () => {
     enabled: !!user,
   });
 
+  // Fetch order items for each order
+  const { data: allOrderItems = {} } = useQuery({
+    queryKey: ['allOrderItems', orders.map(o => o.id)],
+    queryFn: async () => {
+      if (!orders.length) return {};
+      
+      const itemsMap: Record<string, OrderItem[]> = {};
+      
+      for (const order of orders) {
+        const { data: items, error } = await supabase
+          .from('order_items')
+          .select(`
+            *,
+            products (
+              name,
+              image_url
+            )
+          `)
+          .eq('order_id', order.id);
+
+        if (error) {
+          console.error('Error fetching order items:', error);
+          continue;
+        }
+        
+        itemsMap[order.id] = items || [];
+      }
+      
+      return itemsMap;
+    },
+    enabled: orders.length > 0,
+  });
+
   const updateProfileMutation = useMutation({
     mutationFn: async (updates: Partial<UserProfile>) => {
       if (!user) throw new Error('Not authenticated');
@@ -134,18 +179,7 @@ const AccountPage = () => {
   const handleDownloadInvoice = async (order: Order) => {
     try {
       // Fetch complete order details including items
-      const { data: orderItems, error: itemsError } = await supabase
-        .from('order_items')
-        .select(`
-          *,
-          products (
-            name,
-            image_url
-          )
-        `)
-        .eq('order_id', order.id);
-
-      if (itemsError) throw itemsError;
+      const orderItems = allOrderItems[order.id] || [];
 
       // Generate and download PDF
       await generateInvoicePDF(order, orderItems, profile);
@@ -156,7 +190,7 @@ const AccountPage = () => {
     }
   };
 
-  const generateInvoicePDF = async (order: Order, orderItems: any[], userProfile: UserProfile | undefined) => {
+  const generateInvoicePDF = async (order: Order, orderItems: OrderItem[], userProfile: UserProfile | undefined) => {
     // Import jsPDF dynamically
     const { default: jsPDF } = await import('jspdf');
     const doc = new jsPDF();
@@ -219,6 +253,10 @@ const AccountPage = () => {
     }
   };
 
+  const generateOrderNumber = (orderId: string) => {
+    return orderId.substring(0, 8).toUpperCase();
+  };
+
   if (profileLoading || ordersLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -251,183 +289,132 @@ const AccountPage = () => {
   console.log('Display name:', displayName, 'Profile:', profile, 'User metadata:', user?.user_metadata);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Welcome Section */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Welcome back, {displayName}!
-        </h1>
-        <p className="text-gray-600">{profile?.email || user?.email}</p>
-      </div>
-
-      {/* Profile Section */}
-      <Card className="mb-8">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <div>
-            <CardTitle>Profile Information</CardTitle>
-            <CardDescription>
-              Manage your personal information
-            </CardDescription>
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex">
+        {/* Sidebar */}
+        <div className="w-80 bg-white shadow-sm border-r">
+          <div className="p-6">
+            <div className="flex items-center justify-center w-20 h-20 bg-gray-800 rounded-full mx-auto mb-4">
+              <span className="text-white text-2xl">👤</span>
+            </div>
+            <h2 className="text-xl font-semibold text-center">{displayName}</h2>
+            <p className="text-gray-600 text-center text-sm">{profile?.email || user?.email}</p>
           </div>
-          {!isEditing && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleEditClick}
-              className="flex items-center gap-2"
-            >
-              <Edit3 className="h-4 w-4" />
-              Edit
-            </Button>
-          )}
-        </CardHeader>
-        <CardContent>
-          {isEditing ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="first_name">First Name</Label>
-                  <Input
-                    id="first_name"
-                    value={editForm.first_name}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, first_name: e.target.value }))}
-                    placeholder="Enter first name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="last_name">Last Name</Label>
-                  <Input
-                    id="last_name"
-                    value={editForm.last_name}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, last_name: e.target.value }))}
-                    placeholder="Enter last name"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  value={profile?.email || user?.email || ''}
-                  disabled
-                  className="bg-gray-100 text-gray-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  value={editForm.phone}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Enter phone number"
-                />
-              </div>
-              <div className="flex gap-2 pt-4">
-                <Button 
-                  onClick={handleSaveProfile}
-                  disabled={updateProfileMutation.isPending}
-                  className="flex items-center gap-2"
-                >
-                  <Save className="h-4 w-4" />
-                  {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={handleCancelEdit}
-                  className="flex items-center gap-2"
-                >
-                  <X className="h-4 w-4" />
-                  Cancel
-                </Button>
+          
+          <nav className="px-4">
+            <div className="space-y-1">
+              <div className="flex items-center px-4 py-3 text-sm font-medium text-white bg-gray-900 rounded-lg">
+                <Package className="w-5 h-5 mr-3" />
+                Orders
               </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label className="text-sm font-medium text-gray-700">First Name</Label>
-                <p className="mt-1 text-sm text-gray-900">{profile?.first_name || 'Not set'}</p>
-              </div>
-              <div>
-                <Label className="text-sm font-medium text-gray-700">Last Name</Label>
-                <p className="mt-1 text-sm text-gray-900">{profile?.last_name || 'Not set'}</p>
-              </div>
-              <div>
-                <Label className="text-sm font-medium text-gray-700">Email</Label>
-                <p className="mt-1 text-sm text-gray-900">{profile?.email || user?.email}</p>
-              </div>
-              <div>
-                <Label className="text-sm font-medium text-gray-700">Phone Number</Label>
-                <p className="mt-1 text-sm text-gray-900">{profile?.phone || 'Not set'}</p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </nav>
+        </div>
 
-      {/* Orders Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Orders ({orders.length})</CardTitle>
-          <CardDescription>
-            Track and manage your recent orders
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {orders.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No orders found</p>
-          ) : (
-            <div className="space-y-4">
-              {orders.map((order) => (
-                <div key={order.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <span className="font-medium">Order #{order.id.slice(0, 8)}</span>
-                      <Badge variant={getStatusBadgeVariant(order.status)}>
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                      </Badge>
+        {/* Main Content */}
+        <div className="flex-1 p-8">
+          <div className="max-w-6xl">
+            <h1 className="text-2xl font-bold mb-8">Your Orders ({orders.length})</h1>
+            
+            {orders.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No orders found</p>
+            ) : (
+              <div className="space-y-6">
+                {orders.map((order) => {
+                  const orderItems = allOrderItems[order.id] || [];
+                  const orderNumber = generateOrderNumber(order.id);
+                  
+                  return (
+                    <div key={order.id} className="bg-white rounded-lg shadow-sm border p-6">
+                      {/* Order Header */}
+                      <div className="flex items-center justify-between mb-6">
+                        <div>
+                          <h3 className="text-lg font-semibold">Order #{orderNumber}</h3>
+                          <p className="text-sm text-gray-600">
+                            {new Date(order.created_at).toLocaleDateString('en-US', {
+                              day: 'numeric',
+                              month: 'numeric', 
+                              year: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">
+                            {order.status}
+                          </Badge>
+                          <span className="text-xl font-bold">₹{order.total_amount}</span>
+                        </div>
+                      </div>
+
+                      {/* Order Items */}
+                      <div className="space-y-4 mb-6">
+                        {orderItems.map((item) => (
+                          <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                            <img 
+                              src={item.products?.image_url || '/placeholder.svg'} 
+                              alt={item.products?.name || 'Product'}
+                              className="w-16 h-16 object-cover rounded-lg bg-white"
+                            />
+                            <div className="flex-1">
+                              <h4 className="font-medium">{item.products?.name || 'Unknown Product'}</h4>
+                              <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold">₹{item.price}</p>
+                              <p className="text-sm text-gray-600">View Product</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewOrder(order)}
+                          className="flex items-center gap-2"
+                        >
+                          <Eye className="h-4 w-4" />
+                          View
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownloadInvoice(order)}
+                          className="flex items-center gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          Invoice
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-2"
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                          Reorder
+                        </Button>
+                        {order.status === 'shipped' && order.tracking_link && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(order.tracking_link, '_blank')}
+                            className="flex items-center gap-2"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            Track
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <span className="font-bold text-lg">₹{order.total_amount}</span>
-                  </div>
-                  <div className="text-sm text-gray-600 mb-3">
-                    <p>Ordered: {new Date(order.created_at).toLocaleDateString()}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewOrder(order)}
-                      className="flex items-center gap-2"
-                    >
-                      <Eye className="h-4 w-4" />
-                      View
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDownloadInvoice(order)}
-                      className="flex items-center gap-2"
-                    >
-                      <Download className="h-4 w-4" />
-                      Invoice
-                    </Button>
-                    {order.status === 'shipped' && order.tracking_link && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(order.tracking_link, '_blank')}
-                        className="flex items-center gap-2"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        Track
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Order Details Dialog */}
       <OrderDetailsDialog
