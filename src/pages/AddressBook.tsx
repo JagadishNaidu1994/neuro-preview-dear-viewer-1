@@ -1,82 +1,226 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Breadcrumb from "@/components/Breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FaPlus, FaEdit, FaTrash, FaHome, FaBriefcase } from "react-icons/fa";
+import { useToast } from "@/hooks/use-toast";
 
 interface Address {
   id: string;
-  type: "home" | "work" | "other";
-  firstName: string;
-  lastName: string;
-  address: string;
+  name: string;
+  phone: string;
+  address_line_1: string;
+  address_line_2?: string;
   city: string;
   state: string;
-  zipCode: string;
-  country: string;
-  isDefault: boolean;
+  pincode: string;
+  is_default: boolean;
 }
 
 const AddressBook = () => {
-  const [addresses, setAddresses] = useState<Address[]>([
-    {
-      id: "1",
-      type: "home",
-      firstName: "John",
-      lastName: "Doe",
-      address: "123 Main Street",
-      city: "San Francisco",
-      state: "CA",
-      zipCode: "94102",
-      country: "United States",
-      isDefault: true,
-    },
-    {
-      id: "2",
-      type: "work",
-      firstName: "John",
-      lastName: "Doe",
-      address: "456 Business Ave",
-      city: "San Francisco",
-      state: "CA",
-      zipCode: "94105",
-      country: "United States",
-      isDefault: false,
-    },
-  ]);
-
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    address_line_1: "",
+    address_line_2: "",
+    city: "",
+    state: "",
+    pincode: "",
+    is_default: false,
+  });
 
-  const getAddressIcon = (type: string) => {
-    switch (type) {
-      case "home":
-        return <FaHome className="text-[#514B3D]" />;
-      case "work":
-        return <FaBriefcase className="text-[#514B3D]" />;
-      default:
-        return <FaHome className="text-[#514B3D]" />;
+  useEffect(() => {
+    if (user) {
+      fetchAddresses();
+    }
+  }, [user]);
+
+  const fetchAddresses = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("user_addresses")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching addresses:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load addresses",
+        variant: "destructive",
+      });
+    } else {
+      setAddresses(data || []);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      phone: "",
+      address_line_1: "",
+      address_line_2: "",
+      city: "",
+      state: "",
+      pincode: "",
+      is_default: false,
+    });
+    setEditingAddress(null);
+    setShowForm(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    setLoading(true);
+
+    try {
+      // If setting as default, update all others to non-default first
+      if (formData.is_default) {
+        await supabase
+          .from("user_addresses")
+          .update({ is_default: false })
+          .eq("user_id", user.id);
+      }
+
+      const addressData = {
+        ...formData,
+        user_id: user.id,
+      };
+
+      if (editingAddress) {
+        // Update existing address
+        const { error } = await supabase
+          .from("user_addresses")
+          .update(addressData)
+          .eq("id", editingAddress.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Success",
+          description: "Address updated successfully",
+        });
+      } else {
+        // Create new address
+        const { error } = await supabase
+          .from("user_addresses")
+          .insert([addressData]);
+
+        if (error) throw error;
+
+        toast({
+          title: "Success",
+          description: "Address added successfully",
+        });
+      }
+
+      resetForm();
+      fetchAddresses();
+    } catch (error) {
+      console.error("Error saving address:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save address",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleEdit = (address: Address) => {
     setEditingAddress(address);
+    setFormData({
+      name: address.name,
+      phone: address.phone,
+      address_line_1: address.address_line_1,
+      address_line_2: address.address_line_2 || "",
+      city: address.city,
+      state: address.state,
+      pincode: address.pincode,
+      is_default: address.is_default,
+    });
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this address?")) {
-      setAddresses(addresses.filter(addr => addr.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this address?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("user_addresses")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Address deleted successfully",
+      });
+      fetchAddresses();
+    } catch (error) {
+      console.error("Error deleting address:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete address",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleSetDefault = (id: string) => {
-    setAddresses(addresses.map(addr => ({
-      ...addr,
-      isDefault: addr.id === id
-    })));
+  const handleSetDefault = async (id: string) => {
+    try {
+      // First, set all addresses to non-default
+      await supabase
+        .from("user_addresses")
+        .update({ is_default: false })
+        .eq("user_id", user?.id);
+
+      // Then set the selected address as default
+      const { error } = await supabase
+        .from("user_addresses")
+        .update({ is_default: true })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Default address updated",
+      });
+      fetchAddresses();
+    } catch (error) {
+      console.error("Error setting default address:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update default address",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -94,7 +238,7 @@ const AddressBook = () => {
           </div>
           <Button
             onClick={() => {
-              setEditingAddress(null);
+              resetForm();
               setShowForm(true);
             }}
             className="bg-[#514B3D] hover:bg-[#3f3a2f]"
@@ -106,61 +250,65 @@ const AddressBook = () => {
 
         {!showForm ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {addresses.map((address) => (
-              <div key={address.id} className="bg-white rounded-2xl p-8 shadow-sm">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="flex items-center space-x-3">
-                    {getAddressIcon(address.type)}
-                    <div>
-                      <h3 className="font-semibold capitalize">{address.type} Address</h3>
-                      {address.isDefault && (
-                        <span className="text-xs bg-[#514B3D] text-white px-2 py-1 rounded-full">
-                          Default
-                        </span>
-                      )}
+            {addresses.length === 0 ? (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-500 text-lg">No addresses found</p>
+                <p className="text-gray-400">Add your first address to get started</p>
+              </div>
+            ) : (
+              addresses.map((address) => (
+                <div key={address.id} className="bg-white rounded-2xl p-8 shadow-sm">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center space-x-3">
+                      <FaHome className="text-[#514B3D]" />
+                      <div>
+                        <h3 className="font-semibold">Address</h3>
+                        {address.is_default && (
+                          <span className="text-xs bg-[#514B3D] text-white px-2 py-1 rounded-full">
+                            Default
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(address)}
+                      >
+                        <FaEdit />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDelete(address.id)}
+                      >
+                        <FaTrash />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleEdit(address)}
-                    >
-                      <FaEdit />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleDelete(address.id)}
-                    >
-                      <FaTrash />
-                    </Button>
+
+                  <div className="space-y-2 text-gray-600">
+                    <p className="font-medium text-gray-900">{address.name}</p>
+                    <p>{address.phone}</p>
+                    <p>{address.address_line_1}</p>
+                    {address.address_line_2 && <p>{address.address_line_2}</p>}
+                    <p>{address.city}, {address.state} {address.pincode}</p>
                   </div>
-                </div>
 
-                <div className="space-y-2 text-gray-600">
-                  <p className="font-medium text-gray-900">
-                    {address.firstName} {address.lastName}
-                  </p>
-                  <p>{address.address}</p>
-                  <p>
-                    {address.city}, {address.state} {address.zipCode}
-                  </p>
-                  <p>{address.country}</p>
+                  {!address.is_default && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSetDefault(address.id)}
+                      className="mt-4"
+                    >
+                      Set as Default
+                    </Button>
+                  )}
                 </div>
-
-                {!address.isDefault && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSetDefault(address.id)}
-                    className="mt-4"
-                  >
-                    Set as Default
-                  </Button>
-                )}
-              </div>
-            ))}
+              ))
+            )}
           </div>
         ) : (
           <div className="bg-white rounded-2xl p-10 shadow-sm max-w-2xl">
@@ -168,44 +316,50 @@ const AddressBook = () => {
               {editingAddress ? "Edit Address" : "Add New Address"}
             </h2>
             
-            <form className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label htmlFor="type">Address Type</Label>
-                <select
-                  id="type"
-                  className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#514B3D]"
-                  defaultValue={editingAddress?.type || "home"}
-                >
-                  <option value="home">Home</option>
-                  <option value="work">Work</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    defaultValue={editingAddress?.firstName || ""}
-                    className="mt-2"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    defaultValue={editingAddress?.lastName || ""}
-                    className="mt-2"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="address">Street Address</Label>
+                <Label htmlFor="name">Full Name</Label>
                 <Input
-                  id="address"
-                  defaultValue={editingAddress?.address || ""}
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="mt-2"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className="mt-2"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="address_line_1">Address Line 1</Label>
+                <Input
+                  id="address_line_1"
+                  name="address_line_1"
+                  value={formData.address_line_1}
+                  onChange={handleInputChange}
+                  className="mt-2"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="address_line_2">Address Line 2 (Optional)</Label>
+                <Input
+                  id="address_line_2"
+                  name="address_line_2"
+                  value={formData.address_line_2}
+                  onChange={handleInputChange}
                   className="mt-2"
                 />
               </div>
@@ -215,50 +369,62 @@ const AddressBook = () => {
                   <Label htmlFor="city">City</Label>
                   <Input
                     id="city"
-                    defaultValue={editingAddress?.city || ""}
+                    name="city"
+                    value={formData.city}
+                    onChange={handleInputChange}
                     className="mt-2"
+                    required
                   />
                 </div>
                 <div>
                   <Label htmlFor="state">State</Label>
                   <Input
                     id="state"
-                    defaultValue={editingAddress?.state || ""}
+                    name="state"
+                    value={formData.state}
+                    onChange={handleInputChange}
                     className="mt-2"
+                    required
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="zipCode">ZIP Code</Label>
-                  <Input
-                    id="zipCode"
-                    defaultValue={editingAddress?.zipCode || ""}
-                    className="mt-2"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="country">Country</Label>
-                  <Input
-                    id="country"
-                    defaultValue={editingAddress?.country || "United States"}
-                    className="mt-2"
-                  />
-                </div>
+              <div>
+                <Label htmlFor="pincode">PIN Code</Label>
+                <Input
+                  id="pincode"
+                  name="pincode"
+                  value={formData.pincode}
+                  onChange={handleInputChange}
+                  className="mt-2"
+                  required
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="is_default"
+                  name="is_default"
+                  checked={formData.is_default}
+                  onChange={handleInputChange}
+                  className="rounded"
+                />
+                <Label htmlFor="is_default">Set as default address</Label>
               </div>
 
               <div className="flex gap-4 pt-6">
                 <Button
                   type="submit"
+                  disabled={loading}
                   className="bg-[#514B3D] hover:bg-[#3f3a2f]"
                 >
-                  {editingAddress ? "Update Address" : "Add Address"}
+                  {loading ? "Saving..." : (editingAddress ? "Update Address" : "Add Address")}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setShowForm(false)}
+                  onClick={resetForm}
                 >
                   Cancel
                 </Button>
