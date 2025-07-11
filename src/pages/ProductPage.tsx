@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +6,6 @@ import Header from "../components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FaShoppingCart, FaMinus, FaPlus, FaStar, FaHeart, FaShare } from "react-icons/fa";
-
 interface Product {
   id: string;
   name: string;
@@ -18,7 +16,6 @@ interface Product {
   stock_quantity: number;
   is_active: boolean;
 }
-
 const ProductPage = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
@@ -26,20 +23,17 @@ const ProductPage = () => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
-  const { addToCart } = useCart();
-
+  const {
+    addToCart
+  } = useCart();
   useEffect(() => {
     const fetchProduct = async () => {
       if (!id) return;
-      
       try {
-        const { data, error } = await supabase
-          .from("products")
-          .select("*")
-          .eq("id", id)
-          .eq("is_active", true)
-          .single();
-
+        const {
+          data,
+          error
+        } = await supabase.from("products").select("*").eq("id", id).eq("is_active", true).single();
         if (error) throw error;
         setProduct(data);
       } catch (error) {
@@ -48,29 +42,22 @@ const ProductPage = () => {
         setLoading(false);
       }
     };
-    
     fetchProduct();
   }, [id]);
-
   const handleAddToCart = async () => {
     if (!product) return;
     await addToCart(product.id, quantity);
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         <Header />
         <div className="flex items-center justify-center min-h-[80vh]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#192a3a]"></div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (!product) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         <Header />
         <div className="text-center py-24">
           <h2 className="text-3xl font-bold text-[#192a3a] mb-4">Product not found</h2>
@@ -79,19 +66,12 @@ const ProductPage = () => {
             Go Back
           </Button>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  const productImages = [
-    product.image_url,
-    product.image_url, // Placeholder for additional images
-    product.image_url,
-    product.image_url
-  ];
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+  const productImages = [product.image_url, product.image_url,
+  // Placeholder for additional images
+  product.image_url, product.image_url];
+  return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-16">
@@ -99,32 +79,14 @@ const ProductPage = () => {
           {/* Product Images */}
           <div className="space-y-4">
             <div className="aspect-square bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
-              <img
-                src={productImages[selectedImage]}
-                alt={product.name}
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-              />
+              <img src={productImages[selectedImage]} alt={product.name} className="w-full h-full hover:scale-105 transition-transform duration-500 object-contain" />
             </div>
             
             {/* Image Thumbnails */}
             <div className="grid grid-cols-4 gap-4">
-              {productImages.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-300 ${
-                    selectedImage === index 
-                      ? 'border-[#192a3a] shadow-lg scale-105' 
-                      : 'border-slate-300 hover:border-slate-400'
-                  }`}
-                >
-                  <img
-                    src={image}
-                    alt={`${product.name} ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
+              {productImages.map((image, index) => <button key={index} onClick={() => setSelectedImage(index)} className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-300 ${selectedImage === index ? 'border-[#192a3a] shadow-lg scale-105' : 'border-slate-300 hover:border-slate-400'}`}>
+                  <img src={image} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover" />
+                </button>)}
             </div>
           </div>
 
@@ -136,11 +98,9 @@ const ProductPage = () => {
                 <span className="px-3 py-1 bg-[#192a3a]/10 text-[#192a3a] rounded-full text-sm font-medium">
                   {product.category}
                 </span>
-                {product.stock_quantity <= 10 && product.stock_quantity > 0 && (
-                  <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-medium">
+                {product.stock_quantity <= 10 && product.stock_quantity > 0 && <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-medium">
                     Only {product.stock_quantity} left!
-                  </span>
-                )}
+                  </span>}
               </div>
               
               <h1 className="text-4xl lg:text-5xl font-bold text-[#192a3a] mb-4 leading-tight">
@@ -150,9 +110,7 @@ const ProductPage = () => {
               {/* Rating */}
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <FaStar key={i} className="text-yellow-400 text-lg" />
-                  ))}
+                  {[...Array(5)].map((_, i) => <FaStar key={i} className="text-yellow-400 text-lg" />)}
                 </div>
                 <span className="text-slate-600">(4.8) • 124 reviews</span>
               </div>
@@ -179,28 +137,11 @@ const ProductPage = () => {
               <div className="flex items-center gap-6">
                 <label className="text-lg font-semibold text-[#192a3a]">Quantity:</label>
                 <div className="flex items-center bg-white rounded-2xl border border-slate-300 overflow-hidden shadow-sm">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-4 py-3 hover:bg-slate-100 rounded-none"
-                  >
+                  <Button size="sm" variant="ghost" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-4 py-3 hover:bg-slate-100 rounded-none">
                     <FaMinus />
                   </Button>
-                  <Input
-                    type="number"
-                    value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-20 text-center border-0 focus:ring-0 bg-transparent font-semibold"
-                    min="1"
-                    max={product.stock_quantity}
-                  />
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
-                    className="px-4 py-3 hover:bg-slate-100 rounded-none"
-                  >
+                  <Input type="number" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} className="w-20 text-center border-0 focus:ring-0 bg-transparent font-semibold" min="1" max={product.stock_quantity} />
+                  <Button size="sm" variant="ghost" onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))} className="px-4 py-3 hover:bg-slate-100 rounded-none">
                     <FaPlus />
                   </Button>
                 </div>
@@ -208,40 +149,23 @@ const ProductPage = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
-                {product.stock_quantity > 0 ? (
-                  <>
-                    <Button
-                      onClick={handleAddToCart}
-                      className="flex-1 bg-[#192a3a] hover:bg-[#243447] text-white py-4 px-8 rounded-2xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
-                      disabled={quantity > product.stock_quantity}
-                    >
+                {product.stock_quantity > 0 ? <>
+                    <Button onClick={handleAddToCart} className="flex-1 bg-[#192a3a] hover:bg-[#243447] text-white py-4 px-8 rounded-2xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl" disabled={quantity > product.stock_quantity}>
                       <FaShoppingCart className="mr-3" />
                       Add to Cart - ₹{(product.price * quantity).toFixed(2)}
                     </Button>
                     
-                    <Button
-                      variant="outline"
-                      className="px-6 py-4 rounded-2xl border-2 border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white transition-all duration-300"
-                    >
+                    <Button variant="outline" className="px-6 py-4 rounded-2xl border-2 border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white transition-all duration-300">
                       <FaHeart className="mr-2" />
                       Wishlist
                     </Button>
                     
-                    <Button
-                      variant="outline"
-                      className="px-6 py-4 rounded-2xl border-2 border-slate-300 text-slate-600 hover:bg-slate-100 transition-all duration-300"
-                    >
+                    <Button variant="outline" className="px-6 py-4 rounded-2xl border-2 border-slate-300 text-slate-600 hover:bg-slate-100 transition-all duration-300">
                       <FaShare />
                     </Button>
-                  </>
-                ) : (
-                  <Button
-                    disabled
-                    className="flex-1 bg-slate-400 text-white py-4 px-8 rounded-2xl text-lg font-semibold"
-                  >
+                  </> : <Button disabled className="flex-1 bg-slate-400 text-white py-4 px-8 rounded-2xl text-lg font-semibold">
                     Out of Stock
-                  </Button>
-                )}
+                  </Button>}
               </div>
             </div>
 
@@ -291,8 +215,7 @@ const ProductPage = () => {
             <h2 className="text-3xl font-bold text-[#192a3a] mb-8">Customer Reviews</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map((review) => (
-                <div key={review} className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl p-6 border border-slate-200">
+              {[1, 2, 3].map(review => <div key={review} className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl p-6 border border-slate-200">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 bg-gradient-to-r from-[#192a3a] to-blue-500 rounded-full flex items-center justify-center text-white font-bold">
                       U{review}
@@ -300,9 +223,7 @@ const ProductPage = () => {
                     <div>
                       <h4 className="font-semibold text-[#192a3a]">User {review}</h4>
                       <div className="flex items-center gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <FaStar key={i} className="text-yellow-400 text-sm" />
-                        ))}
+                        {[...Array(5)].map((_, i) => <FaStar key={i} className="text-yellow-400 text-sm" />)}
                       </div>
                     </div>
                   </div>
@@ -310,14 +231,11 @@ const ProductPage = () => {
                     "Excellent product! I've been using it for a month and can see significant improvements. 
                     Highly recommend to anyone looking for quality supplements."
                   </p>
-                </div>
-              ))}
+                </div>)}
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default ProductPage;
