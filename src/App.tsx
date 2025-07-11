@@ -1,3 +1,4 @@
+
 // src/App.tsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -30,7 +31,6 @@ import SampleJournalContent from "@/components/SampleJournalContent";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { CartProvider } from "@/context/CartProvider";
-import AccountSampleData from "@/components/AccountSampleData";
 
 const queryClient = new QueryClient();
 
@@ -40,7 +40,6 @@ const App = () => (
       <Toaster />
       <CartProvider>
         <BrowserRouter>
-          <AccountSampleData />
           <SampleJournalContent />
           <Routes>
             <Route path="/" element={<Index />} />
