@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       setLoading(false);
 
-      // ✅ Sync Google user metadata to users table
+      // ✅ ONLY sync user profile data - NO SAMPLE DATA CREATION
       if (session?.user) {
         const { id, email, user_metadata } = session.user;
 
@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
 
-      // Sync user data when signing in
+      // ONLY sync user data when signing in - NO SAMPLE DATA
       if (event === 'SIGNED_IN' && session?.user) {
         const { id, email, user_metadata } = session.user;
 
