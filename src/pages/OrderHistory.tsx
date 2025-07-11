@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +6,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import { Button } from "@/components/ui/button";
 import { FaEye, FaDownload, FaRedo, FaTruck, FaBox } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { generateInvoicePDF } from "@/utils/invoiceGenerator";
 
 interface Order {
   id: string;
@@ -106,10 +106,26 @@ const OrderHistory = () => {
     window.open(`/product?id=${productId}`, '_blank');
   };
 
-  const handleDownloadInvoice = (orderId: string) => {
-    // Implement invoice download functionality
-    console.log("Downloading invoice for order:", orderId);
-    alert("Invoice download feature will be implemented soon!");
+  const handleDownloadInvoice = async (order: Order) => {
+    try {
+      // Get user email from Supabase
+      let userEmail = user?.email || '';
+      
+      if (!userEmail && user?.id) {
+        const { data: userData } = await supabase
+          .from("users")
+          .select("email")
+          .eq("id", user.id)
+          .single();
+        
+        userEmail = userData?.email || '';
+      }
+      
+      generateInvoicePDF(order, userEmail);
+    } catch (error) {
+      console.error("Error generating invoice:", error);
+      alert("Error generating invoice. Please try again.");
+    }
   };
 
   const handleTrackOrder = (orderId: string) => {
@@ -172,7 +188,7 @@ const OrderHistory = () => {
                         <FaEye className="mr-2" />
                         View Order
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleDownloadInvoice(order.id)}>
+                      <Button size="sm" variant="outline" onClick={() => handleDownloadInvoice(order)}>
                         <FaDownload className="mr-2" />
                         Invoice
                       </Button>
