@@ -17,7 +17,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 
 const AccountPage = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [userProfile, setUserProfile] = useState<any>(null);
   const navigate = useNavigate();
 
@@ -45,7 +45,7 @@ const AccountPage = () => {
   };
 
   const handleLogout = async () => {
-    await signOut();
+    await supabase.auth.signOut();
     navigate('/');
   };
 
