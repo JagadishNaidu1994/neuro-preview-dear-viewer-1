@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,6 +26,7 @@ import {
   FaEdit,
   FaTrash,
   FaPlus,
+  FaSave,
 } from "react-icons/fa";
 
 interface Order {
@@ -35,6 +35,7 @@ interface Order {
   status: string;
   created_at: string;
   shipping_address: any;
+  tracking_link?: string;
   order_items?: {
     id: string;
     quantity: number;
@@ -102,6 +103,14 @@ const AccountPage = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileData, setProfileData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+  });
 
   useEffect(() => {
     const path = location.pathname;
@@ -118,6 +127,12 @@ const AccountPage = () => {
   useEffect(() => {
     if (user) {
       fetchAllData();
+      setProfileData({
+        firstName: user.user_metadata?.given_name || "",
+        lastName: user.user_metadata?.family_name || "",
+        email: user.email || "",
+        phone: user.user_metadata?.phone || "",
+      });
     }
   }, [user]);
 
@@ -125,7 +140,7 @@ const AccountPage = () => {
     if (!user) return;
 
     try {
-      // Fetch orders
+      // Fetch orders with tracking_link
       const { data: ordersData, error: ordersError } = await supabase
         .from("orders")
         .select(`
@@ -204,6 +219,43 @@ const AccountPage = () => {
     }
   };
 
+  const handleProfileUpdate = async () => {
+    if (!user) return;
+    
+    setProfileLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          given_name: profileData.firstName,
+          family_name: profileData.lastName,
+          phone: profileData.phone,
+        },
+      });
+
+      if (error) throw error;
+      
+      // Also update the users table
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({
+          first_name: profileData.firstName,
+          last_name: profileData.lastName,
+          phone: profileData.phone,
+        })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+      
+      setIsEditingProfile(false);
+      alert("Profile updated successfully!");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Error updating profile. Please try again.");
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -244,9 +296,12 @@ const AccountPage = () => {
     alert("Invoice download started!");
   };
 
-  const handleTrackOrder = (orderId: string) => {
-    console.log("Tracking order:", orderId);
-    alert(`Tracking order: ${orderId.slice(0, 8)}...`);
+  const handleTrackOrder = (order: Order) => {
+    if (order.tracking_link) {
+      window.open(order.tracking_link, '_blank');
+    } else {
+      alert("Tracking information not available yet.");
+    }
   };
 
   const handleViewProduct = (productId: string) => {
@@ -274,6 +329,8 @@ const AccountPage = () => {
     );
   }
 
+  const userDisplayName = `${user?.user_metadata?.given_name || ''} ${user?.user_metadata?.family_name || ''}`.trim() || user?.email?.split('@')[0] || 'User';
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -288,7 +345,7 @@ const AccountPage = () => {
                   <FaUser className="text-2xl text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-[#192a3a]">
-                  {user?.user_metadata?.given_name || user?.email?.split('@')[0] || 'User'}
+                  {userDisplayName}
                 </h2>
                 <p className="text-gray-600 text-sm">{user?.email}</p>
               </div>
@@ -331,7 +388,7 @@ const AccountPage = () => {
                     <p className="text-gray-600">Here's your account overview</p>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                       <div className="p-6 bg-[#192a3a] text-white rounded-xl">
                         <div className="flex items-center gap-4">
                           <FaBox className="text-2xl" />
@@ -362,6 +419,104 @@ const AccountPage = () => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Profile Edit Section */}
+                    <Card className="mt-6">
+                      <CardHeader>
+                        <div className="flex justify-between items-center">
+                          <CardTitle className="text-xl text-[#192a3a]">Profile Information</CardTitle>
+                          {!isEditingProfile && (
+                            <Button
+                              onClick={() => setIsEditingProfile(true)}
+                              variant="outline"
+                              className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
+                            >
+                              <FaEdit className="mr-2" />
+                              Edit Profile
+                            </Button>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        {isEditingProfile ? (
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="firstName">First Name</Label>
+                                <Input
+                                  id="firstName"
+                                  value={profileData.firstName}
+                                  onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
+                                  className="mt-1"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="lastName">Last Name</Label>
+                                <Input
+                                  id="lastName"
+                                  value={profileData.lastName}
+                                  onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
+                                  className="mt-1"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <Label htmlFor="email">Email</Label>
+                              <Input
+                                id="email"
+                                value={profileData.email}
+                                disabled
+                                className="mt-1 bg-gray-100"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="phone">Phone Number</Label>
+                              <Input
+                                id="phone"
+                                value={profileData.phone}
+                                onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                                className="mt-1"
+                              />
+                            </div>
+                            <div className="flex gap-3">
+                              <Button
+                                onClick={handleProfileUpdate}
+                                disabled={profileLoading}
+                                className="bg-[#192a3a] hover:bg-[#0f1a26] text-white"
+                              >
+                                <FaSave className="mr-2" />
+                                {profileLoading ? "Saving..." : "Save Changes"}
+                              </Button>
+                              <Button
+                                onClick={() => setIsEditingProfile(false)}
+                                variant="outline"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">First Name:</span>
+                              <span className="font-medium">{profileData.firstName || 'Not set'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Last Name:</span>
+                              <span className="font-medium">{profileData.lastName || 'Not set'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Email:</span>
+                              <span className="font-medium">{profileData.email}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Phone:</span>
+                              <span className="font-medium">{profileData.phone || 'Not set'}</span>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
                   </CardContent>
                 </Card>
               </div>
@@ -423,15 +578,17 @@ const AccountPage = () => {
                                   <FaRedo className="mr-2" />
                                   Reorder
                                 </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => handleTrackOrder(order.id)}
-                                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
-                                >
-                                  <FaTruck className="mr-2" />
-                                  Track
-                                </Button>
+                                {order.status === 'shipped' && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => handleTrackOrder(order)}
+                                    className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
+                                  >
+                                    <FaTruck className="mr-2" />
+                                    Track
+                                  </Button>
+                                )}
                               </div>
                             </div>
                           </div>
