@@ -1,516 +1,977 @@
-
-import React, { useState } from 'react';
-import { useAuth } from '@/context/AuthProvider';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Edit3, Save, X, Eye, Download, RotateCcw, Package, User, MapPin, CreditCard, Gift, Settings, Shield, LogOut } from 'lucide-react';
-import OrderDetailsDialog from '@/components/admin/OrderDetailsDialog';
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthProvider";
+import { useAdmin } from "@/hooks/useAdmin";
+import Header from "@/components/Header";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  FaUser,
+  FaBox,
+  FaAddressBook,
+  FaCreditCard,
+  FaShieldAlt,
+  FaGift,
+  FaCogs,
+  FaSignOutAlt,
+  FaEye,
+  FaDownload,
+  FaRedo,
+  FaTruck,
+  FaEdit,
+  FaTrash,
+  FaPlus,
+  FaSave,
+} from "react-icons/fa";
 
 interface Order {
   id: string;
-  user_id: string;
   total_amount: number;
   status: string;
   created_at: string;
+  shipping_address: any;
   tracking_link?: string;
-  shipping_address?: any;
-  user_email?: string;
+  order_items?: {
+    id: string;
+    quantity: number;
+    price: number;
+    products: {
+      id: string;
+      name: string;
+      image_url: string;
+    };
+  }[];
 }
 
-interface OrderItem {
+interface Address {
   id: string;
-  product_id: string;
-  quantity: number;
-  price: number;
-  products: {
-    name: string;
-    image_url?: string;
-  };
+  name: string;
+  phone: string;
+  address_line_1: string;
+  address_line_2?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  is_default: boolean;
 }
 
-interface UserProfile {
+interface PaymentMethod {
   id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  phone: string | null;
+  card_type: string;
+  card_last_four: string;
+  card_holder_name: string;
+  expiry_month: number;
+  expiry_year: number;
+  is_default: boolean;
+}
+
+interface UserReward {
+  points_balance: number;
+  total_earned: number;
+  total_redeemed: number;
+}
+
+interface UserPreferences {
+  email_notifications: boolean;
+  sms_notifications: boolean;
+  marketing_emails: boolean;
+  newsletter_subscription: boolean;
+}
+
+interface UserSecurity {
+  two_factor_enabled: boolean;
+  login_notifications: boolean;
+  last_password_change: string;
 }
 
 const AccountPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [isEditing, setIsEditing] = useState(false);
+  const { isAdmin } = useAdmin();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [rewards, setRewards] = useState<UserReward | null>(null);
+  const [preferences, setPreferences] = useState<UserPreferences | null>(null);
+  const [security, setSecurity] = useState<UserSecurity | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('orders');
-  const [editForm, setEditForm] = useState({
-    first_name: '',
-    last_name: '',
-    phone: ''
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileData, setProfileData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
   });
 
-  console.log('Current user:', user);
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.includes('/orders')) setActiveTab('orders');
+    else if (path.includes('/profile')) setActiveTab('profile');
+    else if (path.includes('/addresses')) setActiveTab('addresses');
+    else if (path.includes('/payments')) setActiveTab('payments');
+    else if (path.includes('/rewards')) setActiveTab('rewards');
+    else if (path.includes('/preferences')) setActiveTab('preferences');
+    else if (path.includes('/security')) setActiveTab('security');
+    else setActiveTab('dashboard');
+  }, [location]);
 
-  const { data: profile, isLoading: profileLoading } = useQuery({
-    queryKey: ['userProfile', user?.id],
-    queryFn: async () => {
-      if (!user) throw new Error('Not authenticated');
-      
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      if (error) throw error;
-      console.log('Profile data:', data);
-      return data as UserProfile;
-    },
-    enabled: !!user,
-  });
+  useEffect(() => {
+    if (user) {
+      fetchAllData();
+      setProfileData({
+        firstName: user.user_metadata?.given_name || "",
+        lastName: user.user_metadata?.family_name || "",
+        email: user.email || "",
+        phone: user.user_metadata?.phone || "",
+      });
+    }
+  }, [user]);
 
-  const { data: orders = [], isLoading: ordersLoading } = useQuery({
-    queryKey: ['userOrders', user?.id],
-    queryFn: async () => {
-      if (!user) throw new Error('Not authenticated');
-      
-      const { data, error } = await supabase
-        .from('orders')
-        .select('id, user_id, total_amount, status, created_at, tracking_link, shipping_address')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      console.log('Orders data:', data);
-      return data as Order[];
-    },
-    enabled: !!user,
-  });
+  const fetchAllData = async () => {
+    if (!user) return;
 
-  // Fetch order items for each order
-  const { data: allOrderItems = {} } = useQuery({
-    queryKey: ['allOrderItems', orders.map(o => o.id)],
-    queryFn: async () => {
-      if (!orders.length) return {};
-      
-      const itemsMap: Record<string, OrderItem[]> = {};
-      
-      for (const order of orders) {
-        const { data: items, error } = await supabase
-          .from('order_items')
-          .select(`
-            *,
+    try {
+      // Fetch orders with tracking_link
+      const { data: ordersData, error: ordersError } = await supabase
+        .from("orders")
+        .select(`
+          *,
+          order_items (
+            id,
+            quantity,
+            price,
             products (
+              id,
               name,
               image_url
             )
-          `)
-          .eq('order_id', order.id);
+          )
+        `)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
-        if (error) {
-          console.error('Error fetching order items:', error);
-          continue;
-        }
-        
-        itemsMap[order.id] = items || [];
-      }
-      
-      return itemsMap;
-    },
-    enabled: orders.length > 0,
-  });
+      if (ordersError) throw ordersError;
+      setOrders(ordersData || []);
 
-  const updateProfileMutation = useMutation({
-    mutationFn: async (updates: Partial<UserProfile>) => {
-      if (!user) throw new Error('Not authenticated');
-      
-      const { error } = await supabase
-        .from('users')
-        .update(updates)
-        .eq('id', user.id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success('Profile updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['userProfile', user?.id] });
-      setIsEditing(false);
-    },
-    onError: (error) => {
-      toast.error('Failed to update profile');
-      console.error('Profile update error:', error);
-    }
-  });
+      // Fetch addresses
+      const { data: addressesData, error: addressesError } = await supabase
+        .from("user_addresses")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("is_default", { ascending: false });
 
-  const handleEditClick = () => {
-    if (profile) {
-      setEditForm({
-        first_name: profile.first_name || '',
-        last_name: profile.last_name || '',
-        phone: profile.phone || ''
-      });
-    }
-    setIsEditing(true);
-  };
+      if (addressesError) throw addressesError;
+      setAddresses(addressesData || []);
 
-  const handleSaveProfile = () => {
-    updateProfileMutation.mutate(editForm);
-  };
+      // Fetch payment methods
+      const { data: paymentData, error: paymentError } = await supabase
+        .from("user_payment_methods")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("is_default", { ascending: false });
 
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditForm({
-      first_name: '',
-      last_name: '',
-      phone: ''
-    });
-  };
+      if (paymentError) throw paymentError;
+      setPaymentMethods(paymentData || []);
 
-  const handleViewOrder = (order: Order) => {
-    setSelectedOrder({ ...order, user_email: profile?.email });
-    setIsOrderDialogOpen(true);
-  };
+      // Fetch rewards
+      const { data: rewardsData, error: rewardsError } = await supabase
+        .from("user_rewards")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
 
-  const handleDownloadInvoice = async (order: Order) => {
-    try {
-      // Fetch complete order details including items
-      const orderItems = allOrderItems[order.id] || [];
+      if (rewardsError && rewardsError.code !== 'PGRST116') throw rewardsError;
+      setRewards(rewardsData);
 
-      // Generate and download PDF
-      await generateInvoicePDF(order, orderItems, profile);
-      toast.success('Invoice downloaded successfully');
+      // Fetch preferences
+      const { data: preferencesData, error: preferencesError } = await supabase
+        .from("user_preferences")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (preferencesError && preferencesError.code !== 'PGRST116') throw preferencesError;
+      setPreferences(preferencesData);
+
+      // Fetch security settings
+      const { data: securityData, error: securityError } = await supabase
+        .from("user_security")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (securityError && securityError.code !== 'PGRST116') throw securityError;
+      setSecurity(securityData);
+
     } catch (error) {
-      console.error('Error downloading invoice:', error);
-      toast.error('Failed to download invoice');
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const generateInvoicePDF = async (order: Order, orderItems: OrderItem[], userProfile: UserProfile | undefined) => {
-    // Import jsPDF dynamically
-    const { default: jsPDF } = await import('jspdf');
-    const doc = new jsPDF();
+  const handleProfileUpdate = async () => {
+    if (!user) return;
+    
+    setProfileLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          given_name: profileData.firstName,
+          family_name: profileData.lastName,
+          phone: profileData.phone,
+        },
+      });
 
-    // Generate order number
-    const orderNumber = order.id.slice(0, 8).toUpperCase();
-    
-    // Header
-    doc.setFontSize(20);
-    doc.text('INVOICE', 20, 30);
-    
-    doc.setFontSize(12);
-    doc.text(`Order #${orderNumber}`, 20, 45);
-    doc.text(`Date: ${new Date(order.created_at).toLocaleDateString()}`, 20, 55);
-    
-    // Customer Info
-    doc.text('Bill To:', 20, 75);
-    doc.text(`${userProfile?.first_name || ''} ${userProfile?.last_name || ''}`.trim() || 'Customer', 20, 85);
-    doc.text(`${userProfile?.email || ''}`, 20, 95);
-    
-    if (order.shipping_address) {
-      const addr = order.shipping_address;
-      doc.text(`${addr.address_line_1}`, 20, 105);
-      if (addr.address_line_2) doc.text(`${addr.address_line_2}`, 20, 115);
-      doc.text(`${addr.city}, ${addr.state} ${addr.pincode}`, 20, 125);
+      if (error) throw error;
+      
+      // Also update the users table
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({
+          first_name: profileData.firstName,
+          last_name: profileData.lastName,
+          phone: profileData.phone,
+        })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+      
+      setIsEditingProfile(false);
+      alert("Profile updated successfully!");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Error updating profile. Please try again.");
+    } finally {
+      setProfileLoading(false);
     }
-    
-    // Items header
-    let yPos = 150;
-    doc.text('Items:', 20, yPos);
-    yPos += 15;
-    
-    // Items list
-    orderItems.forEach((item) => {
-      doc.text(`${item.products?.name || 'Product'} - Qty: ${item.quantity} - ₹${item.price}`, 25, yPos);
-      yPos += 10;
-    });
-    
-    // Total
-    yPos += 10;
-    doc.setFontSize(14);
-    doc.text(`Total: ₹${order.total_amount}`, 20, yPos);
-    
-    // Download
-    doc.save(`invoice-${orderNumber}.pdf`);
-  };
-
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'delivered':
-        return 'default';
-      case 'shipped':
-        return 'secondary';
-      case 'processing':
-        return 'outline';
-      case 'pending':
-        return 'destructive';
-      default:
-        return 'outline';
-    }
-  };
-
-  const generateOrderNumber = (orderId: string) => {
-    return orderId.substring(0, 8).toUpperCase();
   };
 
   const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast.success('Logged out successfully');
-    } catch (error) {
-      toast.error('Failed to logout');
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Logout error:", error.message);
+    } else {
+      navigate("/");
     }
   };
 
-  if (profileLoading || ordersLoading) {
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    const newPath = tab === 'dashboard' ? '/account' : `/account/${tab}`;
+    window.history.pushState({}, '', newPath);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "delivered":
+        return "bg-emerald-100 text-emerald-700 border-emerald-200";
+      case "shipped":
+        return "bg-blue-100 text-blue-700 border-blue-200";
+      case "processing":
+        return "bg-amber-100 text-amber-700 border-amber-200";
+      case "cancelled":
+        return "bg-red-100 text-red-700 border-red-200";
+      default:
+        return "bg-slate-100 text-slate-700 border-slate-200";
+    }
+  };
+
+  const handleReorder = (order: Order) => {
+    console.log("Reordering:", order.id);
+    alert("Items have been added to your cart!");
+  };
+
+  const handleDownloadInvoice = (orderId: string) => {
+    console.log("Downloading invoice for:", orderId);
+    alert("Invoice download started!");
+  };
+
+  const handleTrackOrder = (order: Order) => {
+    if (order.tracking_link) {
+      window.open(order.tracking_link, '_blank');
+    } else {
+      alert("Tracking information not available yet.");
+    }
+  };
+
+  const handleViewProduct = (productId: string) => {
+    navigate(`/product?id=${productId}`);
+  };
+
+  const sidebarItems = [
+    { id: "dashboard", icon: <FaUser />, label: "Dashboard" },
+    { id: "orders", icon: <FaBox />, label: "Orders" },
+    { id: "addresses", icon: <FaAddressBook />, label: "Addresses" },
+    { id: "payments", icon: <FaCreditCard />, label: "Payments" },
+    { id: "rewards", icon: <FaGift />, label: "Rewards" },
+    { id: "preferences", icon: <FaCogs />, label: "Preferences" },
+    { id: "security", icon: <FaShieldAlt />, label: "Security" },
+  ];
+
+  if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="flex items-center justify-center min-h-[80vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#192a3a]"></div>
         </div>
       </div>
     );
   }
 
-  // Get display name from profile data or user metadata as fallback
-  let displayName = 'User';
-  
-  if (profile?.first_name || profile?.last_name) {
-    // Use profile data if available
-    displayName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
-  } else if (user?.user_metadata) {
-    // Fallback to user metadata from auth
-    const { given_name, family_name, full_name, first_name, last_name } = user.user_metadata;
-    if (given_name || family_name) {
-      displayName = `${given_name || ''} ${family_name || ''}`.trim();
-    } else if (first_name || last_name) {
-      displayName = `${first_name || ''} ${last_name || ''}`.trim();
-    } else if (full_name) {
-      displayName = full_name;
-    }
-  }
-
-  console.log('Display name:', displayName, 'Profile:', profile, 'User metadata:', user?.user_metadata);
-
-  const sidebarItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: User },
-    { id: 'orders', label: 'Orders', icon: Package },
-    { id: 'addresses', label: 'Addresses', icon: MapPin },
-    { id: 'payments', label: 'Payments', icon: CreditCard },
-    { id: 'rewards', label: 'Rewards', icon: Gift },
-    { id: 'preferences', label: 'Preferences', icon: Settings },
-    { id: 'security', label: 'Security', icon: Shield },
-  ];
+  const userDisplayName = `${user?.user_metadata?.given_name || ''} ${user?.user_metadata?.family_name || ''}`.trim() || user?.email?.split('@')[0] || 'User';
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="w-80 bg-white shadow-sm border-r">
-          <div className="p-6">
-            <div className="flex items-center justify-center w-20 h-20 bg-gray-800 rounded-full mx-auto mb-4">
-              <span className="text-white text-2xl">👤</span>
-            </div>
-            <h2 className="text-xl font-semibold text-center">{displayName}</h2>
-            <p className="text-gray-600 text-center text-sm">{profile?.email || user?.email}</p>
-          </div>
-          
-          <nav className="px-4">
-            <div className="space-y-1">
-              {sidebarItems.map((item) => {
-                const Icon = item.icon;
-                return (
+    <div className="min-h-screen bg-white">
+      <Header />
+      
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar */}
+          <div className="lg:w-80 w-full">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+              <div className="text-center mb-8">
+                <div className="w-20 h-20 bg-[#192a3a] rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <FaUser className="text-2xl text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-[#192a3a]">
+                  {userDisplayName}
+                </h2>
+                <p className="text-gray-600 text-sm">{user?.email}</p>
+              </div>
+              
+              <div className="space-y-2">
+                {sidebarItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                    onClick={() => handleTabChange(item.id)}
+                    className={`w-full flex items-center gap-4 p-4 rounded-lg transition-all duration-200 ${
                       activeTab === item.id
-                        ? 'text-white bg-gray-900'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? "bg-[#192a3a] text-white"
+                        : "text-gray-600 hover:bg-gray-100"
                     }`}
                   >
-                    <Icon className="w-5 h-5 mr-3" />
-                    {item.label}
+                    <span className="text-lg">{item.icon}</span>
+                    <span className="font-medium">{item.label}</span>
                   </button>
-                );
-              })}
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <LogOut className="w-5 h-5 mr-3" />
-                Logout
-              </button>
-            </div>
-          </nav>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 p-8">
-          <div className="max-w-6xl">
-            {activeTab === 'orders' && (
-              <>
-                <h1 className="text-2xl font-bold mb-8">Your Orders ({orders.length})</h1>
+                ))}
                 
-                {orders.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">No orders found</p>
-                ) : (
-                  <div className="space-y-6">
-                    {orders.map((order) => {
-                      const orderItems = allOrderItems[order.id] || [];
-                      const orderNumber = generateOrderNumber(order.id);
-                      
-                      return (
-                        <div key={order.id} className="bg-white rounded-lg shadow-sm border p-6">
-                          {/* Order Header */}
-                          <div className="flex items-center justify-between mb-6">
-                            <div>
-                              <h3 className="text-lg font-semibold">Order #{orderNumber}</h3>
-                              <p className="text-sm text-gray-600">
-                                {new Date(order.created_at).toLocaleDateString('en-US', {
-                                  day: 'numeric',
-                                  month: 'numeric', 
-                                  year: 'numeric'
-                                })}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-4">
-                              <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">
-                                {order.status}
-                              </Badge>
-                              <span className="text-xl font-bold">₹{order.total_amount}</span>
-                            </div>
-                          </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-4 p-4 rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200 mt-6"
+                >
+                  <FaSignOutAlt className="text-lg" />
+                  <span className="font-medium">Logout</span>
+                </button>
+              </div>
+            </div>
+          </div>
 
-                          {/* Order Items */}
-                          <div className="space-y-4 mb-6">
-                            {orderItems.map((item) => (
-                              <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                                <img 
-                                  src={item.products?.image_url || '/placeholder.svg'} 
-                                  alt={item.products?.name || 'Product'}
-                                  className="w-16 h-16 object-cover rounded-lg bg-white"
-                                />
-                                <div className="flex-1">
-                                  <h4 className="font-medium">{item.products?.name || 'Unknown Product'}</h4>
-                                  <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-semibold">₹{item.price}</p>
-                                  <p className="text-sm text-gray-600">View Product</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="flex gap-3">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewOrder(order)}
-                              className="flex items-center gap-2"
-                            >
-                              <Eye className="h-4 w-4" />
-                              View
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDownloadInvoice(order)}
-                              className="flex items-center gap-2"
-                            >
-                              <Download className="h-4 w-4" />
-                              Invoice
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex items-center gap-2"
-                            >
-                              <RotateCcw className="h-4 w-4" />
-                              Reorder
-                            </Button>
-                            {order.status === 'shipped' && order.tracking_link && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => window.open(order.tracking_link, '_blank')}
-                                className="flex items-center gap-2"
-                              >
-                                <ExternalLink className="h-4 w-4" />
-                                Track
-                              </Button>
-                            )}
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* Dashboard */}
+            {activeTab === "dashboard" && (
+              <div className="space-y-8">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-3xl text-[#192a3a]">Welcome back!</CardTitle>
+                    <p className="text-gray-600">Here's your account overview</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                      <div className="p-6 bg-[#192a3a] text-white rounded-xl">
+                        <div className="flex items-center gap-4">
+                          <FaBox className="text-2xl" />
+                          <div>
+                            <p className="text-sm opacity-80">Total Orders</p>
+                            <p className="text-2xl font-bold">{orders.length}</p>
                           </div>
                         </div>
-                      );
-                    })}
+                      </div>
+                      
+                      <div className="p-6 bg-gray-100 rounded-xl">
+                        <div className="flex items-center gap-4">
+                          <FaGift className="text-2xl text-[#192a3a]" />
+                          <div>
+                            <p className="text-sm text-gray-600">Reward Points</p>
+                            <p className="text-2xl font-bold text-[#192a3a]">{rewards?.points_balance || 0}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-6 bg-gray-100 rounded-xl">
+                        <div className="flex items-center gap-4">
+                          <FaAddressBook className="text-2xl text-[#192a3a]" />
+                          <div>
+                            <p className="text-sm text-gray-600">Saved Addresses</p>
+                            <p className="text-2xl font-bold text-[#192a3a]">{addresses.length}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Profile Edit Section */}
+                    <Card className="mt-6">
+                      <CardHeader>
+                        <div className="flex justify-between items-center">
+                          <CardTitle className="text-xl text-[#192a3a]">Profile Information</CardTitle>
+                          {!isEditingProfile && (
+                            <Button
+                              onClick={() => setIsEditingProfile(true)}
+                              variant="outline"
+                              className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
+                            >
+                              <FaEdit className="mr-2" />
+                              Edit Profile
+                            </Button>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        {isEditingProfile ? (
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="firstName">First Name</Label>
+                                <Input
+                                  id="firstName"
+                                  value={profileData.firstName}
+                                  onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
+                                  className="mt-1"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="lastName">Last Name</Label>
+                                <Input
+                                  id="lastName"
+                                  value={profileData.lastName}
+                                  onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
+                                  className="mt-1"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <Label htmlFor="email">Email</Label>
+                              <Input
+                                id="email"
+                                value={profileData.email}
+                                disabled
+                                className="mt-1 bg-gray-100"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="phone">Phone Number</Label>
+                              <Input
+                                id="phone"
+                                value={profileData.phone}
+                                onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                                className="mt-1"
+                              />
+                            </div>
+                            <div className="flex gap-3">
+                              <Button
+                                onClick={handleProfileUpdate}
+                                disabled={profileLoading}
+                                className="bg-[#192a3a] hover:bg-[#0f1a26] text-white"
+                              >
+                                <FaSave className="mr-2" />
+                                {profileLoading ? "Saving..." : "Save Changes"}
+                              </Button>
+                              <Button
+                                onClick={() => setIsEditingProfile(false)}
+                                variant="outline"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">First Name:</span>
+                              <span className="font-medium">{profileData.firstName || 'Not set'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Last Name:</span>
+                              <span className="font-medium">{profileData.lastName || 'Not set'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Email:</span>
+                              <span className="font-medium">{profileData.email}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Phone:</span>
+                              <span className="font-medium">{profileData.phone || 'Not set'}</span>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Orders */}
+            {activeTab === "orders" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl text-[#192a3a]">Your Orders ({orders.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {orders.length > 0 ? (
+                    <div className="space-y-6">
+                      {orders.map((order) => (
+                        <div key={order.id} className="border rounded-xl p-6">
+                          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+                            <div>
+                              <h3 className="text-xl font-semibold text-[#192a3a] mb-2">
+                                Order #{order.id.slice(0, 8)}...
+                              </h3>
+                              <div className="flex items-center gap-4 text-sm">
+                                <span className="text-gray-600">
+                                  {new Date(order.created_at).toLocaleDateString()}
+                                </span>
+                                <Badge className={getStatusColor(order.status)}>
+                                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                </Badge>
+                              </div>
+                            </div>
+                            
+                            <div className="flex flex-col lg:items-end gap-3">
+                              <div className="text-2xl font-bold text-[#192a3a]">₹{order.total_amount.toFixed(2)}</div>
+                              <div className="flex flex-wrap gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => setSelectedOrder(order)}
+                                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
+                                >
+                                  <FaEye className="mr-2" />
+                                  View
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => handleDownloadInvoice(order.id)}
+                                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
+                                >
+                                  <FaDownload className="mr-2" />
+                                  Invoice
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => handleReorder(order)}
+                                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
+                                >
+                                  <FaRedo className="mr-2" />
+                                  Reorder
+                                </Button>
+                                {order.status === 'shipped' && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => handleTrackOrder(order)}
+                                    className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
+                                  >
+                                    <FaTruck className="mr-2" />
+                                    Track
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {order.order_items && order.order_items.length > 0 && (
+                            <div className="space-y-3 mt-4">
+                              {order.order_items.map((item, index) => (
+                                <div key={index} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                                  <img
+                                    src={item.products.image_url}
+                                    alt={item.products.name}
+                                    className="w-12 h-12 object-cover rounded-lg"
+                                  />
+                                  <div className="flex-1">
+                                    <h4 className="font-medium text-[#192a3a]">{item.products.name}</h4>
+                                    <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-semibold text-[#192a3a]">₹{(item.price * item.quantity).toFixed(2)}</p>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleViewProduct(item.products.id)}
+                                      className="text-[#192a3a] hover:text-[#0f1a26] p-0 h-auto"
+                                    >
+                                      View Product
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-16">
+                      <FaBox className="mx-auto text-6xl text-gray-400 mb-6" />
+                      <h3 className="text-2xl font-semibold text-[#192a3a] mb-4">No orders yet</h3>
+                      <p className="text-gray-600 mb-8">Start shopping to see your orders here</p>
+                      <Button onClick={() => navigate("/shop-all")} className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
+                        Start Shopping
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Addresses */}
+            {activeTab === "addresses" && (
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-2xl text-[#192a3a]">Saved Addresses</CardTitle>
+                    <Button className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
+                      <FaPlus className="mr-2" />
+                      Add Address
+                    </Button>
                   </div>
-                )}
-              </>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {addresses.map((address) => (
+                      <div key={address.id} className="border rounded-xl p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className="font-semibold text-[#192a3a]">{address.name}</h3>
+                          {address.is_default && (
+                            <Badge className="bg-[#192a3a] text-white">Default</Badge>
+                          )}
+                        </div>
+                        <div className="space-y-2 text-gray-600 mb-4">
+                          <p>{address.address_line_1}</p>
+                          {address.address_line_2 && <p>{address.address_line_2}</p>}
+                          <p>{address.city}, {address.state} {address.pincode}</p>
+                          <p>{address.phone}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white">
+                            <FaEdit className="mr-2" />
+                            Edit
+                          </Button>
+                          <Button size="sm" variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white">
+                            <FaTrash className="mr-2" />
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
-            {activeTab === 'dashboard' && (
-              <div>
-                <h1 className="text-2xl font-bold mb-8">Dashboard</h1>
-                <p className="text-gray-600">Welcome to your account dashboard!</p>
-              </div>
+            {/* Payment Methods */}
+            {activeTab === "payments" && (
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-2xl text-[#192a3a]">Payment Methods</CardTitle>
+                    <Button className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
+                      <FaPlus className="mr-2" />
+                      Add Payment Method
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {paymentMethods.map((method) => (
+                      <div key={method.id} className="border rounded-xl p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex items-center gap-3">
+                            <FaCreditCard className="text-2xl text-[#192a3a]" />
+                            <div>
+                              <h3 className="font-semibold text-[#192a3a]">
+                                {method.card_type} •••• {method.card_last_four}
+                              </h3>
+                              <p className="text-sm text-gray-600">{method.card_holder_name}</p>
+                            </div>
+                          </div>
+                          {method.is_default && (
+                            <Badge className="bg-[#192a3a] text-white">Default</Badge>
+                          )}
+                        </div>
+                        <p className="text-gray-600 mb-4">
+                          Expires {method.expiry_month.toString().padStart(2, '0')}/{method.expiry_year}
+                        </p>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white">
+                            <FaEdit className="mr-2" />
+                            Edit
+                          </Button>
+                          <Button size="sm" variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white">
+                            <FaTrash className="mr-2" />
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
-            {activeTab === 'addresses' && (
-              <div>
-                <h1 className="text-2xl font-bold mb-8">Addresses</h1>
-                <p className="text-gray-600">Manage your shipping addresses here.</p>
-              </div>
+            {/* Rewards */}
+            {activeTab === "rewards" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl text-[#192a3a]">Rewards Program</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="text-center p-6 bg-[#192a3a] text-white rounded-xl">
+                      <FaGift className="text-3xl mx-auto mb-2" />
+                      <p className="text-sm opacity-80">Points Balance</p>
+                      <p className="text-3xl font-bold">{rewards?.points_balance || 0}</p>
+                    </div>
+                    <div className="text-center p-6 bg-gray-100 rounded-xl">
+                      <p className="text-sm text-gray-600">Total Earned</p>
+                      <p className="text-3xl font-bold text-[#192a3a]">{rewards?.total_earned || 0}</p>
+                    </div>
+                    <div className="text-center p-6 bg-gray-100 rounded-xl">
+                      <p className="text-sm text-gray-600">Total Redeemed</p>
+                      <p className="text-3xl font-bold text-[#192a3a]">{rewards?.total_redeemed || 0}</p>
+                    </div>
+                  </div>
+                  <div className="border rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-[#192a3a] mb-4">How to Earn Points</h3>
+                    <ul className="space-y-2 text-gray-600">
+                      <li>• Make a purchase - 1 point per ₹1 spent</li>
+                      <li>• Refer a friend - 100 bonus points</li>
+                      <li>• Write a product review - 25 points</li>
+                      <li>• Birthday bonus - 50 points annually</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
-            {activeTab === 'payments' && (
-              <div>
-                <h1 className="text-2xl font-bold mb-8">Payments</h1>
-                <p className="text-gray-600">Manage your payment methods here.</p>
-              </div>
+            {/* Preferences */}
+            {activeTab === "preferences" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl text-[#192a3a]">Communication Preferences</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-base font-medium">Email Notifications</Label>
+                        <p className="text-sm text-gray-600">Receive order updates and account notifications</p>
+                      </div>
+                      <Switch checked={preferences?.email_notifications || false} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-base font-medium">SMS Notifications</Label>
+                        <p className="text-sm text-gray-600">Receive text messages for important updates</p>
+                      </div>
+                      <Switch checked={preferences?.sms_notifications || false} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-base font-medium">Marketing Emails</Label>
+                        <p className="text-sm text-gray-600">Receive promotional emails and special offers</p>
+                      </div>
+                      <Switch checked={preferences?.marketing_emails || false} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-base font-medium">Newsletter Subscription</Label>
+                        <p className="text-sm text-gray-600">Stay updated with our latest news and tips</p>
+                      </div>
+                      <Switch checked={preferences?.newsletter_subscription || false} />
+                    </div>
+                  </div>
+                  <div className="mt-8">
+                    <Button className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
+                      Save Preferences
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
-            {activeTab === 'rewards' && (
-              <div>
-                <h1 className="text-2xl font-bold mb-8">Rewards</h1>
-                <p className="text-gray-600">View your rewards and points here.</p>
-              </div>
-            )}
+            {/* Security */}
+            {activeTab === "security" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl text-[#192a3a]">Security Settings</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-8">
+                    <div>
+                      <h3 className="text-lg font-semibold text-[#192a3a] mb-4">Change Password</h3>
+                      <div className="space-y-4 max-w-md">
+                        <div>
+                          <Label>Current Password</Label>
+                          <Input type="password" className="mt-1" />
+                        </div>
+                        <div>
+                          <Label>New Password</Label>
+                          <Input type="password" className="mt-1" />
+                        </div>
+                        <div>
+                          <Label>Confirm New Password</Label>
+                          <Input type="password" className="mt-1" />
+                        </div>
+                        <Button className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
+                          Update Password
+                        </Button>
+                      </div>
+                    </div>
 
-            {activeTab === 'preferences' && (
-              <div>
-                <h1 className="text-2xl font-bold mb-8">Preferences</h1>
-                <p className="text-gray-600">Manage your account preferences here.</p>
-              </div>
-            )}
+                    <div className="border-t pt-8">
+                      <h3 className="text-lg font-semibold text-[#192a3a] mb-4">Two-Factor Authentication</h3>
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <p className="font-medium">SMS Authentication</p>
+                          <p className="text-sm text-gray-600">Add extra security with SMS verification</p>
+                        </div>
+                        <Switch checked={security?.two_factor_enabled || false} />
+                      </div>
+                    </div>
 
-            {activeTab === 'security' && (
-              <div>
-                <h1 className="text-2xl font-bold mb-8">Security</h1>
-                <p className="text-gray-600">Manage your security settings here.</p>
-              </div>
+                    <div className="border-t pt-8">
+                      <h3 className="text-lg font-semibold text-[#192a3a] mb-4">Login Notifications</h3>
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <p className="font-medium">Email Login Alerts</p>
+                          <p className="text-sm text-gray-600">Get notified of new device logins</p>
+                        </div>
+                        <Switch checked={security?.login_notifications || false} />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </div>
         </div>
       </div>
 
-      {/* Order Details Dialog */}
-      <OrderDetailsDialog
-        order={selectedOrder}
-        isOpen={isOrderDialogOpen}
-        onClose={() => {
-          setIsOrderDialogOpen(false);
-          setSelectedOrder(null);
-        }}
-      />
+      {/* Order Details Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-[#192a3a]">
+                  Order Details #{selectedOrder.id.slice(0, 8)}...
+                </h3>
+                <Button variant="ghost" onClick={() => setSelectedOrder(null)} className="text-gray-600 hover:text-[#192a3a]">
+                  ✕
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-gray-600 text-sm mb-1">Order Date</p>
+                  <p className="font-medium text-[#192a3a]">{new Date(selectedOrder.created_at).toLocaleDateString()}</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-gray-600 text-sm mb-1">Status</p>
+                  <Badge className={getStatusColor(selectedOrder.status)}>
+                    {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
+                  </Badge>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-gray-600 text-sm mb-1">Total Amount</p>
+                  <p className="text-2xl font-bold text-[#192a3a]">₹{selectedOrder.total_amount.toFixed(2)}</p>
+                </div>
+              </div>
+
+              {selectedOrder.order_items && selectedOrder.order_items.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="font-semibold text-[#192a3a] mb-4 text-lg">Order Items</h4>
+                  <div className="space-y-3">
+                    {selectedOrder.order_items.map((item, index) => (
+                      <div key={index} className="flex items-center gap-4 p-4 border rounded-lg">
+                        <img
+                          src={item.products.image_url}
+                          alt={item.products.name}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
+                        <div className="flex-1">
+                          <h5 className="font-semibold text-[#192a3a]">{item.products.name}</h5>
+                          <p className="text-sm text-gray-600">
+                            Quantity: {item.quantity} × ₹{item.price.toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-[#192a3a]">₹{(item.quantity * item.price).toFixed(2)}</p>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setSelectedOrder(null);
+                              handleViewProduct(item.products.id);
+                            }}
+                            className="text-[#192a3a] hover:text-[#0f1a26] p-0 h-auto"
+                          >
+                            View Product
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-3">
+                <Button 
+                  onClick={() => handleDownloadInvoice(selectedOrder.id)}
+                  className="bg-[#192a3a] hover:bg-[#0f1a26] text-white"
+                >
+                  <FaDownload className="mr-2" />
+                  Download Invoice
+                </Button>
+                <Button 
+                  onClick={() => {
+                    handleReorder(selectedOrder);
+                    setSelectedOrder(null);
+                  }}
+                  variant="outline"
+                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
+                >
+                  <FaRedo className="mr-2" />
+                  Reorder Items
+                </Button>
+                <Button 
+                  onClick={() => handleTrackOrder(selectedOrder.id)}
+                  variant="outline"
+                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
+                >
+                  <FaTruck className="mr-2" />
+                  Track Order
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

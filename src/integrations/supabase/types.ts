@@ -281,7 +281,6 @@ export type Database = {
           shipping_address: Json | null
           status: string | null
           total_amount: number
-          tracking_link: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -291,7 +290,6 @@ export type Database = {
           shipping_address?: Json | null
           status?: string | null
           total_amount: number
-          tracking_link?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -301,7 +299,6 @@ export type Database = {
           shipping_address?: Json | null
           status?: string | null
           total_amount?: number
-          tracking_link?: string | null
           updated_at?: string | null
           user_id?: string | null
         }

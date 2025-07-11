@@ -16,14 +16,14 @@ const AccountSampleData = () => {
     if (!user) return;
 
     try {
-      // Check if sample data already exists for addresses
-      const { data: existingAddresses } = await supabase
-        .from("user_addresses")
+      // Check if sample data already exists
+      const { data: existingOrders } = await supabase
+        .from("orders")
         .select("*")
         .eq("user_id", user.id)
         .limit(1);
 
-      if (existingAddresses && existingAddresses.length > 0) {
+      if (existingOrders && existingOrders.length > 0) {
         console.log("Sample data already exists");
         return;
       }
@@ -53,39 +53,134 @@ const AccountSampleData = () => {
         },
       ];
 
-      const { error: addressError } = await supabase
+      const { data: addressData, error: addressError } = await supabase
         .from("user_addresses")
-        .insert(sampleAddresses);
+        .insert(sampleAddresses)
+        .select();
 
       if (addressError) throw addressError;
 
-      // Create sample payment methods
-      const samplePaymentMethods = [
+      // Create sample products if they don't exist
+      const { data: existingProducts } = await supabase
+        .from("products")
+        .select("*")
+        .limit(1);
+
+      let productIds = [];
+
+      if (!existingProducts || existingProducts.length === 0) {
+        const sampleProducts = [
+          {
+            name: "Focus Mushroom Gummy Delights",
+            description: "Enhance your focus and cognitive function with our premium mushroom gummy blend.",
+            price: 32.00,
+            image_url: "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=300&h=300&fit=crop",
+            category: "supplements",
+            stock_quantity: 100,
+            is_active: true,
+          },
+          {
+            name: "Chill Mushroom Gummy Delights",
+            description: "Relax and unwind with our calming mushroom gummy blend.",
+            price: 32.00,
+            image_url: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300&h=300&fit=crop",
+            category: "supplements",
+            stock_quantity: 100,
+            is_active: true,
+          },
+          {
+            name: "Energy Boost Gummies",
+            description: "Natural energy boost with adaptogenic mushrooms.",
+            price: 28.00,
+            image_url: "https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=300&h=300&fit=crop",
+            category: "supplements",
+            stock_quantity: 100,
+            is_active: true,
+          },
+        ];
+
+        const { data: productData, error: productError } = await supabase
+          .from("products")
+          .insert(sampleProducts)
+          .select();
+
+        if (productError) throw productError;
+        productIds = productData.map(p => p.id);
+      } else {
+        const { data: allProducts } = await supabase
+          .from("products")
+          .select("id")
+          .limit(3);
+        productIds = allProducts?.map(p => p.id) || [];
+      }
+
+      // Create sample orders
+      const sampleOrders = [
         {
           user_id: user.id,
-          card_type: "Visa",
-          card_last_four: "4532",
-          card_holder_name: "John Doe",
-          expiry_month: 12,
-          expiry_year: 2026,
-          is_default: true,
+          total_amount: 64.00,
+          status: "delivered",
+          shipping_address: addressData?.[0] || sampleAddresses[0],
         },
         {
           user_id: user.id,
-          card_type: "MasterCard",
-          card_last_four: "8901",
-          card_holder_name: "John Doe",
-          expiry_month: 8,
-          expiry_year: 2025,
-          is_default: false,
+          total_amount: 32.00,
+          status: "shipped",
+          shipping_address: addressData?.[0] || sampleAddresses[0],
+        },
+        {
+          user_id: user.id,
+          total_amount: 96.00,
+          status: "processing",
+          shipping_address: addressData?.[1] || sampleAddresses[1],
         },
       ];
 
-      const { error: paymentError } = await supabase
-        .from("user_payment_methods")
-        .insert(samplePaymentMethods);
+      const { data: orderData, error: orderError } = await supabase
+        .from("orders")
+        .insert(sampleOrders)
+        .select();
 
-      if (paymentError) throw paymentError;
+      if (orderError) throw orderError;
+
+      // Create sample order items
+      if (orderData && productIds.length > 0) {
+        const sampleOrderItems = [
+          // Order 1 items
+          {
+            order_id: orderData[0].id,
+            product_id: productIds[0],
+            quantity: 2,
+            price: 32.00,
+          },
+          // Order 2 items
+          {
+            order_id: orderData[1].id,
+            product_id: productIds[1],
+            quantity: 1,
+            price: 32.00,
+          },
+          // Order 3 items
+          {
+            order_id: orderData[2].id,
+            product_id: productIds[0],
+            quantity: 1,
+            price: 32.00,
+          },
+          {
+            order_id: orderData[2].id,
+            product_id: productIds[2],
+            quantity: 2,
+            price: 32.00,
+          },
+        ];
+
+        const { error: orderItemsError } = await supabase
+          .from("order_items")
+          .insert(sampleOrderItems);
+
+        if (orderItemsError) throw orderItemsError;
+      }
 
       // Create sample user rewards
       const { error: rewardsError } = await supabase
@@ -99,7 +194,7 @@ const AccountSampleData = () => {
 
       if (rewardsError && rewardsError.code !== '23505') throw rewardsError; // Ignore duplicate key errors
 
-      console.log("Sample data created successfully (addresses, payment methods, and rewards only)");
+      console.log("Sample data created successfully");
     } catch (error) {
       console.error("Error creating sample data:", error);
     }
