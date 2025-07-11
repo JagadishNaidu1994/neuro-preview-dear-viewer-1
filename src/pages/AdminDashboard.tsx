@@ -194,12 +194,15 @@ const AdminDashboard = () => {
         for (const order of ordersData) {
           let userData = null;
           if (order.user_id) {
-            const { data: user } = await supabase
+            const { data: user, error: userError } = await supabase
               .from("users")
               .select("email, first_name, last_name")
               .eq("id", order.user_id)
               .single();
-            userData = user;
+            
+            if (!userError && user) {
+              userData = user;
+            }
           }
           
           ordersWithUsers.push({
@@ -826,9 +829,9 @@ const AdminDashboard = () => {
                         <TableCell>
                           <div>
                             <div className="font-medium">
-                              {order.users?.first_name 
-                                ? `${order.users.first_name} ${order.users.last_name || ''}`.trim()
-                                : order.users?.email || "Guest User"
+                              {order.users?.first_name && order.users?.last_name
+                                ? `${order.users.first_name} ${order.users.last_name}`
+                                : order.users?.first_name || "Guest User"
                               }
                             </div>
                             <div className="text-sm text-gray-500">

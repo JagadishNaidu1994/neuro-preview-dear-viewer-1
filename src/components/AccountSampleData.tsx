@@ -28,7 +28,7 @@ const AccountSampleData = () => {
         return;
       }
 
-      // Create sample addresses
+      // Create exactly 2 sample addresses
       const sampleAddresses = [
         {
           user_id: user.id,
@@ -114,7 +114,7 @@ const AccountSampleData = () => {
         productIds = allProducts?.map(p => p.id) || [];
       }
 
-      // Create sample orders
+      // Create exactly 3 sample orders with specific statuses
       const sampleOrders = [
         {
           user_id: user.id,
@@ -146,21 +146,21 @@ const AccountSampleData = () => {
       // Create sample order items
       if (orderData && productIds.length > 0) {
         const sampleOrderItems = [
-          // Order 1 items
+          // Order 1 items (delivered)
           {
             order_id: orderData[0].id,
             product_id: productIds[0],
             quantity: 2,
             price: 32.00,
           },
-          // Order 2 items
+          // Order 2 items (shipped)
           {
             order_id: orderData[1].id,
             product_id: productIds[1],
             quantity: 1,
             price: 32.00,
           },
-          // Order 3 items
+          // Order 3 items (processing)
           {
             order_id: orderData[2].id,
             product_id: productIds[0],
