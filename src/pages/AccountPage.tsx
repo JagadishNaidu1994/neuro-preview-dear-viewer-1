@@ -117,8 +117,6 @@ const AccountPage = () => {
     lastName: "",
     email: "",
     phone: "",
-    dateOfBirth: "",
-    gender: ""
   });
 
   useEffect(() => {
@@ -141,8 +139,6 @@ const AccountPage = () => {
         lastName: user.user_metadata?.family_name || "",
         email: user.email || "",
         phone: user.user_metadata?.phone || "",
-        dateOfBirth: user.user_metadata?.date_of_birth || "",
-        gender: user.user_metadata?.gender || ""
       });
     }
   }, [user]);
@@ -252,8 +248,6 @@ const AccountPage = () => {
           given_name: profileData.firstName,
           family_name: profileData.lastName,
           phone: profileData.phone,
-          date_of_birth: profileData.dateOfBirth,
-          gender: profileData.gender
         },
       });
 
@@ -266,7 +260,6 @@ const AccountPage = () => {
           first_name: profileData.firstName,
           last_name: profileData.lastName,
           phone: profileData.phone,
-          date_of_birth: profileData.dateOfBirth || null
         })
         .eq("id", user.id);
 
@@ -471,6 +464,7 @@ const AccountPage = () => {
   const sidebarItems = [
     { id: "dashboard", icon: <FaUser />, label: "Dashboard" },
     { id: "orders", icon: <FaBox />, label: "Orders" },
+    { id: "subscriptions", icon: <FaSub />, label: "Subscriptions" },
     { id: "addresses", icon: <FaAddressBook />, label: "Addresses" },
     { id: "payments", icon: <FaCreditCard />, label: "Payments" },
     { id: "rewards", icon: <FaGift />, label: "Rewards" },
@@ -641,33 +635,6 @@ const AccountPage = () => {
                                 className="mt-1"
                               />
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                                <Input
-                                  id="dateOfBirth"
-                                  type="date"
-                                  value={profileData.dateOfBirth}
-                                  onChange={(e) => setProfileData({...profileData, dateOfBirth: e.target.value})}
-                                  className="mt-1"
-                                />
-                              </div>
-                              <div>
-                                <Label htmlFor="gender">Gender</Label>
-                                <select
-                                  id="gender"
-                                  value={profileData.gender}
-                                  onChange={(e) => setProfileData({...profileData, gender: e.target.value})}
-                                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#192a3a]"
-                                >
-                                  <option value="">Select Gender</option>
-                                  <option value="male">Male</option>
-                                  <option value="female">Female</option>
-                                  <option value="other">Other</option>
-                                  <option value="prefer_not_to_say">Prefer not to say</option>
-                                </select>
-                              </div>
-                            </div>
                             <div className="flex gap-3">
                               <Button
                                 onClick={handleProfileUpdate}
@@ -702,19 +669,6 @@ const AccountPage = () => {
                             <div className="flex justify-between">
                               <span className="text-gray-600">Phone:</span>
                               <span className="font-medium">{profileData.phone || 'Not set'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Date of Birth:</span>
-                              <span className="font-medium">{profileData.dateOfBirth || 'Not set'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Gender:</span>
-                              <span className="font-medium">
-                                {profileData.gender 
-                                  ? profileData.gender.charAt(0).toUpperCase() + profileData.gender.slice(1).replace('_', ' ')
-                                  : 'Not set'
-                                }
-                              </span>
                             </div>
                           </div>
                         )}
@@ -847,7 +801,7 @@ const AccountPage = () => {
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <CardTitle className="text-2xl text-[#192a3a]">Saved Addresses</CardTitle>
-                    <Button className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
+                    <Button onClick={() => navigate("/shop-all")}  className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
                       <FaPlus className="mr-2" />
                       Add Address
                     </Button>
