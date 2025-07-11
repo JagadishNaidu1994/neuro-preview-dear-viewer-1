@@ -71,31 +71,7 @@ const AccountSampleData = () => {
       if (!existingProducts || existingProducts.length === 0) {
         const sampleProducts = [
           {
-            name: "Focus Mushroom Gummy Delights",
-            description: "Enhance your focus and cognitive function with our premium mushroom gummy blend.",
-            price: 32.00,
-            image_url: "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=300&h=300&fit=crop",
-            category: "supplements",
-            stock_quantity: 100,
-            is_active: true,
-          },
-          {
-            name: "Chill Mushroom Gummy Delights",
-            description: "Relax and unwind with our calming mushroom gummy blend.",
-            price: 32.00,
-            image_url: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300&h=300&fit=crop",
-            category: "supplements",
-            stock_quantity: 100,
-            is_active: true,
-          },
-          {
-            name: "Energy Boost Gummies",
-            description: "Natural energy boost with adaptogenic mushrooms.",
-            price: 28.00,
-            image_url: "https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=300&h=300&fit=crop",
-            category: "supplements",
-            stock_quantity: 100,
-            is_active: true,
+            
           },
         ];
 
