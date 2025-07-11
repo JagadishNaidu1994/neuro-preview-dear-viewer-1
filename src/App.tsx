@@ -40,89 +40,91 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Toaster />
-      <CartProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/shop-all" element={<ShopAll />} />
-            <Route path="/product" element={<ProductPage />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/order-success" element={<OrderSuccess />} />
-            <Route path="/contact-us" element={<ContactUs />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/shipping-returns" element={<ShippingReturns />} />
-            <Route path="/the-science" element={<TheScience />} />
-            <Route path="/ethos" element={<Ethos />} />
-            <Route path="/herbal" element={<HerbalIndex />} />
-            <Route path="/journal" element={<Journal />} />
-            <Route path="/journal/:id" element={<JournalPost />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            
-            {/* Protected Account Routes */}
-            <Route path="/account" element={
-              <ProtectedRoute>
-                <AccountPage />
-              </ProtectedRoute>
-            )} />
-            <Route path="/profile-settings" element={
-              <ProtectedRoute>
-                <ProfileSettings />
-              </ProtectedRoute>
-            )} />
-            <Route path="/address-book" element={
-              <ProtectedRoute>
-                <AddressBook />
-              </ProtectedRoute>
-            )} />
-            <Route path="/payment-methods" element={
-              <ProtectedRoute>
-                <PaymentMethods />
-              </ProtectedRoute>
-            )} />
-            <Route path="/order-history" element={
-              <ProtectedRoute>
-                <OrderHistory />
-              </ProtectedRoute>
-            )} />
-            <Route path="/rewards" element={
-              <ProtectedRoute>
-                <Rewards />
-              </ProtectedRoute>
-            )} />
-            <Route path="/refer-friend" element={
-              <ProtectedRoute>
-                <ReferFriend />
-              </ProtectedRoute>
-            )} />
-            <Route path="/preferences" element={
-              <ProtectedRoute>
-                <Preferences />
-              </ProtectedRoute>
-            )} />
-            <Route path="/security" element={
-              <ProtectedRoute>
-                <Security />
-              </ProtectedRoute>
-            )} />
-            <Route path="/subscriptions" element={
-              <ProtectedRoute>
-                <Subscriptions />
-              </ProtectedRoute>
-            )} />
-            
-            {/* Admin Routes */}
-            <Route path="/admin" element={
-              <AdminProtectedRoute>
-                <AdminDashboard />
-              </AdminProtectedRoute>
-            )} />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </CartProvider>
+      <AuthProvider>
+        <Toaster />
+        <CartProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/shop-all" element={<ShopAll />} />
+              <Route path="/product" element={<ProductPage />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/order-success" element={<OrderSuccess />} />
+              <Route path="/contact-us" element={<ContactUs />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/shipping-returns" element={<ShippingReturns />} />
+              <Route path="/the-science" element={<TheScience />} />
+              <Route path="/ethos" element={<Ethos />} />
+              <Route path="/herbal" element={<HerbalIndex />} />
+              <Route path="/journal" element={<Journal />} />
+              <Route path="/journal/:id" element={<JournalPost />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              
+              {/* Protected Account Routes */}
+              <Route path="/account" element={
+                <ProtectedRoute>
+                  <AccountPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile-settings" element={
+                <ProtectedRoute>
+                  <ProfileSettings />
+                </ProtectedRoute>
+              } />
+              <Route path="/address-book" element={
+                <ProtectedRoute>
+                  <AddressBook />
+                </ProtectedRoute>
+              } />
+              <Route path="/payment-methods" element={
+                <ProtectedRoute>
+                  <PaymentMethods />
+                </ProtectedRoute>
+              } />
+              <Route path="/order-history" element={
+                <ProtectedRoute>
+                  <OrderHistory />
+                </ProtectedRoute>
+              } />
+              <Route path="/rewards" element={
+                <ProtectedRoute>
+                  <Rewards />
+                </ProtectedRoute>
+              } />
+              <Route path="/refer-friend" element={
+                <ProtectedRoute>
+                  <ReferFriend />
+                </ProtectedRoute>
+              } />
+              <Route path="/preferences" element={
+                <ProtectedRoute>
+                  <Preferences />
+                </ProtectedRoute>
+              } />
+              <Route path="/security" element={
+                <ProtectedRoute>
+                  <Security />
+                </ProtectedRoute>
+              } />
+              <Route path="/subscriptions" element={
+                <ProtectedRoute>
+                  <Subscriptions />
+                </ProtectedRoute>
+              } />
+              
+              {/* Admin Routes */}
+              <Route path="/admin" element={
+                <AdminProtectedRoute>
+                  <AdminDashboard />
+                </AdminProtectedRoute>
+              } />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </CartProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
