@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +10,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FaMinus, FaPlus, FaStar } from "react-icons/fa";
 import { ChevronDown } from "lucide-react";
-
 interface Product {
   id: string;
   name: string;
@@ -22,7 +20,6 @@ interface Product {
   stock_quantity: number;
   is_active: boolean;
 }
-
 const ProductPage = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
@@ -33,19 +30,17 @@ const ProductPage = () => {
   const [servings, setServings] = useState("30");
   const [purchaseType, setPurchaseType] = useState("one-time");
   const [subscriptionFrequency, setSubscriptionFrequency] = useState("4");
-  const { addToCart } = useCart();
-
+  const {
+    addToCart
+  } = useCart();
   useEffect(() => {
     const fetchProduct = async () => {
       if (!id) return;
       try {
-        const { data, error } = await supabase
-          .from("products")
-          .select("*")
-          .eq("id", id)
-          .eq("is_active", true)
-          .single();
-
+        const {
+          data,
+          error
+        } = await supabase.from("products").select("*").eq("id", id).eq("is_active", true).single();
         if (error) throw error;
         setProduct(data);
       } catch (error) {
@@ -54,29 +49,22 @@ const ProductPage = () => {
         setLoading(false);
       }
     };
-
     fetchProduct();
   }, [id]);
-
   const handleAddToCart = async () => {
     if (!product) return;
     await addToCart(product.id, quantity);
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-white">
+    return <div className="min-h-screen bg-white">
         <Header />
         <div className="flex items-center justify-center min-h-[80vh]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (!product) {
-    return (
-      <div className="min-h-screen bg-white">
+    return <div className="min-h-screen bg-white">
         <Header />
         <div className="text-center py-24">
           <h2 className="text-3xl font-bold text-black mb-4">Product not found</h2>
@@ -85,25 +73,18 @@ const ProductPage = () => {
             Go Back
           </Button>
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // Use images from the Kanva template reference
-  const productImages = [
-    "https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png",
-    "https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png",
-    "https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png"
-  ];
+  const productImages = ["https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png", "https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png", "https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png"];
 
   // Calculate prices based on servings and purchase type
   const basePrice = servings === "30" ? 100 : 180;
   const subscriptionDiscount = purchaseType === "subscribe" ? 0.8 : 1; // 20% off
   const finalPrice = basePrice * subscriptionDiscount;
   const pricePerServing = finalPrice / parseInt(servings);
-
-  return (
-    <div className="min-h-screen bg-white">
+  return <div className="min-h-screen bg-white">
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
@@ -112,32 +93,14 @@ const ProductPage = () => {
           <div className="space-y-4">
             {/* Main Image */}
             <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
-              <img 
-                src={productImages[selectedImage]} 
-                alt={product.name} 
-                className="w-full h-full object-contain hover:scale-105 transition-transform duration-300" 
-              />
+              <img src={productImages[selectedImage]} alt={product.name} className="w-full h-full object-contain hover:scale-105 transition-transform duration-300" />
             </div>
             
             {/* Thumbnail Images */}
             <div className="flex gap-4">
-              {productImages.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                    selectedImage === index 
-                      ? 'border-black' 
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <img 
-                    src={image} 
-                    alt={`${product.name} ${index + 1}`} 
-                    className="w-full h-full object-cover" 
-                  />
-                </button>
-              ))}
+              {productImages.map((image, index) => <button key={index} onClick={() => setSelectedImage(index)} className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${selectedImage === index ? 'border-black' : 'border-gray-200 hover:border-gray-300'}`}>
+                  <img src={image} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover" />
+                </button>)}
             </div>
           </div>
 
@@ -154,9 +117,7 @@ const ProductPage = () => {
               {/* Reviews */}
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <FaStar key={i} className="text-yellow-400 text-sm" />
-                  ))}
+                  {[...Array(5)].map((_, i) => <FaStar key={i} className="text-yellow-400 text-sm" />)}
                 </div>
                 <span className="text-sm text-gray-600">4.9 • 20,564 Reviews</span>
                 <span className="text-sm text-green-600 font-medium">✓ Verified</span>
@@ -206,8 +167,7 @@ const ProductPage = () => {
                     </div>
                     <p className="text-xs text-gray-500">Pouch only, free gifts NOT included</p>
                     
-                    {purchaseType === "subscribe" && (
-                      <div className="mt-3">
+                    {purchaseType === "subscribe" && <div className="mt-3">
                         <Select value={subscriptionFrequency} onValueChange={setSubscriptionFrequency}>
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select frequency" />
@@ -218,8 +178,7 @@ const ProductPage = () => {
                             <SelectItem value="8">Every 8 weeks</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>
-                    )}
+                      </div>}
                   </div>
                 </div>
               </RadioGroup>
@@ -243,28 +202,11 @@ const ProductPage = () => {
               <div>
                 <label className="block text-sm font-medium text-black mb-2">Quantity:</label>
                 <div className="flex items-center border border-gray-300 rounded">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3 py-2 hover:bg-gray-100 rounded-none border-0"
-                  >
+                  <Button size="sm" variant="ghost" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 hover:bg-gray-100 rounded-none border-0">
                     <FaMinus className="w-3 h-3" />
                   </Button>
-                  <Input
-                    type="number"
-                    value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-16 text-center border-0 focus:ring-0 bg-transparent"
-                    min="1"
-                    max={product.stock_quantity}
-                  />
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
-                    className="px-3 py-2 hover:bg-gray-100 rounded-none border-0"
-                  >
+                  <Input type="number" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} className="w-16 text-center border-0 focus:ring-0 bg-transparent" min="1" max={product.stock_quantity} />
+                  <Button size="sm" variant="ghost" onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))} className="px-3 py-2 hover:bg-gray-100 rounded-none border-0">
                     <FaPlus className="w-3 h-3" />
                   </Button>
                 </div>
@@ -272,21 +214,12 @@ const ProductPage = () => {
             </div>
 
             {/* Add to Cart Button */}
-            <Button
-              onClick={handleAddToCart}
-              className="w-full bg-black hover:bg-gray-800 text-white py-4 px-8 rounded font-medium text-base"
-              disabled={product.stock_quantity === 0}
-            >
+            <Button onClick={handleAddToCart} className="w-full bg-black hover:bg-gray-800 text-white py-4 px-8 rounded font-medium text-base" disabled={product.stock_quantity === 0}>
               {product.stock_quantity > 0 ? `ADD TO CART - £${finalPrice.toFixed(2)}` : 'Out of Stock'}
             </Button>
 
             {/* Additional Options */}
-            <div className="text-center">
-              <Button variant="outline" className="w-full mb-2 border-blue-500 text-blue-500 hover:bg-blue-50">
-                Buy with ShopPay
-              </Button>
-              <button className="text-sm text-gray-600 underline">More payment options</button>
-            </div>
+            
 
             {/* Benefits */}
             <div className="grid grid-cols-2 gap-4 text-sm">
@@ -372,11 +305,7 @@ const ProductPage = () => {
             {/* Product 1 */}
             <div className="text-center space-y-4">
               <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
-                <img 
-                  src="https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png" 
-                  alt="Clay Clean" 
-                  className="w-full h-full object-contain hover:scale-105 transition-transform duration-300" 
-                />
+                <img src="https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png" alt="Clay Clean" className="w-full h-full object-contain hover:scale-105 transition-transform duration-300" />
               </div>
               <div>
                 <h3 className="font-medium text-black">Clay Clean</h3>
@@ -387,11 +316,7 @@ const ProductPage = () => {
             {/* Product 2 */}
             <div className="text-center space-y-4">
               <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
-                <img 
-                  src="https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png" 
-                  alt="Deep Clean" 
-                  className="w-full h-full object-contain hover:scale-105 transition-transform duration-300" 
-                />
+                <img src="https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png" alt="Deep Clean" className="w-full h-full object-contain hover:scale-105 transition-transform duration-300" />
               </div>
               <div>
                 <h3 className="font-medium text-black">Deep Clean</h3>
@@ -402,11 +327,7 @@ const ProductPage = () => {
             {/* Product 3 */}
             <div className="text-center space-y-4">
               <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
-                <img 
-                  src="https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png" 
-                  alt="Gentle Clean" 
-                  className="w-full h-full object-contain hover:scale-105 transition-transform duration-300" 
-                />
+                <img src="https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png" alt="Gentle Clean" className="w-full h-full object-contain hover:scale-105 transition-transform duration-300" />
               </div>
               <div>
                 <h3 className="font-medium text-black">Gentle Clean</h3>
@@ -422,11 +343,7 @@ const ProductPage = () => {
             <h2 className="text-2xl md:text-3xl font-light mb-2">Stay Updated.</h2>
             <p className="text-gray-300 mb-6">Stay Radiant</p>
             <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <Input
-                type="email"
-                placeholder="Enter your mail"
-                className="flex-1 bg-white text-black border-0 focus:ring-2 focus:ring-white/20"
-              />
+              <Input type="email" placeholder="Enter your mail" className="flex-1 bg-white text-black border-0 focus:ring-2 focus:ring-white/20" />
               <Button className="bg-white text-black hover:bg-gray-100 px-8">
                 Submit
               </Button>
@@ -434,16 +351,10 @@ const ProductPage = () => {
           </div>
           {/* Decorative elements */}
           <div className="absolute right-8 bottom-8 opacity-20">
-            <img 
-              src="https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png" 
-              alt="Decorative" 
-              className="w-24 h-24 object-contain" 
-            />
+            <img src="https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png" alt="Decorative" className="w-24 h-24 object-contain" />
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default ProductPage;
