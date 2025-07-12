@@ -32,6 +32,7 @@ import {
   FaSave,
   FaPaypal,
   FaGooglePay,
+  FaCalendarAlt,
 } from "react-icons/fa";
 import jsPDF from 'jspdf';
 
@@ -118,6 +119,8 @@ const AccountPage = () => {
     lastName: "",
     email: "",
     phone: "",
+    dateOfBirth: "",
+    gender: "",
   });
 
   useEffect(() => {
@@ -636,6 +639,34 @@ const AccountPage = () => {
                                 className="mt-1"
                               />
                             </div>
+                            <div>
+                              <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                              <Input
+                                id="dateOfBirth"
+                                type="date"
+                                value={profileData.dateOfBirth}
+                                onChange={(e) => setProfileData({...profileData, dateOfBirth: e.target.value})}
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="gender">Gender</Label>
+                              <Select
+                                id="gender"
+                                value={profileData.gender}
+                                onChange={(e) => setProfileData({...profileData, gender: e.target.value})}
+                                className="mt-1"
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select gender" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="male">Male</SelectItem>
+                                  <SelectItem value="female">Female</SelectItem>
+                                  <SelectItem value="other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                             <div className="flex gap-3">
                               <Button
                                 onClick={handleProfileUpdate}
@@ -670,6 +701,14 @@ const AccountPage = () => {
                             <div className="flex justify-between">
                               <span className="text-gray-600">Phone:</span>
                               <span className="font-medium">{profileData.phone || 'Not set'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Date of Birth:</span>
+                              <span className="font-medium">{profileData.dateOfBirth || 'Not set'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Gender:</span>
+                              <span className="font-medium">{profileData.gender || 'Not set'}</span>
                             </div>
                           </div>
                         )}
