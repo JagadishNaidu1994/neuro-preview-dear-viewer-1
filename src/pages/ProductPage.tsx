@@ -9,7 +9,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FaMinus, FaPlus, FaStar } from "react-icons/fa";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Package, Clock } from "lucide-react";
+
 interface Product {
   id: string;
   name: string;
@@ -20,6 +21,7 @@ interface Product {
   stock_quantity: number;
   is_active: boolean;
 }
+
 const ProductPage = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
@@ -28,11 +30,12 @@ const ProductPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [servings, setServings] = useState("30");
-  const [purchaseType, setPurchaseType] = useState("one-time");
+  const [purchaseType, setPurchaseType] = useState("subscribe"); // Default to subscription
   const [subscriptionFrequency, setSubscriptionFrequency] = useState("4");
   const {
     addToCart
   } = useCart();
+
   useEffect(() => {
     const fetchProduct = async () => {
       if (!id) return;
@@ -51,10 +54,12 @@ const ProductPage = () => {
     };
     fetchProduct();
   }, [id]);
+
   const handleAddToCart = async () => {
     if (!product) return;
     await addToCart(product.id, quantity);
   };
+
   if (loading) {
     return <div className="min-h-screen bg-white">
         <Header />
@@ -63,6 +68,7 @@ const ProductPage = () => {
         </div>
       </div>;
   }
+
   if (!product) {
     return <div className="min-h-screen bg-white">
         <Header />
@@ -76,29 +82,35 @@ const ProductPage = () => {
       </div>;
   }
 
-  // Use images from the Kanva template reference
-  const productImages = ["https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png", "https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png", "https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png"];
+  // Sample nutrition supplement bottle images
+  const productImages = [
+    "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&h=500&fit=crop",
+    "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&h=500&fit=crop",
+    "https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=500&h=500&fit=crop",
+    "https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=500&h=500&fit=crop"
+  ];
 
   // Calculate prices based on servings and purchase type
   const basePrice = servings === "30" ? 100 : 180;
   const subscriptionDiscount = purchaseType === "subscribe" ? 0.8 : 1; // 20% off
   const finalPrice = basePrice * subscriptionDiscount;
   const pricePerServing = finalPrice / parseInt(servings);
+
   return <div className="min-h-screen bg-white">
       <Header />
       
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+      <div className="w-full px-4 md:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-none">
           {/* Product Images */}
           <div className="space-y-4">
             {/* Main Image */}
-            <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
-              <img src={productImages[selectedImage]} alt={product.name} className="w-full h-full object-contain hover:scale-105 transition-transform duration-300" />
+            <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden">
+              <img src={productImages[selectedImage]} alt={product.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             
             {/* Thumbnail Images */}
-            <div className="flex gap-4">
-              {productImages.map((image, index) => <button key={index} onClick={() => setSelectedImage(index)} className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${selectedImage === index ? 'border-black' : 'border-gray-200 hover:border-gray-300'}`}>
+            <div className="flex gap-3">
+              {productImages.map((image, index) => <button key={index} onClick={() => setSelectedImage(index)} className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-200 ${selectedImage === index ? 'border-black shadow-md' : 'border-gray-200 hover:border-gray-300'}`}>
                   <img src={image} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover" />
                 </button>)}
             </div>
@@ -132,18 +144,21 @@ const ProductPage = () => {
             </div>
 
             {/* Servings Selection */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center gap-4">
-                <span className="text-sm font-medium text-black">🥄 {servings} servings</span>
+                <span className="text-sm font-medium text-black flex items-center gap-2">
+                  <Package className="w-4 h-4" />
+                  {servings} servings
+                </span>
                 <span className="text-sm text-gray-600">£{pricePerServing.toFixed(2)} per serving</span>
               </div>
             </div>
 
             {/* Purchase Options */}
-            <div className="space-y-4">
-              <RadioGroup value={purchaseType} onValueChange={setPurchaseType} className="space-y-4">
+            <div className="space-y-3">
+              <RadioGroup value={purchaseType} onValueChange={setPurchaseType} className="space-y-3">
                 {/* One-time Purchase */}
-                <div className="flex items-center space-x-3 p-4 border rounded-lg">
+                <div className="flex items-center space-x-3 p-4 border rounded-xl transition-all hover:border-gray-300">
                   <RadioGroupItem value="one-time" id="one-time" />
                   <div className="flex-1 flex justify-between items-center">
                     <label htmlFor="one-time" className="font-medium cursor-pointer">One-time Purchase</label>
@@ -152,13 +167,13 @@ const ProductPage = () => {
                 </div>
 
                 {/* Subscribe & Save */}
-                <div className="flex items-center space-x-3 p-4 border rounded-lg bg-blue-50">
+                <div className="flex items-center space-x-3 p-4 border-2 border-blue-500 rounded-xl bg-blue-50">
                   <RadioGroupItem value="subscribe" id="subscribe" />
                   <div className="flex-1">
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center gap-2">
                         <label htmlFor="subscribe" className="font-medium cursor-pointer">Subscribe & Save</label>
-                        <span className="bg-black text-white px-2 py-1 rounded text-xs font-bold">20% OFF</span>
+                        <span className="bg-black text-white px-2 py-1 rounded-full text-xs font-bold">20% OFF</span>
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-lg">£{finalPrice.toFixed(2)}</span>
@@ -169,7 +184,8 @@ const ProductPage = () => {
                     
                     {purchaseType === "subscribe" && <div className="mt-3">
                         <Select value={subscriptionFrequency} onValueChange={setSubscriptionFrequency}>
-                          <SelectTrigger className="w-full">
+                          <SelectTrigger className="w-full rounded-xl">
+                            <Clock className="w-4 h-4 mr-2" />
                             <SelectValue placeholder="Select frequency" />
                           </SelectTrigger>
                           <SelectContent>
@@ -184,12 +200,13 @@ const ProductPage = () => {
               </RadioGroup>
             </div>
 
-            {/* Servings & Quantity */}
+            {/* Servings & Quantity - More Compact */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-black mb-2">Servings:</label>
                 <Select value={servings} onValueChange={setServings}>
-                  <SelectTrigger>
+                  <SelectTrigger className="rounded-xl">
+                    <Package className="w-4 h-4 mr-2" />
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -201,12 +218,12 @@ const ProductPage = () => {
               
               <div>
                 <label className="block text-sm font-medium text-black mb-2">Quantity:</label>
-                <div className="flex items-center border border-gray-300 rounded">
-                  <Button size="sm" variant="ghost" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 hover:bg-gray-100 rounded-none border-0">
+                <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden">
+                  <Button size="sm" variant="ghost" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 hover:bg-gray-100 rounded-none border-0 h-full">
                     <FaMinus className="w-3 h-3" />
                   </Button>
-                  <Input type="number" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} className="w-16 text-center border-0 focus:ring-0 bg-transparent" min="1" max={product.stock_quantity} />
-                  <Button size="sm" variant="ghost" onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))} className="px-3 py-2 hover:bg-gray-100 rounded-none border-0">
+                  <Input type="number" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} className="w-16 text-center border-0 focus:ring-0 bg-transparent h-full" min="1" max={product.stock_quantity} />
+                  <Button size="sm" variant="ghost" onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))} className="px-3 py-2 hover:bg-gray-100 rounded-none border-0 h-full">
                     <FaPlus className="w-3 h-3" />
                   </Button>
                 </div>
@@ -214,15 +231,12 @@ const ProductPage = () => {
             </div>
 
             {/* Add to Cart Button */}
-            <Button onClick={handleAddToCart} className="w-full bg-black hover:bg-gray-800 text-white py-4 px-8 rounded font-medium text-base" disabled={product.stock_quantity === 0}>
+            <Button onClick={handleAddToCart} className="w-full bg-black hover:bg-gray-800 text-white py-4 px-8 rounded-xl font-medium text-base" disabled={product.stock_quantity === 0}>
               {product.stock_quantity > 0 ? `ADD TO CART - £${finalPrice.toFixed(2)}` : 'Out of Stock'}
             </Button>
 
-            {/* Additional Options */}
-            
-
-            {/* Benefits */}
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            {/* Benefits - More Compact Grid */}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                 <span>Skip or cancel anytime</span>
@@ -233,7 +247,7 @@ const ProductPage = () => {
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span>20% off every subscription order</span>
+                <span>20% off every subscription</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
@@ -245,14 +259,14 @@ const ProductPage = () => {
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span>Skip or cancel anytime</span>
+                <span>Fast delivery</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Product Information with Collapsible */}
-        <div className="max-w-4xl mx-auto mt-16 space-y-4">
+        <div className="w-full mt-16 space-y-4">
           <Collapsible>
             <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
               Description
@@ -302,10 +316,9 @@ const ProductPage = () => {
         <div className="mt-16 pt-16 border-t border-gray-200">
           <h2 className="text-2xl font-light text-black mb-8 text-center">You might like</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Product 1 */}
             <div className="text-center space-y-4">
               <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
-                <img src="https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png" alt="Clay Clean" className="w-full h-full object-contain hover:scale-105 transition-transform duration-300" />
+                <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop" alt="Clay Clean" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
               </div>
               <div>
                 <h3 className="font-medium text-black">Clay Clean</h3>
@@ -313,10 +326,9 @@ const ProductPage = () => {
               </div>
             </div>
 
-            {/* Product 2 */}
             <div className="text-center space-y-4">
               <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
-                <img src="https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png" alt="Deep Clean" className="w-full h-full object-contain hover:scale-105 transition-transform duration-300" />
+                <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop" alt="Deep Clean" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
               </div>
               <div>
                 <h3 className="font-medium text-black">Deep Clean</h3>
@@ -324,10 +336,9 @@ const ProductPage = () => {
               </div>
             </div>
 
-            {/* Product 3 */}
             <div className="text-center space-y-4">
               <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
-                <img src="https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png" alt="Gentle Clean" className="w-full h-full object-contain hover:scale-105 transition-transform duration-300" />
+                <img src="https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=400&h=400&fit=crop" alt="Gentle Clean" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
               </div>
               <div>
                 <h3 className="font-medium text-black">Gentle Clean</h3>
@@ -343,18 +354,18 @@ const ProductPage = () => {
             <h2 className="text-2xl md:text-3xl font-light mb-2">Stay Updated.</h2>
             <p className="text-gray-300 mb-6">Stay Radiant</p>
             <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <Input type="email" placeholder="Enter your mail" className="flex-1 bg-white text-black border-0 focus:ring-2 focus:ring-white/20" />
-              <Button className="bg-white text-black hover:bg-gray-100 px-8">
+              <Input type="email" placeholder="Enter your mail" className="flex-1 bg-white text-black border-0 focus:ring-2 focus:ring-white/20 rounded-xl" />
+              <Button className="bg-white text-black hover:bg-gray-100 px-8 rounded-xl">
                 Submit
               </Button>
             </div>
           </div>
-          {/* Decorative elements */}
           <div className="absolute right-8 bottom-8 opacity-20">
-            <img src="https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png" alt="Decorative" className="w-24 h-24 object-contain" />
+            <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=100&h=100&fit=crop" alt="Decorative" className="w-24 h-24 object-contain" />
           </div>
         </div>
       </div>
     </div>;
 };
+
 export default ProductPage;
