@@ -7,7 +7,9 @@ import Header from "../components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { FaMinus, FaPlus } from "react-icons/fa";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FaMinus, FaPlus, FaStar } from "react-icons/fa";
 import { ChevronDown } from "lucide-react";
 
 interface Product {
@@ -28,6 +30,9 @@ const ProductPage = () => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [servings, setServings] = useState("30");
+  const [purchaseType, setPurchaseType] = useState("one-time");
+  const [subscriptionFrequency, setSubscriptionFrequency] = useState("4");
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -91,6 +96,12 @@ const ProductPage = () => {
     "https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png"
   ];
 
+  // Calculate prices based on servings and purchase type
+  const basePrice = servings === "30" ? 100 : 180;
+  const subscriptionDiscount = purchaseType === "subscribe" ? 0.8 : 1; // 20% off
+  const finalPrice = basePrice * subscriptionDiscount;
+  const pricePerServing = finalPrice / parseInt(servings);
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -135,32 +146,102 @@ const ProductPage = () => {
             {/* Product Title */}
             <div>
               <h1 className="text-3xl lg:text-4xl font-light text-black mb-2">
-                {product.name}
+                {product.name} - Ceremonial Grade
               </h1>
+              <p className="text-gray-600 mb-2">Energy, focus, beauty</p>
+              <p className="text-sm text-gray-500 mb-4">The creamiest, ceremonial-grade Matcha with Lion's Mane, Tremella, and essential B vitamins.</p>
+              
+              {/* Reviews */}
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-black text-sm">★</span>
+                    <FaStar key={i} className="text-yellow-400 text-sm" />
                   ))}
                 </div>
-                <span className="text-sm text-gray-600">(4.8)</span>
+                <span className="text-sm text-gray-600">4.9 • 20,564 Reviews</span>
+                <span className="text-sm text-green-600 font-medium">✓ Verified</span>
+              </div>
+
+              {/* Tags */}
+              <div className="flex gap-2 mb-6">
+                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">⚡ Energy</span>
+                <span className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-xs font-medium">🎯 Focus</span>
+                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">✨ Skin</span>
               </div>
             </div>
 
-            {/* Price */}
-            <div className="text-2xl font-light text-black">
-              ₹{product.price}
-            </div>
-
-            {/* Description */}
-            <p className="text-gray-600 leading-relaxed">
-              {product.description}
-            </p>
-
-            {/* Quantity Selector */}
+            {/* Servings Selection */}
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                <span className="text-sm font-medium text-black">Quantity:</span>
+                <span className="text-sm font-medium text-black">🥄 {servings} servings</span>
+                <span className="text-sm text-gray-600">£{pricePerServing.toFixed(2)} per serving</span>
+              </div>
+            </div>
+
+            {/* Purchase Options */}
+            <div className="space-y-4">
+              <RadioGroup value={purchaseType} onValueChange={setPurchaseType} className="space-y-4">
+                {/* One-time Purchase */}
+                <div className="flex items-center space-x-3 p-4 border rounded-lg">
+                  <RadioGroupItem value="one-time" id="one-time" />
+                  <div className="flex-1 flex justify-between items-center">
+                    <label htmlFor="one-time" className="font-medium cursor-pointer">One-time Purchase</label>
+                    <span className="font-bold text-lg">£{basePrice.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                {/* Subscribe & Save */}
+                <div className="flex items-center space-x-3 p-4 border rounded-lg bg-blue-50">
+                  <RadioGroupItem value="subscribe" id="subscribe" />
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center gap-2">
+                        <label htmlFor="subscribe" className="font-medium cursor-pointer">Subscribe & Save</label>
+                        <span className="bg-black text-white px-2 py-1 rounded text-xs font-bold">20% OFF</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-bold text-lg">£{finalPrice.toFixed(2)}</span>
+                        <p className="text-sm text-gray-600">£{pricePerServing.toFixed(2)} per serving</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500">Pouch only, free gifts NOT included</p>
+                    
+                    {purchaseType === "subscribe" && (
+                      <div className="mt-3">
+                        <Select value={subscriptionFrequency} onValueChange={setSubscriptionFrequency}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select frequency" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="4">Every 4 weeks (Bestseller)</SelectItem>
+                            <SelectItem value="6">Every 6 weeks</SelectItem>
+                            <SelectItem value="8">Every 8 weeks</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Servings & Quantity */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">Servings:</label>
+                <Select value={servings} onValueChange={setServings}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="30">30 servings</SelectItem>
+                    <SelectItem value="60">60 servings</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">Quantity:</label>
                 <div className="flex items-center border border-gray-300 rounded">
                   <Button
                     size="sm"
@@ -188,64 +269,100 @@ const ProductPage = () => {
                   </Button>
                 </div>
               </div>
-
-              {/* Add to Cart Button */}
-              <Button
-                onClick={handleAddToCart}
-                className="w-full bg-black hover:bg-gray-800 text-white py-3 px-8 rounded font-medium text-sm"
-                disabled={product.stock_quantity === 0}
-              >
-                {product.stock_quantity > 0 ? 'Add to Cart' : 'Out of Stock'}
-              </Button>
             </div>
 
-            {/* Product Information with Collapsible */}
-            <div className="space-y-4 pt-8">
-              <Collapsible>
-                <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
-                  Description
-                  <ChevronDown className="w-4 h-4" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
-                  This premium product is crafted with the finest ingredients to deliver exceptional results. 
-                  Our carefully formulated blend ensures maximum effectiveness while being gentle on your skin.
-                </CollapsibleContent>
-              </Collapsible>
+            {/* Add to Cart Button */}
+            <Button
+              onClick={handleAddToCart}
+              className="w-full bg-black hover:bg-gray-800 text-white py-4 px-8 rounded font-medium text-base"
+              disabled={product.stock_quantity === 0}
+            >
+              {product.stock_quantity > 0 ? `ADD TO CART - £${finalPrice.toFixed(2)}` : 'Out of Stock'}
+            </Button>
 
-              <Collapsible>
-                <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
-                  Ingredients
-                  <ChevronDown className="w-4 h-4" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
-                  Natural clay, purified water, organic botanical extracts, essential oils, and carefully selected 
-                  active ingredients that work synergistically to provide optimal benefits.
-                </CollapsibleContent>
-              </Collapsible>
+            {/* Additional Options */}
+            <div className="text-center">
+              <Button variant="outline" className="w-full mb-2 border-blue-500 text-blue-500 hover:bg-blue-50">
+                Buy with ShopPay
+              </Button>
+              <button className="text-sm text-gray-600 underline">More payment options</button>
+            </div>
 
-              <Collapsible>
-                <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
-                  How to Use
-                  <ChevronDown className="w-4 h-4" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
-                  Apply a generous amount to clean, damp skin. Gently massage in circular motions for 1-2 minutes. 
-                  Leave on for 10-15 minutes, then rinse thoroughly with warm water. Use 2-3 times per week for best results.
-                </CollapsibleContent>
-              </Collapsible>
-
-              <Collapsible>
-                <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
-                  Shipping & Returns
-                  <ChevronDown className="w-4 h-4" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
-                  Free shipping on orders over ₹500. Standard delivery takes 3-5 business days. 
-                  We offer a 30-day return policy for unopened products in original packaging.
-                </CollapsibleContent>
-              </Collapsible>
+            {/* Benefits */}
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span>Skip or cancel anytime</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span>30-day money back</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span>20% off every subscription order</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span>Award-winning quality</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span>Free shipping over £50</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span>Skip or cancel anytime</span>
+              </div>
             </div>
           </div>
+        </div>
+
+        {/* Product Information with Collapsible */}
+        <div className="max-w-4xl mx-auto mt-16 space-y-4">
+          <Collapsible>
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
+              Description
+              <ChevronDown className="w-4 h-4" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
+              This premium product is crafted with the finest ingredients to deliver exceptional results. 
+              Our carefully formulated blend ensures maximum effectiveness while being gentle on your skin.
+            </CollapsibleContent>
+          </Collapsible>
+
+          <Collapsible>
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
+              Ingredients
+              <ChevronDown className="w-4 h-4" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
+              Natural clay, purified water, organic botanical extracts, essential oils, and carefully selected 
+              active ingredients that work synergistically to provide optimal benefits.
+            </CollapsibleContent>
+          </Collapsible>
+
+          <Collapsible>
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
+              How to Use
+              <ChevronDown className="w-4 h-4" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
+              Apply a generous amount to clean, damp skin. Gently massage in circular motions for 1-2 minutes. 
+              Leave on for 10-15 minutes, then rinse thoroughly with warm water. Use 2-3 times per week for best results.
+            </CollapsibleContent>
+          </Collapsible>
+
+          <Collapsible>
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
+              Shipping & Returns
+              <ChevronDown className="w-4 h-4" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
+              Free shipping on orders over £50. Standard delivery takes 3-5 business days. 
+              We offer a 30-day return policy for unopened products in original packaging.
+            </CollapsibleContent>
+          </Collapsible>
         </div>
 
         {/* You Might Like Section */}
