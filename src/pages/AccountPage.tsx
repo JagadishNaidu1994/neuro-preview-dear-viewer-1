@@ -143,6 +143,8 @@ const AccountPage = () => {
         lastName: user.user_metadata?.family_name || "",
         email: user.email || "",
         phone: user.user_metadata?.phone || "",
+        dateOfBirth: user.user_metadata?.date_of_birth || "",
+        gender: user.user_metadata?.gender || "",
       });
     }
   }, [user]);
@@ -252,6 +254,8 @@ const AccountPage = () => {
           given_name: profileData.firstName,
           family_name: profileData.lastName,
           phone: profileData.phone,
+          date_of_birth: profileData.dateOfBirth,
+          gender: profileData.gender,
         },
       });
 
@@ -264,6 +268,7 @@ const AccountPage = () => {
           first_name: profileData.firstName,
           last_name: profileData.lastName,
           phone: profileData.phone,
+          date_of_birth: profileData.dateOfBirth,
         })
         .eq("id", user.id);
 
@@ -652,12 +657,10 @@ const AccountPage = () => {
                             <div>
                               <Label htmlFor="gender">Gender</Label>
                               <Select
-                                id="gender"
                                 value={profileData.gender}
-                                onChange={(e) => setProfileData({...profileData, gender: e.target.value})}
-                                className="mt-1"
+                                onValueChange={(value) => setProfileData({...profileData, gender: value})}
                               >
-                                <SelectTrigger>
+                                <SelectTrigger className="mt-1">
                                   <SelectValue placeholder="Select gender" />
                                 </SelectTrigger>
                                 <SelectContent>
