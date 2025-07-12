@@ -6,8 +6,9 @@ import { useCart } from "@/context/CartProvider";
 import Header from "../components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { FaMinus, FaPlus } from "react-icons/fa";
+import { ChevronDown } from "lucide-react";
 
 interface Product {
   id: string;
@@ -198,49 +199,51 @@ const ProductPage = () => {
               </Button>
             </div>
 
-            {/* Product Information Accordion */}
+            {/* Product Information with Collapsible */}
             <div className="space-y-4 pt-8">
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="description" className="border-gray-200">
-                  <AccordionTrigger className="text-left font-medium text-black hover:no-underline">
-                    Description
-                  </AccordionTrigger>
-                  <AccordionContent className="text-gray-600 leading-relaxed">
-                    This premium product is crafted with the finest ingredients to deliver exceptional results. 
-                    Our carefully formulated blend ensures maximum effectiveness while being gentle on your skin.
-                  </AccordionContent>
-                </AccordionItem>
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
+                  Description
+                  <ChevronDown className="w-4 h-4" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
+                  This premium product is crafted with the finest ingredients to deliver exceptional results. 
+                  Our carefully formulated blend ensures maximum effectiveness while being gentle on your skin.
+                </CollapsibleContent>
+              </Collapsible>
 
-                <AccordionItem value="ingredients" className="border-gray-200">
-                  <AccordionTrigger className="text-left font-medium text-black hover:no-underline">
-                    Ingredients
-                  </AccordionTrigger>
-                  <AccordionContent className="text-gray-600 leading-relaxed">
-                    Natural clay, purified water, organic botanical extracts, essential oils, and carefully selected 
-                    active ingredients that work synergistically to provide optimal benefits.
-                  </AccordionContent>
-                </AccordionItem>
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
+                  Ingredients
+                  <ChevronDown className="w-4 h-4" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
+                  Natural clay, purified water, organic botanical extracts, essential oils, and carefully selected 
+                  active ingredients that work synergistically to provide optimal benefits.
+                </CollapsibleContent>
+              </Collapsible>
 
-                <AccordionItem value="usage" className="border-gray-200">
-                  <AccordionTrigger className="text-left font-medium text-black hover:no-underline">
-                    How to Use
-                  </AccordionTrigger>
-                  <AccordionContent className="text-gray-600 leading-relaxed">
-                    Apply a generous amount to clean, damp skin. Gently massage in circular motions for 1-2 minutes. 
-                    Leave on for 10-15 minutes, then rinse thoroughly with warm water. Use 2-3 times per week for best results.
-                  </AccordionContent>
-                </AccordionItem>
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
+                  How to Use
+                  <ChevronDown className="w-4 h-4" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
+                  Apply a generous amount to clean, damp skin. Gently massage in circular motions for 1-2 minutes. 
+                  Leave on for 10-15 minutes, then rinse thoroughly with warm water. Use 2-3 times per week for best results.
+                </CollapsibleContent>
+              </Collapsible>
 
-                <AccordionItem value="shipping" className="border-gray-200">
-                  <AccordionTrigger className="text-left font-medium text-black hover:no-underline">
-                    Shipping & Returns
-                  </AccordionTrigger>
-                  <AccordionContent className="text-gray-600 leading-relaxed">
-                    Free shipping on orders over ₹500. Standard delivery takes 3-5 business days. 
-                    We offer a 30-day return policy for unopened products in original packaging.
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
+                  Shipping & Returns
+                  <ChevronDown className="w-4 h-4" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
+                  Free shipping on orders over ₹500. Standard delivery takes 3-5 business days. 
+                  We offer a 30-day return policy for unopened products in original packaging.
+                </CollapsibleContent>
+              </Collapsible>
             </div>
           </div>
         </div>
