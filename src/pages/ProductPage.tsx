@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,7 +6,9 @@ import { useCart } from "@/context/CartProvider";
 import Header from "../components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FaShoppingCart, FaMinus, FaPlus, FaStar, FaHeart, FaShare } from "react-icons/fa";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { FaMinus, FaPlus } from "react-icons/fa";
+
 interface Product {
   id: string;
   name: string;
@@ -16,6 +19,7 @@ interface Product {
   stock_quantity: number;
   is_active: boolean;
 }
+
 const ProductPage = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
@@ -23,17 +27,19 @@ const ProductPage = () => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
-  const {
-    addToCart
-  } = useCart();
+  const { addToCart } = useCart();
+
   useEffect(() => {
     const fetchProduct = async () => {
       if (!id) return;
       try {
-        const {
-          data,
-          error
-        } = await supabase.from("products").select("*").eq("id", id).eq("is_active", true).single();
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .eq("id", id)
+          .eq("is_active", true)
+          .single();
+
         if (error) throw error;
         setProduct(data);
       } catch (error) {
@@ -42,200 +48,282 @@ const ProductPage = () => {
         setLoading(false);
       }
     };
+
     fetchProduct();
   }, [id]);
+
   const handleAddToCart = async () => {
     if (!product) return;
     await addToCart(product.id, quantity);
   };
+
   if (loading) {
-    return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    return (
+      <div className="min-h-screen bg-white">
         <Header />
         <div className="flex items-center justify-center min-h-[80vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#192a3a]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
         </div>
-      </div>;
+      </div>
+    );
   }
+
   if (!product) {
-    return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    return (
+      <div className="min-h-screen bg-white">
         <Header />
         <div className="text-center py-24">
-          <h2 className="text-3xl font-bold text-[#192a3a] mb-4">Product not found</h2>
-          <p className="text-slate-600 mb-8">The product you're looking for doesn't exist or has been removed.</p>
-          <Button onClick={() => window.history.back()} className="bg-[#192a3a] hover:bg-[#243447]">
+          <h2 className="text-3xl font-bold text-black mb-4">Product not found</h2>
+          <p className="text-gray-600 mb-8">The product you're looking for doesn't exist or has been removed.</p>
+          <Button onClick={() => window.history.back()} className="bg-black hover:bg-gray-800 text-white">
             Go Back
           </Button>
         </div>
-      </div>;
+      </div>
+    );
   }
-  const productImages = [product.image_url, product.image_url,
-  // Placeholder for additional images
-  product.image_url, product.image_url];
-  return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+
+  // Use images from the Kanva template reference
+  const productImages = [
+    "https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png",
+    "https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png",
+    "https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png"
+  ];
+
+  return (
+    <div className="min-h-screen bg-white">
       <Header />
       
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
           {/* Product Images */}
           <div className="space-y-4">
-            <div className="aspect-square bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
-              <img src={productImages[selectedImage]} alt={product.name} className="w-full h-full hover:scale-105 transition-transform duration-500 object-contain" />
+            {/* Main Image */}
+            <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
+              <img 
+                src={productImages[selectedImage]} 
+                alt={product.name} 
+                className="w-full h-full object-contain hover:scale-105 transition-transform duration-300" 
+              />
             </div>
             
-            {/* Image Thumbnails */}
-            <div className="grid grid-cols-4 gap-4">
-              {productImages.map((image, index) => <button key={index} onClick={() => setSelectedImage(index)} className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-300 ${selectedImage === index ? 'border-[#192a3a] shadow-lg scale-105' : 'border-slate-300 hover:border-slate-400'}`}>
-                  <img src={image} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover" />
-                </button>)}
+            {/* Thumbnail Images */}
+            <div className="flex gap-4">
+              {productImages.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedImage(index)}
+                  className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                    selectedImage === index 
+                      ? 'border-black' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <img 
+                    src={image} 
+                    alt={`${product.name} ${index + 1}`} 
+                    className="w-full h-full object-cover" 
+                  />
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Product Details */}
-          <div className="space-y-8">
-            {/* Header */}
+          <div className="space-y-6">
+            {/* Product Title */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="px-3 py-1 bg-[#192a3a]/10 text-[#192a3a] rounded-full text-sm font-medium">
-                  {product.category}
-                </span>
-                {product.stock_quantity <= 10 && product.stock_quantity > 0 && <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-medium">
-                    Only {product.stock_quantity} left!
-                  </span>}
-              </div>
-              
-              <h1 className="text-4xl lg:text-5xl font-bold text-[#192a3a] mb-4 leading-tight">
+              <h1 className="text-3xl lg:text-4xl font-light text-black mb-2">
                 {product.name}
               </h1>
-              
-              {/* Rating */}
               <div className="flex items-center gap-2 mb-4">
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => <FaStar key={i} className="text-yellow-400 text-lg" />)}
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i} className="text-black text-sm">★</span>
+                  ))}
                 </div>
-                <span className="text-slate-600">(4.8) • 124 reviews</span>
+                <span className="text-sm text-gray-600">(4.8)</span>
               </div>
-              
-              <p className="text-lg text-slate-700 leading-relaxed">
-                {product.description}
-              </p>
             </div>
 
             {/* Price */}
-            <div className="bg-gradient-to-r from-[#192a3a]/5 to-blue-50 rounded-2xl p-6">
-              <div className="flex items-baseline gap-4">
-                <span className="text-4xl font-bold text-[#192a3a]">₹{product.price}</span>
-                <span className="text-xl text-slate-500 line-through">₹{(product.price * 1.2).toFixed(0)}</span>
-                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
-                  17% OFF
-                </span>
-              </div>
-              <p className="text-slate-600 mt-2">Inclusive of all taxes • Free shipping on orders over ₹500</p>
+            <div className="text-2xl font-light text-black">
+              ₹{product.price}
             </div>
+
+            {/* Description */}
+            <p className="text-gray-600 leading-relaxed">
+              {product.description}
+            </p>
 
             {/* Quantity Selector */}
             <div className="space-y-4">
-              <div className="flex items-center gap-6">
-                <label className="text-lg font-semibold text-[#192a3a]">Quantity:</label>
-                <div className="flex items-center bg-white rounded-2xl border border-slate-300 overflow-hidden shadow-sm">
-                  <Button size="sm" variant="ghost" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-4 py-3 hover:bg-slate-100 rounded-none">
-                    <FaMinus />
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-medium text-black">Quantity:</span>
+                <div className="flex items-center border border-gray-300 rounded">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="px-3 py-2 hover:bg-gray-100 rounded-none border-0"
+                  >
+                    <FaMinus className="w-3 h-3" />
                   </Button>
-                  <Input type="number" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} className="w-20 text-center border-0 focus:ring-0 bg-transparent font-semibold" min="1" max={product.stock_quantity} />
-                  <Button size="sm" variant="ghost" onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))} className="px-4 py-3 hover:bg-slate-100 rounded-none">
-                    <FaPlus />
+                  <Input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-16 text-center border-0 focus:ring-0 bg-transparent"
+                    min="1"
+                    max={product.stock_quantity}
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
+                    className="px-3 py-2 hover:bg-gray-100 rounded-none border-0"
+                  >
+                    <FaPlus className="w-3 h-3" />
                   </Button>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                {product.stock_quantity > 0 ? <>
-                    <Button onClick={handleAddToCart} className="flex-1 bg-[#192a3a] hover:bg-[#243447] text-white py-4 px-8 rounded-2xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl" disabled={quantity > product.stock_quantity}>
-                      <FaShoppingCart className="mr-3" />
-                      Add to Cart - ₹{(product.price * quantity).toFixed(2)}
-                    </Button>
-                    
-                    <Button variant="outline" className="px-6 py-4 rounded-2xl border-2 border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white transition-all duration-300">
-                      <FaHeart className="mr-2" />
-                      Wishlist
-                    </Button>
-                    
-                    <Button variant="outline" className="px-6 py-4 rounded-2xl border-2 border-slate-300 text-slate-600 hover:bg-slate-100 transition-all duration-300">
-                      <FaShare />
-                    </Button>
-                  </> : <Button disabled className="flex-1 bg-slate-400 text-white py-4 px-8 rounded-2xl text-lg font-semibold">
-                    Out of Stock
-                  </Button>}
+              {/* Add to Cart Button */}
+              <Button
+                onClick={handleAddToCart}
+                className="w-full bg-black hover:bg-gray-800 text-white py-3 px-8 rounded font-medium text-sm"
+                disabled={product.stock_quantity === 0}
+              >
+                {product.stock_quantity > 0 ? 'Add to Cart' : 'Out of Stock'}
+              </Button>
+            </div>
+
+            {/* Product Information Accordion */}
+            <div className="space-y-4 pt-8">
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="description" className="border-gray-200">
+                  <AccordionTrigger className="text-left font-medium text-black hover:no-underline">
+                    Description
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-600 leading-relaxed">
+                    This premium product is crafted with the finest ingredients to deliver exceptional results. 
+                    Our carefully formulated blend ensures maximum effectiveness while being gentle on your skin.
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="ingredients" className="border-gray-200">
+                  <AccordionTrigger className="text-left font-medium text-black hover:no-underline">
+                    Ingredients
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-600 leading-relaxed">
+                    Natural clay, purified water, organic botanical extracts, essential oils, and carefully selected 
+                    active ingredients that work synergistically to provide optimal benefits.
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="usage" className="border-gray-200">
+                  <AccordionTrigger className="text-left font-medium text-black hover:no-underline">
+                    How to Use
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-600 leading-relaxed">
+                    Apply a generous amount to clean, damp skin. Gently massage in circular motions for 1-2 minutes. 
+                    Leave on for 10-15 minutes, then rinse thoroughly with warm water. Use 2-3 times per week for best results.
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="shipping" className="border-gray-200">
+                  <AccordionTrigger className="text-left font-medium text-black hover:no-underline">
+                    Shipping & Returns
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-600 leading-relaxed">
+                    Free shipping on orders over ₹500. Standard delivery takes 3-5 business days. 
+                    We offer a 30-day return policy for unopened products in original packaging.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+          </div>
+        </div>
+
+        {/* You Might Like Section */}
+        <div className="mt-16 pt-16 border-t border-gray-200">
+          <h2 className="text-2xl font-light text-black mb-8 text-center">You might like</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Product 1 */}
+            <div className="text-center space-y-4">
+              <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
+                <img 
+                  src="https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png" 
+                  alt="Clay Clean" 
+                  className="w-full h-full object-contain hover:scale-105 transition-transform duration-300" 
+                />
+              </div>
+              <div>
+                <h3 className="font-medium text-black">Clay Clean</h3>
+                <p className="text-gray-600 text-sm">₹29.99</p>
               </div>
             </div>
 
-            {/* Product Features */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-              <h3 className="font-bold text-[#192a3a] mb-4 text-lg">Product Highlights</h3>
-              <ul className="space-y-3 text-slate-700">
-                <li className="flex items-start gap-3">
-                  <span className="w-2 h-2 bg-[#192a3a] rounded-full mt-2 flex-shrink-0"></span>
-                  Premium quality, third-party tested for purity
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-2 h-2 bg-[#192a3a] rounded-full mt-2 flex-shrink-0"></span>
-                  Made with natural, organic ingredients
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-2 h-2 bg-[#192a3a] rounded-full mt-2 flex-shrink-0"></span>
-                  Free shipping on orders over ₹500
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-2 h-2 bg-[#192a3a] rounded-full mt-2 flex-shrink-0"></span>
-                  30-day money-back guarantee
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-2 h-2 bg-[#192a3a] rounded-full mt-2 flex-shrink-0"></span>
-                  Sustainably sourced and environmentally friendly
-                </li>
-              </ul>
+            {/* Product 2 */}
+            <div className="text-center space-y-4">
+              <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
+                <img 
+                  src="https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png" 
+                  alt="Deep Clean" 
+                  className="w-full h-full object-contain hover:scale-105 transition-transform duration-300" 
+                />
+              </div>
+              <div>
+                <h3 className="font-medium text-black">Deep Clean</h3>
+                <p className="text-gray-600 text-sm">₹39.99</p>
+              </div>
             </div>
 
-            {/* Shipping Info */}
-            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-200">
-              <h3 className="font-bold text-emerald-800 mb-3">Shipping & Returns</h3>
-              <div className="space-y-2 text-emerald-700">
-                <p>• Free delivery on orders above ₹500</p>
-                <p>• Standard delivery: 3-5 business days</p>
-                <p>• Express delivery: 1-2 business days (₹99)</p>
-                <p>• Easy returns within 30 days</p>
+            {/* Product 3 */}
+            <div className="text-center space-y-4">
+              <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
+                <img 
+                  src="https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png" 
+                  alt="Gentle Clean" 
+                  className="w-full h-full object-contain hover:scale-105 transition-transform duration-300" 
+                />
+              </div>
+              <div>
+                <h3 className="font-medium text-black">Gentle Clean</h3>
+                <p className="text-gray-600 text-sm">₹24.99</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Reviews Section */}
-        <div className="mt-20">
-          <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-8">
-            <h2 className="text-3xl font-bold text-[#192a3a] mb-8">Customer Reviews</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map(review => <div key={review} className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl p-6 border border-slate-200">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-[#192a3a] to-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-                      U{review}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-[#192a3a]">User {review}</h4>
-                      <div className="flex items-center gap-1">
-                        {[...Array(5)].map((_, i) => <FaStar key={i} className="text-yellow-400 text-sm" />)}
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-slate-700">
-                    "Excellent product! I've been using it for a month and can see significant improvements. 
-                    Highly recommend to anyone looking for quality supplements."
-                  </p>
-                </div>)}
+        {/* Newsletter Section */}
+        <div className="mt-16 bg-gray-900 rounded-2xl p-8 md:p-12 text-center text-white relative overflow-hidden">
+          <div className="relative z-10">
+            <h2 className="text-2xl md:text-3xl font-light mb-2">Stay Updated.</h2>
+            <p className="text-gray-300 mb-6">Stay Radiant</p>
+            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+              <Input
+                type="email"
+                placeholder="Enter your mail"
+                className="flex-1 bg-white text-black border-0 focus:ring-2 focus:ring-white/20"
+              />
+              <Button className="bg-white text-black hover:bg-gray-100 px-8">
+                Submit
+              </Button>
             </div>
+          </div>
+          {/* Decorative elements */}
+          <div className="absolute right-8 bottom-8 opacity-20">
+            <img 
+              src="https://framerusercontent.com/images/fUKUaOKmvyEBOIWwcofYAHoV80.png" 
+              alt="Decorative" 
+              className="w-24 h-24 object-contain" 
+            />
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default ProductPage;
