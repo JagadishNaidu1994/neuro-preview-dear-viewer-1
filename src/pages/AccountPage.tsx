@@ -270,21 +270,28 @@ const AccountPage = () => {
       if (wishlistError) throw wishlistError;
       setWishlist(wishlistData || []);
 
-      // Add sample subscriptions for demonstration
-      setSubscriptions([
-        {
-          id: "sub1",
-          productName: "Chill Mushroom Gummy Delights",
-          nextDelivery: "2024-08-15",
-          status: "active",
-        },
-        {
-          id: "sub2",
-          productName: "Focus Mushroom Gummy Delights",
-          nextDelivery: "2024-08-20",
-          status: "paused",
-        },
-      ]);
+      // Fetch subscriptions
+      const { data: subscriptionsData, error: subscriptionsError } = await supabase
+        .from("subscriptions")
+        .select(`
+          id,
+          status,
+          next_delivery_date,
+          product:products (
+            name
+          )
+        `)
+        .eq("user_id", user.id);
+
+      if (subscriptionsError) throw subscriptionsError;
+
+      const transformedSubscriptions = subscriptionsData.map(sub => ({
+        id: sub.id,
+        productName: sub.product.name,
+        nextDelivery: sub.next_delivery_date,
+        status: sub.status,
+      }));
+      setSubscriptions(transformedSubscriptions);
 
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -933,7 +940,12 @@ const AccountPage = () => {
                                     className="w-12 h-12 object-cover rounded-lg"
                                   />
                                   <div className="flex-1">
-                                    <h4 className="font-medium text-[#192a3a]">{item.products.name}</h4>
+                                    <h4 className="font-medium text-[#192a3a] flex items-center">
+                                      {item.products.name}
+                                      {subscriptions.some(s => s.productName === item.products.name) && (
+                                        <FaRedo className="text-purple-500 ml-2" title="Subscription" />
+                                      )}
+                                    </h4>
                                     <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                                   </div>
                                   <div className="text-right">
@@ -1004,31 +1016,35 @@ const AccountPage = () => {
                   <CardTitle className="text-2xl text-[#192a3a]">Your Subscriptions</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-6">
-                    {subscriptions.map((sub) => (
-                      <div key={sub.id} className="border rounded-xl p-6">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="text-xl font-semibold text-[#192a3a]">{sub.productName}</h3>
-                            <p className="text-gray-600">Next delivery: {new Date(sub.nextDelivery).toLocaleDateString()}</p>
+                  {subscriptions.length > 0 ? (
+                    <div className="space-y-6">
+                      {subscriptions.map((sub) => (
+                        <div key={sub.id} className="border rounded-xl p-6">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="text-xl font-semibold text-[#192a3a]">{sub.productName}</h3>
+                              <p className="text-gray-600">Next delivery: {new Date(sub.nextDelivery).toLocaleDateString()}</p>
+                            </div>
+                            <Badge className={
+                              sub.status === 'active' ? "bg-green-100 text-green-700" :
+                              sub.status === 'paused' ? "bg-yellow-100 text-yellow-700" :
+                              "bg-red-100 text-red-700"
+                            }>
+                              {sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
+                            </Badge>
                           </div>
-                          <Badge className={
-                            sub.status === 'active' ? "bg-green-100 text-green-700" :
-                            sub.status === 'paused' ? "bg-yellow-100 text-yellow-700" :
-                            "bg-red-100 text-red-700"
-                          }>
-                            {sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
-                          </Badge>
+                          <div className="flex gap-2 mt-4">
+                            <Button size="sm" variant="outline" onClick={() => {setSelectedSubscription(sub); setShowSubscriptionModal(true);}}>View Subscription</Button>
+                            {sub.status === 'active' && <Button size="sm" variant="outline" onClick={() => handleSubscriptionChange(sub.id, 'paused')}>Pause</Button>}
+                            {sub.status === 'paused' && <Button size="sm" variant="outline" onClick={() => handleSubscriptionChange(sub.id, 'active')}>Resume</Button>}
+                            {sub.status !== 'cancelled' && <Button size="sm" variant="outline" className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white" onClick={() => handleSubscriptionChange(sub.id, 'cancelled')}>Cancel</Button>}
+                          </div>
                         </div>
-                        <div className="flex gap-2 mt-4">
-                          <Button size="sm" variant="outline" onClick={() => {setSelectedSubscription(sub); setShowSubscriptionModal(true);}}>View Subscription</Button>
-                          {sub.status === 'active' && <Button size="sm" variant="outline" onClick={() => handleSubscriptionChange(sub.id, 'paused')}>Pause</Button>}
-                          {sub.status === 'paused' && <Button size="sm" variant="outline" onClick={() => handleSubscriptionChange(sub.id, 'active')}>Resume</Button>}
-                          {sub.status !== 'cancelled' && <Button size="sm" variant="outline" className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white" onClick={() => handleSubscriptionChange(sub.id, 'cancelled')}>Cancel</Button>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>You have no active subscriptions.</p>
+                  )}
                   <div className="mt-8 border-t pt-6">
                     <h3 className="text-lg font-semibold text-[#192a3a] mb-4">Subscription Benefits</h3>
                     <ul className="space-y-2 text-gray-600 list-disc list-inside">
