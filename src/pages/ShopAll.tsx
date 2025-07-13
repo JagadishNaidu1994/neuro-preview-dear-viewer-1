@@ -6,6 +6,8 @@ import { useCart } from "@/context/CartProvider";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { FaShoppingCart } from "react-icons/fa";
+import { Input } from "@/components/ui/input";
+
 interface Product {
   id: string;
   name: string;
@@ -41,8 +43,15 @@ export default function ShopAll() {
       setLoading(false);
     }
   };
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+
+  const handleQuantityChange = (productId: string, quantity: number) => {
+    setQuantities(prev => ({ ...prev, [productId]: quantity }));
+  };
+
   const handleAddToCart = async (productId: string) => {
-    await addToCart(productId, 1);
+    const quantity = quantities[productId] || 1;
+    await addToCart(productId, quantity);
     // You could add a toast notification here
   };
   if (loading) {
@@ -85,11 +94,22 @@ export default function ShopAll() {
                     <div className="text-lg font-semibold text-gray-900">
                       ${product.price}
                     </div>
-                    <Button size="sm" onClick={() => handleAddToCart(product.id)} disabled={!product.is_active || product.stock_quantity === 0} className="text-white bg-gray-950 hover:bg-gray-800 text-base font-medium">
-                      <FaShoppingCart className="mr-2" />
-                      {!product.is_active || product.stock_quantity === 0 ? "Out of Stock" : "Add to Cart"}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min="1"
+                        max={product.stock_quantity}
+                        value={quantities[product.id] || 1}
+                        onChange={(e) => handleQuantityChange(product.id, parseInt(e.target.value))}
+                        className="w-16 h-8 text-center"
+                      />
+                      <Button size="sm" onClick={() => handleAddToCart(product.id)} disabled={!product.is_active || product.stock_quantity === 0} className="text-white bg-gray-950 hover:bg-gray-800 text-base font-medium">
+                        <FaShoppingCart className="mr-2" />
+                        {!product.is_active || product.stock_quantity === 0 ? "Out of Stock" : "Add to Cart"}
+                      </Button>
+                    </div>
                   </div>
+                  <p className="text-xs text-green-600 mt-2">Save 20% on subscriptions</p>
                   {product.is_active && product.stock_quantity > 0 && product.stock_quantity <= 10 && <p className="text-xs text-orange-600 mt-2">
                       Only {product.stock_quantity} left in stock!
                     </p>}

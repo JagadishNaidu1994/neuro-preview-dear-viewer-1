@@ -9,7 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FaMinus, FaPlus, FaStar } from "react-icons/fa";
-import { ChevronDown, Package, Clock } from "lucide-react";
+import { ChevronDown, Package, Clock, Heart } from "lucide-react";
 
 interface Product {
   id: string;
@@ -102,11 +102,14 @@ const ProductPage = () => {
       <div className="w-full px-4 md:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-none">
           {/* Product Images */}
-          <div className="space-y-4">
+          <div className="space-y-4 relative">
             {/* Main Image */}
             <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden">
               <img src={productImages[selectedImage]} alt={product.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
+            <Button size="icon" variant="ghost" className="absolute top-4 right-4 bg-white/50 backdrop-blur-sm rounded-full hover:bg-white/75">
+              <Heart className="w-5 h-5 text-red-500" />
+            </Button>
             
             {/* Thumbnail Images */}
             <div className="flex gap-3">
