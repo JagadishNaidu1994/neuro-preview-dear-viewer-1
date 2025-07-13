@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
+import { useCart } from "@/context/CartProvider";
 import { useAdmin } from "@/hooks/useAdmin";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -108,6 +109,7 @@ const AccountPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { addToCart } = useCart();
   const { isAdmin } = useAdmin();
   const [orders, setOrders] = useState<Order[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -340,9 +342,16 @@ const AccountPage = () => {
     }
   };
 
-  const handleReorder = (order: Order) => {
-    console.log("Reordering:", order.id);
-    alert("Items have been added to your cart!");
+  const handleReorder = async (order: Order) => {
+    if (!order.order_items) return;
+    try {
+      for (const item of order.order_items) {
+        await addToCart(item.products.id, item.quantity);
+      }
+      navigate("/checkout");
+    } catch (error) {
+      console.error("Error reordering:", error);
+    }
   };
 
   const handleDownloadInvoice = async (order: Order) => {
@@ -497,6 +506,33 @@ const AccountPage = () => {
         fetchAllData();
       } catch (error) {
         console.error('Error deleting address:', error);
+      }
+    }
+  };
+
+  const handleSavePaymentMethod = async (paymentMethod) => {
+    if(!user) return;
+    try {
+      // In a real app, you'd use a payment gateway's tokenization process
+      // and only store a reference to the payment method, not the raw details.
+      const { error } = await supabase.from('user_payment_methods').insert([{ ...paymentMethod, user_id: user.id }]);
+      if (error) throw error;
+      setShowPaymentModal(false);
+      fetchAllData();
+    } catch (error) {
+      console.error('Error saving payment method:', error);
+    }
+  }
+
+  const handleDeletePaymentMethod = async (paymentMethodId: string) => {
+    if (!user) return;
+    if (window.confirm('Are you sure you want to delete this payment method?')) {
+      try {
+        const { error } = await supabase.from('user_payment_methods').delete().eq('id', paymentMethodId);
+        if (error) throw error;
+        fetchAllData();
+      } catch (error) {
+        console.error('Error deleting payment method:', error);
       }
     }
   };
@@ -926,12 +962,22 @@ const AccountPage = () => {
                           </Badge>
                         </div>
                         <div className="flex gap-2 mt-4">
+                          <Button size="sm" variant="outline" onClick={() => alert('View subscription details functionality to be implemented.')}>View Subscription</Button>
                           {sub.status === 'active' && <Button size="sm" variant="outline" onClick={() => handleSubscriptionChange(sub.id, 'paused')}>Pause</Button>}
                           {sub.status === 'paused' && <Button size="sm" variant="outline" onClick={() => handleSubscriptionChange(sub.id, 'active')}>Resume</Button>}
                           {sub.status !== 'cancelled' && <Button size="sm" variant="outline" className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white" onClick={() => handleSubscriptionChange(sub.id, 'cancelled')}>Cancel</Button>}
                         </div>
                       </div>
                     ))}
+                  </div>
+                  <div className="mt-8 border-t pt-6">
+                    <h3 className="text-lg font-semibold text-[#192a3a] mb-4">Subscription Benefits</h3>
+                    <ul className="space-y-2 text-gray-600 list-disc list-inside">
+                      <li>Save 20% on every order</li>
+                      <li>Hassle-free automatic restocking</li>
+                      <li>Early access to new products</li>
+                      <li>Exclusive member-only discounts</li>
+                    </ul>
                   </div>
                 </CardContent>
               </Card>
@@ -989,21 +1035,7 @@ const AccountPage = () => {
                   <div className="flex justify-between items-center">
                     <CardTitle className="text-2xl text-[#192a3a]">Payment Methods</CardTitle>
                     <Button 
-                        onClick={() => {
-                          // In a real app, you would integrate a payment gateway's SDK here.
-                          // For this example, we'll simulate adding a new card.
-                          const newMethod = {
-                            id: Math.random().toString(),
-                            card_type: 'Mastercard',
-                            card_last_four: Math.floor(1000 + Math.random() * 9000).toString(),
-                            card_holder_name: profileData.firstName + ' ' + profileData.lastName,
-                            expiry_month: Math.floor(1 + Math.random() * 12),
-                            expiry_year: new Date().getFullYear() + Math.floor(Math.random() * 5),
-                            is_default: false,
-                          };
-                          setPaymentMethods([...paymentMethods, newMethod]);
-                          alert('New payment method added!');
-                        }}
+                        onClick={() => setShowPaymentModal(true)}
                       className="bg-[#192a3a] hover:bg-[#0f1a26] text-white"
                     >
                       <FaPlus className="mr-2" />
@@ -1038,11 +1070,11 @@ const AccountPage = () => {
                           </p>
                         )}
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white">
+                          <Button size="sm" variant="outline" className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white" onClick={() => alert('Edit payment method functionality to be implemented.')}>
                             <FaEdit className="mr-2" />
                             Edit
                           </Button>
-                          <Button size="sm" variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white">
+                          <Button size="sm" variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white" onClick={() => handleDeletePaymentMethod(method.id)}>
                             <FaTrash className="mr-2" />
                             Delete
                           </Button>
@@ -1199,98 +1231,7 @@ const AccountPage = () => {
           <DialogHeader>
             <DialogTitle>Add Payment Method</DialogTitle>
           </DialogHeader>
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col items-center justify-center gap-2 border-2 hover:border-[#192a3a]"
-              >
-                <FaCreditCard className="text-2xl" />
-                <span>Card</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col items-center justify-center gap-2 border-2 hover:border-blue-600"
-              >
-                <FaPaypal className="text-2xl text-blue-600" />
-                <span>PayPal</span>
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col items-center justify-center gap-2 border-2 hover:border-green-600"
-              >
-                <FaGooglePay className="text-2xl text-green-600" />
-                <span>Google Pay</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col items-center justify-center gap-2 border-2 hover:border-purple-600"
-              >
-                <div className="text-2xl">💳</div>
-                <span>UPI</span>
-              </Button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="cardNumber">Card Number</Label>
-                <Input
-                  id="cardNumber"
-                  placeholder="1234 5678 9012 3456"
-                  className="mt-1"
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="expiryDate">Expiry Date</Label>
-                  <Input
-                    id="expiryDate"
-                    placeholder="MM/YY"
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="cvv">CVV</Label>
-                  <Input
-                    id="cvv"
-                    placeholder="123"
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <Label htmlFor="cardName">Name on Card</Label>
-                <Input
-                  id="cardName"
-                  placeholder="John Doe"
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            
-            <div className="flex gap-3">
-              <Button 
-                className="flex-1 bg-[#192a3a] hover:bg-[#0f1a26] text-white"
-                onClick={() => {
-                  setShowPaymentModal(false);
-                  alert("Payment method added successfully!");
-                }}
-              >
-                Add Payment Method
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowPaymentModal(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
+          <PaymentForm onSave={handleSavePaymentMethod} onCancel={() => setShowPaymentModal(false)} />
         </DialogContent>
       </Dialog>
 
@@ -1452,5 +1393,71 @@ const AddressForm = ({ initialData, onSave, onCancel }) => {
     </form>
   );
 };
+
+const PaymentForm = ({ onSave, onCancel }) => {
+  const [paymentType, setPaymentType] = useState('card');
+  const [formData, setFormData] = useState({
+    card_type: 'Visa',
+    card_number: '',
+    card_holder_name: '',
+    expiry_month: '',
+    expiry_year: '',
+    cvv: '',
+    upi_id: ''
+  });
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({...prev, [id]: value}));
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const dataToSave = paymentType === 'card' ? {
+      card_type: formData.card_type,
+      card_last_four: formData.card_number.slice(-4),
+      card_holder_name: formData.card_holder_name,
+      expiry_month: parseInt(formData.expiry_month),
+      expiry_year: parseInt(formData.expiry_year),
+    } : {
+      card_type: 'UPI',
+      card_holder_name: formData.upi_id,
+      card_last_four: '',
+      expiry_month: 0,
+      expiry_year: 0
+    };
+    onSave(dataToSave);
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <Button type="button" variant={paymentType === 'card' ? 'default' : 'outline'} onClick={() => setPaymentType('card')}>Card</Button>
+        <Button type="button" variant={paymentType === 'upi' ? 'default' : 'outline'} onClick={() => setPaymentType('upi')}>UPI</Button>
+      </div>
+
+      {paymentType === 'card' && (
+        <div className="space-y-4">
+          <Input id="card_holder_name" placeholder="Name on Card" value={formData.card_holder_name} onChange={handleChange} required />
+          <Input id="card_number" placeholder="Card Number" value={formData.card_number} onChange={handleChange} required />
+          <div className="grid grid-cols-3 gap-4">
+            <Input id="expiry_month" placeholder="MM" value={formData.expiry_month} onChange={handleChange} required />
+            <Input id="expiry_year" placeholder="YYYY" value={formData.expiry_year} onChange={handleChange} required />
+            <Input id="cvv" placeholder="CVV" value={formData.cvv} onChange={handleChange} required />
+          </div>
+        </div>
+      )}
+
+      {paymentType === 'upi' && (
+        <Input id="upi_id" placeholder="UPI ID" value={formData.upi_id} onChange={handleChange} required />
+      )}
+
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+        <Button type="submit">Save Payment Method</Button>
+      </div>
+    </form>
+  );
+}
 
 export default AccountPage;
