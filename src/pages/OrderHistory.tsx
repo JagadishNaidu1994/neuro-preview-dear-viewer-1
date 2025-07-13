@@ -6,7 +6,8 @@ import Header from "@/components/Header";
 import Breadcrumb from "@/components/Breadcrumb";
 import { Button } from "@/components/ui/button";
 import { FaEye, FaDownload, FaRedo, FaTruck, FaBox } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useCart } from "@/context/CartProvider";
 
 interface Order {
   id: string;
@@ -26,6 +27,8 @@ interface Order {
 
 const OrderHistory = () => {
   const { user } = useAuth();
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -94,12 +97,15 @@ const OrderHistory = () => {
   };
 
   const handleReorder = async (order: Order) => {
-    // Add all items from this order to cart
-    for (const item of order.order_items) {
-      // You can implement add to cart functionality here
-      console.log("Adding to cart:", item.product.id, item.quantity);
+    try {
+      for (const item of order.order_items) {
+        await addToCart(item.product.id, item.quantity);
+      }
+      navigate("/checkout");
+    } catch (error) {
+      console.error("Error reordering items:", error);
+      alert("There was an error adding items to your cart. Please try again.");
     }
-    alert("Items have been added to your cart!");
   };
 
   const handleViewProduct = (productId: string) => {

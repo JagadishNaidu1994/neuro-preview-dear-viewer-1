@@ -97,6 +97,13 @@ interface UserSecurity {
   last_password_change: string;
 }
 
+interface Subscription {
+  id: string;
+  productName: string;
+  nextDelivery: string;
+  status: "active" | "paused" | "cancelled";
+}
+
 const AccountPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -108,12 +115,15 @@ const AccountPage = () => {
   const [rewards, setRewards] = useState<UserReward | null>(null);
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [security, setSecurity] = useState<UserSecurity | null>(null);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [profileData, setProfileData] = useState({
     firstName: "",
     lastName: "",
@@ -236,6 +246,22 @@ const AccountPage = () => {
 
       if (securityError && securityError.code !== 'PGRST116') throw securityError;
       setSecurity(securityData);
+
+      // Add sample subscriptions for demonstration
+      setSubscriptions([
+        {
+          id: "sub1",
+          productName: "Chill Mushroom Gummy Delights",
+          nextDelivery: "2024-08-15",
+          status: "active",
+        },
+        {
+          id: "sub2",
+          productName: "Focus Mushroom Gummy Delights",
+          nextDelivery: "2024-08-20",
+          status: "paused",
+        },
+      ]);
 
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -435,6 +461,44 @@ const AccountPage = () => {
 
   const handleViewProduct = (productId: string) => {
     navigate(`/product?id=${productId}`);
+  };
+
+  const handleSubscriptionChange = (subscriptionId: string, newStatus: "active" | "paused" | "cancelled") => {
+    setSubscriptions(
+      subscriptions.map((sub) =>
+        sub.id === subscriptionId ? { ...sub, status: newStatus } : sub
+      )
+    );
+  };
+
+  const handleSaveAddress = async (address: Omit<Address, 'id' | 'is_default'>) => {
+    if (!user) return;
+    try {
+      if (editingAddress) {
+        const { error } = await supabase.from('user_addresses').update(address).eq('id', editingAddress.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('user_addresses').insert([{ ...address, user_id: user.id }]);
+        if (error) throw error;
+      }
+      setShowAddressModal(false);
+      fetchAllData();
+    } catch (error) {
+      console.error('Error saving address:', error);
+    }
+  };
+
+  const handleDeleteAddress = async (addressId: string) => {
+    if (!user) return;
+    if (window.confirm('Are you sure you want to delete this address?')) {
+      try {
+        const { error } = await supabase.from('user_addresses').delete().eq('id', addressId);
+        if (error) throw error;
+        fetchAllData();
+      } catch (error) {
+        console.error('Error deleting address:', error);
+      }
+    }
   };
 
   const getAvatarImage = () => {
@@ -838,13 +902,48 @@ const AccountPage = () => {
               </Card>
             )}
 
+            {/* Subscriptions */}
+            {activeTab === "subscriptions" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl text-[#192a3a]">Your Subscriptions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {subscriptions.map((sub) => (
+                      <div key={sub.id} className="border rounded-xl p-6">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="text-xl font-semibold text-[#192a3a]">{sub.productName}</h3>
+                            <p className="text-gray-600">Next delivery: {new Date(sub.nextDelivery).toLocaleDateString()}</p>
+                          </div>
+                          <Badge className={
+                            sub.status === 'active' ? "bg-green-100 text-green-700" :
+                            sub.status === 'paused' ? "bg-yellow-100 text-yellow-700" :
+                            "bg-red-100 text-red-700"
+                          }>
+                            {sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
+                          </Badge>
+                        </div>
+                        <div className="flex gap-2 mt-4">
+                          {sub.status === 'active' && <Button size="sm" variant="outline" onClick={() => handleSubscriptionChange(sub.id, 'paused')}>Pause</Button>}
+                          {sub.status === 'paused' && <Button size="sm" variant="outline" onClick={() => handleSubscriptionChange(sub.id, 'active')}>Resume</Button>}
+                          {sub.status !== 'cancelled' && <Button size="sm" variant="outline" className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white" onClick={() => handleSubscriptionChange(sub.id, 'cancelled')}>Cancel</Button>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Addresses */}
             {activeTab === "addresses" && (
               <Card>
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <CardTitle className="text-2xl text-[#192a3a]">Saved Addresses</CardTitle>
-                    <Button onClick={() => navigate("/shop-all")}  className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
+                    <Button onClick={() => { setEditingAddress(null); setShowAddressModal(true); }} className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
                       <FaPlus className="mr-2" />
                       Add Address
                     </Button>
@@ -867,11 +966,11 @@ const AccountPage = () => {
                           <p>{address.phone}</p>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white">
+                          <Button size="sm" variant="outline" className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white" onClick={() => { setEditingAddress(address); setShowAddressModal(true); }}>
                             <FaEdit className="mr-2" />
                             Edit
                           </Button>
-                          <Button size="sm" variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white">
+                          <Button size="sm" variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white" onClick={() => handleDeleteAddress(address.id)}>
                             <FaTrash className="mr-2" />
                             Delete
                           </Button>
@@ -890,7 +989,21 @@ const AccountPage = () => {
                   <div className="flex justify-between items-center">
                     <CardTitle className="text-2xl text-[#192a3a]">Payment Methods</CardTitle>
                     <Button 
-                      onClick={() => setShowPaymentModal(true)}
+                        onClick={() => {
+                          // In a real app, you would integrate a payment gateway's SDK here.
+                          // For this example, we'll simulate adding a new card.
+                          const newMethod = {
+                            id: Math.random().toString(),
+                            card_type: 'Mastercard',
+                            card_last_four: Math.floor(1000 + Math.random() * 9000).toString(),
+                            card_holder_name: profileData.firstName + ' ' + profileData.lastName,
+                            expiry_month: Math.floor(1 + Math.random() * 12),
+                            expiry_year: new Date().getFullYear() + Math.floor(Math.random() * 5),
+                            is_default: false,
+                          };
+                          setPaymentMethods([...paymentMethods, newMethod]);
+                          alert('New payment method added!');
+                        }}
                       className="bg-[#192a3a] hover:bg-[#0f1a26] text-white"
                     >
                       <FaPlus className="mr-2" />
@@ -1281,7 +1394,62 @@ const AccountPage = () => {
           </div>
         </div>
       )}
+
+      {/* Address Form Modal */}
+      <Dialog open={showAddressModal} onOpenChange={setShowAddressModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingAddress ? 'Edit Address' : 'Add New Address'}</DialogTitle>
+          </DialogHeader>
+          <AddressForm
+            initialData={editingAddress}
+            onSave={handleSaveAddress}
+            onCancel={() => setShowAddressModal(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+};
+
+const AddressForm = ({ initialData, onSave, onCancel }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    address_line_1: '',
+    address_line_2: '',
+    city: '',
+    state: '',
+    pincode: '',
+    ...initialData,
+  });
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <Input id="name" placeholder="Full Name" value={formData.name} onChange={handleChange} required />
+      <Input id="phone" placeholder="Phone Number" value={formData.phone} onChange={handleChange} required />
+      <Input id="address_line_1" placeholder="Address Line 1" value={formData.address_line_1} onChange={handleChange} required />
+      <Input id="address_line_2" placeholder="Address Line 2 (Optional)" value={formData.address_line_2} onChange={handleChange} />
+      <div className="grid grid-cols-2 gap-4">
+        <Input id="city" placeholder="City" value={formData.city} onChange={handleChange} required />
+        <Input id="state" placeholder="State" value={formData.state} onChange={handleChange} required />
+      </div>
+      <Input id="pincode" placeholder="Pincode" value={formData.pincode} onChange={handleChange} required />
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+        <Button type="submit">Save Address</Button>
+      </div>
+    </form>
   );
 };
 
