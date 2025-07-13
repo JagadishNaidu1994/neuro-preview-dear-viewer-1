@@ -5,3 +5,10 @@ CREATE TABLE wishlist_items (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE (user_id, product_id)
 );
+
+-- Add foreign key constraint
+ALTER TABLE public.wishlist_items
+ADD CONSTRAINT wishlist_items_product_id_fkey
+FOREIGN KEY (product_id)
+REFERENCES public.products(id)
+ON DELETE CASCADE;
