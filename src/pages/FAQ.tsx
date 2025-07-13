@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Breadcrumb from "@/components/Breadcrumb";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
@@ -164,12 +165,12 @@ const FAQ = () => {
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto text-lg">
             Our customer support team is here to help. Reach out to us and we'll get back to you within 24 hours.
           </p>
-          <button
-            onClick={() => window.location.href = "/contact"}
+          <Link
+            to="/contact"
             className="px-8 py-3 bg-[#514B3D] text-white rounded-xl hover:bg-[#3f3a2f] transition-colors font-medium"
           >
             Contact Support
-          </button>
+          </Link>
         </div>
       </div>
     </div>
