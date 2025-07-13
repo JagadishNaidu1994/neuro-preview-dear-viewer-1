@@ -160,19 +160,40 @@ const Checkout = () => {
 
       if (orderError) throw orderError;
 
-      // Create order items
-      const orderItems = items.map((item) => ({
-        order_id: order.id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-        price: item.product.price,
-      }));
+      // Create order items and subscriptions
+      const orderItems = [];
+      const subscriptions = [];
+      for (const item of items) {
+        orderItems.push({
+          order_id: order.id,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          price: item.product.price,
+        });
+        if (item.is_subscription) {
+          subscriptions.push({
+            user_id: user.id,
+            product_id: item.product_id,
+            status: 'active',
+            next_delivery_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+            frequency: 'monthly',
+          });
+        }
+      }
 
-      const { error: itemsError } = await supabase
-        .from("order_items")
-        .insert(orderItems);
+      if (orderItems.length > 0) {
+        const { error: itemsError } = await supabase
+          .from("order_items")
+          .insert(orderItems);
+        if (itemsError) throw itemsError;
+      }
 
-      if (itemsError) throw itemsError;
+      if (subscriptions.length > 0) {
+        const { error: subsError } = await supabase
+          .from("subscriptions")
+          .insert(subscriptions);
+        if (subsError) throw subsError;
+      }
 
       // Clear cart
       await clearCart();

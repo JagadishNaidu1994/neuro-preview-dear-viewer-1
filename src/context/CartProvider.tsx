@@ -6,6 +6,7 @@ interface CartItem {
   id: string;
   product_id: string;
   quantity: number;
+  is_subscription: boolean;
   product: {
     id: string;
     name: string;
@@ -17,7 +18,7 @@ interface CartItem {
 interface CartContextType {
   items: CartItem[];
   loading: boolean;
-  addToCart: (productId: string, quantity?: number) => Promise<void>;
+  addToCart: (productId: string, quantity?: number, isSubscription?: boolean) => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
   updateQuantity: (productId: string, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
@@ -75,7 +76,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const addToCart = async (productId: string, quantity = 1) => {
+  const addToCart = async (productId: string, quantity = 1, isSubscription = false) => {
     if (!user) return;
 
     try {
@@ -86,6 +87,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
             user_id: user.id,
             product_id: productId,
             quantity,
+            is_subscription: isSubscription,
           },
           {
             onConflict: "user_id,product_id",

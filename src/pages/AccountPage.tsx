@@ -849,6 +849,9 @@ const AccountPage = () => {
                                 <Badge className={getStatusColor(order.status)}>
                                   {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                                 </Badge>
+                                {order.order_items?.some(item => item.products.name.includes("Subscription")) && (
+                                  <Badge className="bg-purple-100 text-purple-700">Subscription</Badge>
+                                )}
                               </div>
                             </div>
                             

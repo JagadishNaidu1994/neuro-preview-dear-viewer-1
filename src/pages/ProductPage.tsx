@@ -57,7 +57,7 @@ const ProductPage = () => {
 
   const handleAddToCart = async () => {
     if (!product) return;
-    await addToCart(product.id, quantity);
+    await addToCart(product.id, quantity, purchaseType === 'subscribe');
   };
 
   if (loading) {
