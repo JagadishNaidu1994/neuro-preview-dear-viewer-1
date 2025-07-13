@@ -33,8 +33,9 @@ import {
   FaSave,
   FaPaypal,
   FaGooglePay,
-  FaCalendarAlt,
+  FaCalendarAlt
 } from "react-icons/fa";
+import { Heart } from "lucide-react";
 import jsPDF from 'jspdf';
 
 interface Order {
@@ -576,6 +577,7 @@ const AccountPage = () => {
     { id: "dashboard", icon: <FaUser />, label: "Dashboard" },
     { id: "orders", icon: <FaBox />, label: "Orders" },
     { id: "subscriptions", icon: <FaBox />, label: "Subscriptions" },
+    { id: "wishlist", icon: <Heart />, label: "Wishlist" },
     { id: "addresses", icon: <FaAddressBook />, label: "Addresses" },
     { id: "payments", icon: <FaCreditCard />, label: "Payments" },
     { id: "rewards", icon: <FaGift />, label: "Rewards" },
@@ -936,6 +938,19 @@ const AccountPage = () => {
                       </Button>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Wishlist */}
+            {activeTab === "wishlist" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl text-[#192a3a]">Your Wishlist</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {/* Add wishlist items here */}
+                  <p>Your wishlist is empty.</p>
                 </CardContent>
               </Card>
             )}

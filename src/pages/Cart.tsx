@@ -7,7 +7,7 @@ import { FaTrash, FaMinus, FaPlus } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 
 const Cart = () => {
-  const { items, loading, removeFromCart, updateQuantity, totalPrice } = useCart();
+  const { items, loading, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -144,6 +144,9 @@ const Cart = () => {
                   Continue Shopping
                 </Button>
               </Link>
+              <Button variant="destructive" className="w-full mt-2" onClick={clearCart}>
+                Clear Cart
+              </Button>
             </div>
           </div>
         </div>
