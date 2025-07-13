@@ -278,7 +278,7 @@ const ProductPage = () => {
 
             {/* Add to Cart Button */}
             <Button onClick={handleAddToCart} className="w-full bg-black hover:bg-gray-800 text-white py-4 px-8 rounded-xl font-medium text-base" disabled={product.stock_quantity === 0}>
-              {product.stock_quantity > 0 ? `ADD TO CART - £${finalPrice.toFixed(2)}` : 'Out of Stock'}
+              {product.stock_quantity > 0 ? purchaseType === 'subscribe' ? `SUBSCRIBE - £${finalPrice.toFixed(2)}` : `ADD TO CART - £${finalPrice.toFixed(2)}` : 'Out of Stock'}
             </Button>
 
             {/* Benefits - More Compact Grid */}
