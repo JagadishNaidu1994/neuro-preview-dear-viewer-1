@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/useAdmin";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import DashboardOverview from "@/components/admin/DashboardOverview";
+import AnalyticsTab from "@/components/admin/AnalyticsTab";
 import ContactSubmissionsTab from "@/components/admin/ContactSubmissionsTab";
 import OrderDetailsDialog from "@/components/admin/OrderDetailsDialog";
 import MessagesSection from "@/components/admin/MessagesSection";
@@ -632,6 +633,9 @@ const AdminDashboard = () => {
 
           {/* Dashboard Overview */}
           {activeTab === "dashboard" && <DashboardOverview />}
+
+          {/* Analytics Tab */}
+          {activeTab === "analytics" && <AnalyticsTab />}
 
           {/* Products Tab */}
           {activeTab === "products" && (
