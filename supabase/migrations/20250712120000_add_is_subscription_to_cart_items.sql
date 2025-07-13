@@ -1,0 +1,2 @@
+ALTER TABLE cart_items
+ADD COLUMN is_subscription BOOLEAN DEFAULT FALSE;

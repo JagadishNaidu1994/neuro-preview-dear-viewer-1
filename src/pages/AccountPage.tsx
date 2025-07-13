@@ -129,6 +129,7 @@ const AccountPage = () => {
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null);
+  const [wishlist, setWishlist] = useState([]);
   const [profileData, setProfileData] = useState({
     firstName: "",
     lastName: "",
@@ -251,6 +252,23 @@ const AccountPage = () => {
 
       if (securityError && securityError.code !== 'PGRST116') throw securityError;
       setSecurity(securityData);
+
+      // Fetch wishlist
+      const { data: wishlistData, error: wishlistError } = await supabase
+        .from("wishlist_items")
+        .select(`
+          id,
+          product:products (
+            id,
+            name,
+            price,
+            image_url
+          )
+        `)
+        .eq("user_id", user.id);
+
+      if (wishlistError) throw wishlistError;
+      setWishlist(wishlistData || []);
 
       // Add sample subscriptions for demonstration
       setSubscriptions([
@@ -511,6 +529,11 @@ const AccountPage = () => {
         console.error('Error deleting address:', error);
       }
     }
+  };
+
+  const handleBuyNow = async (productId: string) => {
+    await addToCart(productId, 1);
+    navigate('/checkout');
   };
 
   const handleSavePaymentMethod = async (paymentMethod) => {
@@ -952,8 +975,24 @@ const AccountPage = () => {
                   <CardTitle className="text-2xl text-[#192a3a]">Your Wishlist</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {/* Add wishlist items here */}
-                  <p>Your wishlist is empty.</p>
+                  {wishlist.length > 0 ? (
+                    <div className="space-y-4">
+                      {wishlist.map((item) => (
+                        <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex items-center gap-4">
+                            <img src={item.product.image_url} alt={item.product.name} className="w-16 h-16 object-cover rounded-lg" />
+                            <div>
+                              <h4 className="font-medium text-[#192a3a]">{item.product.name}</h4>
+                              <p className="text-sm text-gray-600">${item.product.price}</p>
+                            </div>
+                          </div>
+                          <Button onClick={() => handleBuyNow(item.product.id)}>Buy Now</Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>Your wishlist is empty.</p>
+                  )}
                 </CardContent>
               </Card>
             )}
