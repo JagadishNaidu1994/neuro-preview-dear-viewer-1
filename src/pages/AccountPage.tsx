@@ -126,6 +126,8 @@ const AccountPage = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null);
   const [profileData, setProfileData] = useState({
     firstName: "",
     lastName: "",
@@ -962,7 +964,7 @@ const AccountPage = () => {
                           </Badge>
                         </div>
                         <div className="flex gap-2 mt-4">
-                          <Button size="sm" variant="outline" onClick={() => alert('View subscription details functionality to be implemented.')}>View Subscription</Button>
+                          <Button size="sm" variant="outline" onClick={() => {setSelectedSubscription(sub); setShowSubscriptionModal(true);}}>View Subscription</Button>
                           {sub.status === 'active' && <Button size="sm" variant="outline" onClick={() => handleSubscriptionChange(sub.id, 'paused')}>Pause</Button>}
                           {sub.status === 'paused' && <Button size="sm" variant="outline" onClick={() => handleSubscriptionChange(sub.id, 'active')}>Resume</Button>}
                           {sub.status !== 'cancelled' && <Button size="sm" variant="outline" className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white" onClick={() => handleSubscriptionChange(sub.id, 'cancelled')}>Cancel</Button>}
@@ -1347,6 +1349,24 @@ const AccountPage = () => {
             onSave={handleSaveAddress}
             onCancel={() => setShowAddressModal(false)}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* View Subscription Modal */}
+      <Dialog open={showSubscriptionModal} onOpenChange={setShowSubscriptionModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Subscription Details</DialogTitle>
+          </DialogHeader>
+          {selectedSubscription && (
+            <div className="space-y-4">
+              <p><strong>Product Name:</strong> {selectedSubscription.productName}</p>
+              <p><strong>Quantity:</strong> 1</p>
+              <p><strong>Frequency:</strong> Monthly</p>
+              <p><strong>Price:</strong> $25.60 (includes 20% discount)</p>
+              <p><strong>Mode of Payment:</strong> Visa **** 4242</p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
