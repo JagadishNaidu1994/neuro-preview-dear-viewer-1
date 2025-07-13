@@ -90,6 +90,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          is_subscription: boolean
           product_id: string | null
           quantity: number
           updated_at: string | null
@@ -98,6 +99,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          is_subscription?: boolean
           product_id?: string | null
           quantity?: number
           updated_at?: string | null
@@ -106,6 +108,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          is_subscription?: boolean
           product_id?: string | null
           quantity?: number
           updated_at?: string | null
@@ -412,6 +415,45 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          discount_percentage: number | null
+          frequency_weeks: number
+          id: string
+          next_delivery_date: string | null
+          product_id: string
+          quantity: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discount_percentage?: number | null
+          frequency_weeks?: number
+          id?: string
+          next_delivery_date?: string | null
+          product_id: string
+          quantity?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discount_percentage?: number | null
+          frequency_weeks?: number
+          id?: string
+          next_delivery_date?: string | null
+          product_id?: string
+          quantity?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_addresses: {
         Row: {
           address_line_1: string
@@ -628,6 +670,30 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      wishlist_items: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
