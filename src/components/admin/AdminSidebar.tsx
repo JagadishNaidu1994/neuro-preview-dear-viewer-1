@@ -2,15 +2,16 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  FileText, 
-  MessageSquare, 
-  Tag, 
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  FileText,
+  MessageSquare,
+  Tag,
   Truck,
   Settings,
-  Home
+  Home,
+  BarChart2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -69,6 +70,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
 
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "analytics", label: "Analytics", icon: BarChart2 },
     { id: "orders", label: "Orders", icon: ShoppingCart, count: counts.orders },
     { id: "products", label: "Products", icon: Package, count: counts.products },
     { id: "journals", label: "Journals", icon: FileText },
