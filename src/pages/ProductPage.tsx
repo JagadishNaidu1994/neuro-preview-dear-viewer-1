@@ -32,6 +32,8 @@ const ProductPage = () => {
   const [servings, setServings] = useState("30");
   const [purchaseType, setPurchaseType] = useState("subscribe"); // Default to subscription
   const [subscriptionFrequency, setSubscriptionFrequency] = useState("4");
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const { user } = useAuth();
   const {
     addToCart
   } = useCart();
@@ -52,12 +54,53 @@ const ProductPage = () => {
         setLoading(false);
       }
     };
+
+    const checkWishlist = async () => {
+      if (!user || !id) return;
+      const { data, error } = await supabase
+        .from('wishlist_items')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('product_id', id);
+      if (error) {
+        console.error('Error checking wishlist:', error);
+      } else if (data && data.length > 0) {
+        setIsInWishlist(true);
+      }
+    };
+
     fetchProduct();
-  }, [id]);
+    checkWishlist();
+  }, [id, user]);
 
   const handleAddToCart = async () => {
     if (!product) return;
     await addToCart(product.id, quantity, purchaseType === 'subscribe');
+  };
+
+  const handleToggleWishlist = async () => {
+    if (!user || !product) return;
+    if (isInWishlist) {
+      const { error } = await supabase
+        .from('wishlist_items')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('product_id', product.id);
+      if (error) {
+        console.error('Error removing from wishlist:', error);
+      } else {
+        setIsInWishlist(false);
+      }
+    } else {
+      const { error } = await supabase
+        .from('wishlist_items')
+        .insert([{ user_id: user.id, product_id: product.id }]);
+      if (error) {
+        console.error('Error adding to wishlist:', error);
+      } else {
+        setIsInWishlist(true);
+      }
+    }
   };
 
   if (loading) {
@@ -107,8 +150,8 @@ const ProductPage = () => {
             <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden">
               <img src={productImages[selectedImage]} alt={product.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
-            <Button size="icon" variant="ghost" className="absolute top-4 right-4 bg-white/50 backdrop-blur-sm rounded-full hover:bg-white/75">
-              <Heart className="w-5 h-5 text-red-500" />
+            <Button size="icon" variant="ghost" className="absolute top-4 right-4 bg-white/50 backdrop-blur-sm rounded-full hover:bg-white/75" onClick={handleToggleWishlist}>
+              <Heart className={`w-5 h-5 ${isInWishlist ? 'text-red-500 fill-current' : 'text-gray-500'}`} />
             </Button>
             
             {/* Thumbnail Images */}
