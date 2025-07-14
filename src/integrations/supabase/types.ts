@@ -90,6 +90,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          is_subscription: boolean
           product_id: string | null
           quantity: number
           updated_at: string | null
@@ -98,6 +99,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          is_subscription?: boolean
           product_id?: string | null
           quantity?: number
           updated_at?: string | null
@@ -106,6 +108,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          is_subscription?: boolean
           product_id?: string | null
           quantity?: number
           updated_at?: string | null
@@ -412,6 +415,56 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          discount_percentage: number | null
+          frequency: string | null
+          frequency_weeks: number
+          id: string
+          next_delivery_date: string | null
+          product_id: string
+          quantity: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discount_percentage?: number | null
+          frequency?: string | null
+          frequency_weeks?: number
+          id?: string
+          next_delivery_date?: string | null
+          product_id: string
+          quantity?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discount_percentage?: number | null
+          frequency?: string | null
+          frequency_weeks?: number
+          id?: string
+          next_delivery_date?: string | null
+          product_id?: string
+          quantity?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_addresses: {
         Row: {
           address_line_1: string
@@ -630,6 +683,38 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      wishlist_items: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
