@@ -429,6 +429,22 @@ const AccountPage = () => {
       // Reset text color
       doc.setTextColor(0, 0, 0);
 
+      
+      // Header with brand info
+      doc.setFillColor(52, 152, 219);
+      doc.rect(0, 0, 210, 40, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(24);
+      doc.text('INVOICE', 20, 25);
+      
+      doc.setFontSize(12);
+      doc.text('DearNeuro', 150, 20);
+      doc.text('www.dearneuro.com', 150, 30);
+      
+      // Reset text color
+      doc.setTextColor(0, 0, 0);
+      
       // Invoice details
       doc.setFontSize(14);
       doc.text(`Invoice Number: ${order.id.slice(0, 8).toUpperCase()}`, 20, 60);
@@ -438,7 +454,11 @@ const AccountPage = () => {
       // Bill to section
       doc.setFontSize(16);
       doc.text('Bill To:', 20, 100);
-
+      
+      // Bill to section
+      doc.setFontSize(16);
+      doc.text('Bill To:', 20, 100);
+      
       doc.setFontSize(12);
       const shippingAddress = order.shipping_address;
       if (shippingAddress) {
@@ -466,6 +486,9 @@ const AccountPage = () => {
 
       yPosition += 15;
 
+      
+      yPosition += 15;
+      
       // Items
       let subtotal = 0;
       if (order.order_items) {
@@ -482,6 +505,12 @@ const AccountPage = () => {
         });
       }
 
+
+          
+          yPosition += 10;
+        });
+      }
+      
       // Totals
       yPosition += 10;
       doc.line(20, yPosition, 190, yPosition);
@@ -493,7 +522,14 @@ const AccountPage = () => {
       yPosition += 10;
       doc.text('Tax:', 130, yPosition);
       doc.text('$0.00', 160, yPosition);
-
+      
+      doc.text('Subtotal:', 130, yPosition);
+      doc.text(`$${subtotal.toFixed(2)}`, 160, yPosition);
+      
+      yPosition += 10;
+      doc.text('Tax:', 130, yPosition);
+      doc.text('$0.00', 160, yPosition);
+      
       yPosition += 10;
       doc.setFontSize(14);
       doc.text('Total:', 130, yPosition);
@@ -634,6 +670,53 @@ const AccountPage = () => {
     }
   };
 
+
+  const handleDeletePaymentMethod = async (paymentMethodId: string) => {
+    if (!user) return;
+    if (window.confirm('Are you sure you want to delete this payment method?')) {
+      try {
+        const { error } = await supabase.from('user_payment_methods').delete().eq('id', paymentMethodId);
+        if (error) throw error;
+        fetchAllData();
+      } catch (error) {
+        console.error('Error deleting payment method:', error);
+      }
+    }
+  };
+
+  const getAvatarImage = () => {
+    const firstName = profileData.firstName || user?.user_metadata?.given_name || '';
+    const lastName = profileData.lastName || user?.user_metadata?.family_name || '';
+    
+    // Simple gender detection based on common names (this is a basic implementation)
+    const maleNames = ['john', 'james', 'robert', 'michael', 'william', 'david', 'richard', 'charles', 'joseph', 'thomas'];
+    const femaleNames = ['mary', 'patricia', 'jennifer', 'linda', 'elizabeth', 'barbara', 'susan', 'jessica', 'sarah', 'karen'];
+    
+    const firstNameLower = firstName.toLowerCase();
+    
+    if (maleNames.includes(firstNameLower)) {
+      return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face";
+    }
+    
+    if (femaleNames.includes(firstNameLower)) {
+      return "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face";
+    }
+    
+    // Default professional avatar
+    return "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face";
+  };
+
+  const PaymentMethodIcon = ({ type }: { type: string }) => {
+    switch (type.toLowerCase()) {
+      case 'paypal':
+        return <FaPaypal className="text-blue-600 text-2xl" />;
+      case 'googlepay':
+        return <FaGooglePay className="text-green-600 text-2xl" />;
+      default:
+        return <FaCreditCard className="text-[#192a3a] text-2xl" />;
+    }
+  };
+
   const sidebarItems = [
     { id: "dashboard", icon: <FaUser />, label: "Dashboard" },
     { id: "orders", icon: <FaBox />, label: "Orders" },
@@ -702,6 +785,50 @@ const AccountPage = () => {
                 <p className="text-gray-600 text-sm">{user?.email}</p>
               </div>
 
+
+  return (
+    <div className="min-h-screen bg-white">
+      <Header />
+      
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="lg:hidden mb-4 flex justify-between items-center">
+          <Select value={activeTab} onValueChange={handleTabChange}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="transition-all duration-300 ease-in-out">
+              {sidebarItems.map((item) => (
+                <SelectItem key={item.id} value={item.id}>
+                  <div className="flex items-center gap-2">
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="ghost" onClick={handleLogout} className="text-red-500">
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
+        </div>
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar */}
+          <div className="lg:w-80 w-full hidden lg:block">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+              <div className="text-center mb-8">
+                <Avatar className="w-20 h-20 mx-auto mb-4">
+                  <AvatarImage src={getAvatarImage()} alt={userDisplayName} />
+                  <AvatarFallback className="bg-[#192a3a] text-white text-2xl">
+                    <FaUser />
+                  </AvatarFallback>
+                </Avatar>
+                <h2 className="text-2xl font-bold text-[#192a3a]">
+                  {userDisplayName}
+                </h2>
+                <p className="text-gray-600 text-sm">{user?.email}</p>
+              </div>
+              
               <div className="space-y-2">
                 {sidebarItems.map((item) => (
                   <button
@@ -717,7 +844,6 @@ const AccountPage = () => {
                     <span className="font-medium">{item.label}</span>
                   </button>
                 ))}
-
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-4 p-4 rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200 mt-6"
@@ -760,7 +886,6 @@ const AccountPage = () => {
                           </div>
                         </div>
                       </div>
-
                       <div className="p-6 bg-gray-100 rounded-xl">
                         <div className="flex items-center gap-4">
                           <FaAddressBook className="text-2xl text-[#192a3a]" />
@@ -942,6 +1067,12 @@ const AccountPage = () => {
                               <div className="flex flex-wrap gap-2">
                                 <Button
                                   size="sm"
+                            
+                            <div className="flex flex-col lg:items-end gap-3">
+                              <div className="text-2xl font-bold text-[#192a3a]">₹{order.total_amount.toFixed(2)}</div>
+                              <div className="flex flex-wrap gap-2">
+                                <Button 
+                                  size="sm" 
                                   variant="outline"
                                   onClick={() => setSelectedOrder(order)}
                                   className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
@@ -951,6 +1082,8 @@ const AccountPage = () => {
                                 </Button>
                                 <Button
                                   size="sm"
+                                <Button 
+                                  size="sm" 
                                   variant="outline"
                                   onClick={() => handleDownloadInvoice(order)}
                                   className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
@@ -960,6 +1093,8 @@ const AccountPage = () => {
                                 </Button>
                                 <Button
                                   size="sm"
+                                <Button 
+                                  size="sm" 
                                   variant="outline"
                                   onClick={() => handleReorder(order)}
                                   className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
@@ -970,6 +1105,8 @@ const AccountPage = () => {
                                 {order.status === 'shipped' && (
                                   <Button
                                     size="sm"
+                                  <Button 
+                                    size="sm" 
                                     variant="outline"
                                     onClick={() => handleTrackOrder(order)}
                                     className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
@@ -1161,7 +1298,7 @@ const AccountPage = () => {
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <CardTitle className="text-2xl text-[#192a3a]">Payment Methods</CardTitle>
-                    <Button
+                    <Button 
                         onClick={() => setShowPaymentModal(true)}
                       className="bg-[#192a3a] hover:bg-[#0f1a26] text-white"
                     >
@@ -1180,6 +1317,7 @@ const AccountPage = () => {
                             <div>
                               <h3 className="font-semibold text-[#192a3a]">
                                 {method.card_type === 'PayPal'
+                                {method.card_type === 'PayPal' 
                                   ? 'PayPal'
                                   : `${method.card_type} •••• ${method.card_last_four}`
                                 }
@@ -1375,7 +1513,6 @@ const AccountPage = () => {
                   ✕
                 </Button>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-gray-600 text-sm mb-1">Order Date</p>
@@ -1431,14 +1568,15 @@ const AccountPage = () => {
               )}
 
               <div className="flex flex-wrap gap-3">
-                <Button
+                <Button 
                   onClick={() => handleDownloadInvoice(selectedOrder)}
                   className="bg-[#192a3a] hover:bg-[#0f1a26] text-white"
                 >
                   <FaDownload className="mr-2" />
                   Download Invoice
                 </Button>
-                <Button
+
+                <Button 
                   onClick={() => {
                     handleReorder(selectedOrder);
                     setSelectedOrder(null);
@@ -1449,7 +1587,7 @@ const AccountPage = () => {
                   <FaRedo className="mr-2" />
                   Reorder Items
                 </Button>
-                <Button
+                <Button 
                   onClick={() => handleTrackOrder(selectedOrder)}
                   variant="outline"
                   className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"

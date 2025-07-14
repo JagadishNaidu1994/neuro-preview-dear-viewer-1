@@ -106,14 +106,14 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [orderSearchTerm, setOrderSearchTerm] = useState("");
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
-
+  
   // Modal states
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isJournalModalOpen, setIsJournalModalOpen] = useState(false);
   const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
   const [isShippingModalOpen, setIsShippingModalOpen] = useState(false);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
-
+  
   // Editing states
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editingJournal, setEditingJournal] = useState<Journal | null>(null);
@@ -195,7 +195,7 @@ const AdminDashboard = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-
+      
       // Fetch user details for each order
       const ordersWithUsers: OrderWithUser[] = [];
       if (ordersData) {
@@ -209,14 +209,12 @@ const AdminDashboard = () => {
               .single();
             userData = user;
           }
-
           ordersWithUsers.push({
             ...order,
             users: userData
           });
         }
       }
-
       setOrders(ordersWithUsers);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -374,9 +372,9 @@ const AdminDashboard = () => {
         .eq("id", productId);
 
       if (error) throw error;
-      toast({
-        title: "Success",
-        description: `Product ${!currentStatus ? 'activated' : 'deactivated'} successfully`
+      toast({ 
+        title: "Success", 
+        description: `Product ${!currentStatus ? 'activated' : 'deactivated'} successfully` 
       });
       await fetchProducts();
     } catch (error) {
@@ -915,6 +913,9 @@ const AdminDashboard = () => {
                               <div className="text-sm text-gray-500">
                                 {order.users?.email || "No email"}
                               </div>
+                              <div className="text-sm text-gray-500">
+                                {order.users?.email || "No email"}
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell>₹{order.total_amount}</TableCell>
@@ -1259,7 +1260,8 @@ const AdminDashboard = () => {
                           {coupon.used_count}/{coupon.max_uses || "∞"}
                         </TableCell>
                         <TableCell>
-                          {coupon.expires_at
+
+                          {coupon.expires_at 
                             ? new Date(coupon.expires_at).toLocaleDateString()
                             : "Never"
                           }

@@ -123,6 +123,12 @@ const ReviewsTab = () => {
               <TableCell colSpan={6} className="text-center">
                 Loading...
               </TableCell>
+              <TableHead>Product</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Rating</TableHead>
+              <TableHead>Comment</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           ) : (
             data.map((review) => (
@@ -141,6 +147,32 @@ const ReviewsTab = () => {
                 <TableCell>
                   <div className="flex space-x-2">
                     {!review.is_approved && !review.is_archived && (
+              </TableRow>
+            ) : (
+              reviews.map((review) => (
+                <TableRow key={review.id}>
+                  <TableCell>{review.products.name}</TableCell>
+                  <TableCell>{review.users.email}</TableCell>
+                  <TableCell>{review.rating}/5</TableCell>
+                  <TableCell>{review.comment}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={review.is_approved ? "default" : "secondary"}
+                    >
+                      {review.is_approved ? "Approved" : "Pending"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      {!review.is_approved && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleApprove(review.id)}
+                        >
+                          <FaCheck />
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="outline"
