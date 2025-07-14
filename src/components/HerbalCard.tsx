@@ -25,7 +25,7 @@ const HerbalCard = ({
         </div>
 
         {/* Back */}
-        <div className="absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] bg-[#F6F5EF] rounded-xl shadow-md p-6 text-sm text-[#444] overflow-hidden">
+        <div className="absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] bg-[#C1A85F] rounded-xl shadow-md p-6 text-sm text-[#444] overflow-hidden">
           <h3 className="font-semibold text-[#161616] mb-2">{herb.name}</h3>
           <p className="mb-2">
             <strong>Origins:</strong> {herb.back.origin}
