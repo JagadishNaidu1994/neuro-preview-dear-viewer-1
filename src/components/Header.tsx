@@ -10,12 +10,22 @@ import AuthModal from "./AuthModal";
 import CartDrawer from "./CartDrawer";
 import MobileDrawer from "./MobileDrawer";
 import { ShoppingCart, User, Menu, Settings } from "lucide-react";
-
 const Header = forwardRef<HTMLButtonElement>((_, ref) => {
-  const { user } = useAuth();
-  const { totalItems } = useCart();
-  const { isAdmin, loading: adminLoading } = useAdmin();
-  const { isOpen: isCartOpen, openCart, closeCart } = useCartDrawer();
+  const {
+    user
+  } = useAuth();
+  const {
+    totalItems
+  } = useCart();
+  const {
+    isAdmin,
+    loading: adminLoading
+  } = useAdmin();
+  const {
+    isOpen: isCartOpen,
+    openCart,
+    closeCart
+  } = useCartDrawer();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
   const navigate = useNavigate();
@@ -40,6 +50,24 @@ const Header = forwardRef<HTMLButtonElement>((_, ref) => {
   return (
     <>
       <header className="bg-brand-white shadow-sm sticky top-0 z-30">
+  const navItems = [{
+    label: "Shop All",
+    href: "/shop-all"
+  }, {
+    label: "The Science",
+    href: "/the-science"
+  }, {
+    label: "Ethos",
+    href: "/ethos"
+  }, {
+    label: "Herbal Index",
+    href: "/herbal-index"
+  }, {
+    label: "Journal",
+    href: "/journal"
+  }];
+  return <>
+      <header className="shadow-sm sticky top-0 z-30 bg-slate-50">
         <div className="max-w-[1400px] mx-auto px-4 md:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -55,9 +83,9 @@ const Header = forwardRef<HTMLButtonElement>((_, ref) => {
                   to={item.href}
                   className="text-brand-gray-500 hover:text-brand-blue-700 font-medium transition-colors"
                 >
+              {navItems.map(item => <Link key={item.href} to={item.href} className="text-[#514B3D] hover:text-[#3f3a2f] font-medium transition-colors">
                   {item.label}
-                </Link>
-              ))}
+                </Link>)}
             </nav>
 
             {/* Right Side Actions */}
@@ -72,18 +100,21 @@ const Header = forwardRef<HTMLButtonElement>((_, ref) => {
                     title="Admin Dashboard"
                   >
                     <Settings className="w-8 h-8 text-brand-blue-700" />
+              {user && isAdmin && !adminLoading && <Link to="/admin">
+                  <Button variant="ghost" size="sm" className="relative p-2 hidden md:flex" title="Admin Dashboard">
+                    <Settings className="w-8 h-8" />
                   </Button>
-                </Link>
-              )}
+                </Link>}
 
               {/* Cart Icon */}
               <Button variant="ghost" size="sm" onClick={openCart} className="relative p-2" ref={ref}>
                 <ShoppingCart className="w-10 h-10 text-brand-blue-700" />
                 {totalItems > 0 && (
                   <span className="absolute -top-1 -right-1 bg-brand-blue-700 text-brand-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <ShoppingCart className="w-10 h-10" />
+                {totalItems > 0 && <span className="absolute -top-1 -right-1 bg-[#514B3D] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {totalItems}
-                  </span>
-                )}
+                  </span>}
               </Button>
 
               {/* User Account */}
@@ -93,6 +124,7 @@ const Header = forwardRef<HTMLButtonElement>((_, ref) => {
                 onClick={handleAccountClick}
                 className="hidden md:flex items-center gap-2 text-brand-blue-700 font-normal"
               >
+              <Button variant="ghost" size="sm" onClick={handleAccountClick} className="hidden md:flex items-center gap-2 text-slate-900 font-normal">
                 <User className="w-10 h-10" />
                 {user ? "Account" : "Sign In"}
               </Button>
@@ -105,6 +137,8 @@ const Header = forwardRef<HTMLButtonElement>((_, ref) => {
                 className="lg:hidden font-normal text-2xl"
               >
                 <Menu className="w-10 h-10 text-brand-blue-700" />
+              <Button variant="ghost" size="sm" onClick={() => setShowMobileDrawer(true)} className="lg:hidden font-normal text-2xl">
+                <Menu className="w-10 h-10" />
               </Button>
             </div>
           </div>
@@ -118,12 +152,7 @@ const Header = forwardRef<HTMLButtonElement>((_, ref) => {
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
 
       {/* Mobile Drawer */}
-      <MobileDrawer
-        isOpen={showMobileDrawer}
-        onClose={() => setShowMobileDrawer(false)}
-        onAccountClick={handleAccountClick}
-      />
-    </>
-  );
+      <MobileDrawer isOpen={showMobileDrawer} onClose={() => setShowMobileDrawer(false)} onAccountClick={handleAccountClick} />
+    </>;
 });
 export default Header;
