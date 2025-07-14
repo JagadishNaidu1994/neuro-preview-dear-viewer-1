@@ -500,17 +500,9 @@ const AccountPage = () => {
           doc.text(item.quantity.toString(), 100, yPosition);
           doc.text(`$${item.price.toFixed(2)}`, 130, yPosition);
           doc.text(`$${itemTotal.toFixed(2)}`, 160, yPosition);
-
           yPosition += 10;
         });
-      }
-
-
-          
-          yPosition += 10;
-        });
-      }
-      
+      }      
       // Totals
       yPosition += 10;
       doc.line(20, yPosition, 190, yPosition);
