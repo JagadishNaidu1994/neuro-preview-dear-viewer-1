@@ -1,10 +1,12 @@
 
 // src/App.tsx
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AnimatePresence } from "framer-motion";
 import Header from "@/components/Header";
+import PageWrapper from "@/components/PageWrapper";
 
 import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
@@ -36,6 +38,304 @@ import { CartProvider } from "@/context/CartProvider";
 
 const queryClient = new QueryClient();
 
+const AppRoutes = () => {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route
+          path="/"
+          element={
+            <PageWrapper>
+              <Index />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/shop-all"
+          element={
+            <PageWrapper>
+              <Header />
+              <Breadcrumb />
+              <ShopAll />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/product"
+          element={
+            <PageWrapper>
+              <Header />
+              <Breadcrumb />
+              <ProductPage />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <PageWrapper>
+              <Header />
+              <Breadcrumb />
+              <Cart />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <PageWrapper>
+              <Checkout />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/order-success"
+          element={
+            <PageWrapper>
+              <OrderSuccess />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/the-science"
+          element={
+            <PageWrapper>
+              <TheScience />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/ethos"
+          element={
+            <PageWrapper>
+              <Ethos />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <PageWrapper>
+              <ResetPassword />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/herbal-index"
+          element={
+            <PageWrapper>
+              <HerbalIndex />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/journal"
+          element={
+            <PageWrapper>
+              <Journal />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/journal/:id"
+          element={
+            <PageWrapper>
+              <JournalPost />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/refer"
+          element={
+            <PageWrapper>
+              <ReferFriend />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <PageWrapper>
+              <ContactUs />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/faqs"
+          element={
+            <PageWrapper>
+              <FAQ />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/shipping"
+          element={
+            <PageWrapper>
+              <ShippingReturns />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/rewards"
+          element={
+            <PageWrapper>
+              <Rewards />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+        {/* Account routes - all handled by AccountPage */}
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <AccountPage />
+                <Footer />
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account/dashboard"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <AccountPage />
+                <Footer />
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account/orders"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <AccountPage />
+                <Footer />
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account/profile"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <AccountPage />
+                <Footer />
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account/subscriptions"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <AccountPage />
+                <Footer />
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account/addresses"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <AccountPage />
+                <Footer />
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account/payments"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <AccountPage />
+                <Footer />
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account/rewards"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <AccountPage />
+                <Footer />
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account/preferences"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <AccountPage />
+                <Footer />
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account/security"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <AccountPage />
+                <Footer />
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <AdminProtectedRoute>
+              <PageWrapper>
+                <AdminDashboard />
+              </PageWrapper>
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <PageWrapper>
+              <NotFound />
+              <Footer />
+            </PageWrapper>
+          }
+        />
+      </Routes>
+    </AnimatePresence>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -43,126 +343,7 @@ const App = () => (
       <CartProvider>
         <BrowserRouter>
           <SampleJournalContent />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/shop-all" element={<><Header /><Breadcrumb /><ShopAll /><Footer /></>} />
-            <Route path="/product" element={<><Header /><Breadcrumb /><ProductPage /><Footer /></>} />
-            <Route path="/cart" element={<><Header /><Breadcrumb /><Cart /><Footer /></>} />
-            <Route path="/checkout" element={<><Checkout /><Footer /></>} />
-            <Route path="/order-success" element={<><OrderSuccess /><Footer /></>} />
-            <Route path="/the-science" element={<><TheScience /><Footer /></>} />
-            <Route path="/ethos" element={<><Ethos /><Footer /></>} />
-            <Route path="/reset-password" element={<><ResetPassword /><Footer /></>} />
-            <Route path="/herbal-index" element={<><HerbalIndex /><Footer /></>} />
-            <Route path="/journal" element={<><Journal /><Footer /></>} />
-            <Route path="/journal/:id" element={<><JournalPost /><Footer /></>} />
-            <Route path="/refer" element={<><ReferFriend /><Footer /></>} />
-            <Route path="/contact" element={<><ContactUs /><Footer /></>} />
-            <Route path="/faqs" element={<><FAQ /><Footer /></>} />
-            <Route path="/shipping" element={<><ShippingReturns /><Footer /></>} />
-            <Route path="/rewards" element={<><Rewards /><Footer /></>} />
-
-            {/* Account routes - all handled by AccountPage */}
-            <Route
-              path="/account"
-              element={
-                <ProtectedRoute>
-                  <AccountPage />
-                  <Footer />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/account/dashboard"
-              element={
-                <ProtectedRoute>
-                  <AccountPage />
-                  <Footer />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/account/orders"
-              element={
-                <ProtectedRoute>
-                  <AccountPage />
-                  <Footer />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/account/profile"
-              element={
-                <ProtectedRoute>
-                  <AccountPage />
-                  <Footer />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/account/subscriptions"
-              element={
-                <ProtectedRoute>
-                  <AccountPage />
-                  <Footer />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/account/addresses"
-              element={
-                <ProtectedRoute>
-                  <AccountPage />
-                  <Footer />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/account/payments"
-              element={
-                <ProtectedRoute>
-                  <AccountPage />
-                  <Footer />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/account/rewards"
-              element={
-                <ProtectedRoute>
-                  <AccountPage />
-                  <Footer />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/account/preferences"
-              element={
-                <ProtectedRoute>
-                  <AccountPage />
-                  <Footer />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/account/security"
-              element={
-                <ProtectedRoute>
-                  <AccountPage />
-                  <Footer />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <AdminProtectedRoute>
-                  <AdminDashboard />
-                </AdminProtectedRoute>
-              }
-            />
-            <Route path="*" element={<><NotFound /><Footer /></>} />
-          </Routes>
+          <AppRoutes />
         </BrowserRouter>
       </CartProvider>
     </TooltipProvider>
