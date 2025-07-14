@@ -120,7 +120,7 @@ const ReviewsTab = () => {
                   <div className="flex space-x-2">
                     {!review.is_approved && !review.is_archived && (
               </TableRow>
-            ) : (
+{/*             ) : ( */}
               reviews.map((review) => (
                 <TableRow key={review.id}>
                   <TableCell>{review.products?.name || 'Unknown Product'}</TableCell>
