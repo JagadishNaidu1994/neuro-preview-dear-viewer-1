@@ -5,6 +5,7 @@ import { useCart } from "@/context/CartProvider";
 import { useAuth } from "@/context/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -77,9 +78,10 @@ const ProductPage = () => {
     const fetchReviews = async () => {
       if (!id) return;
       try {
+        // Simplified query - just get reviews for the product
         const { data, error } = await supabase
           .from("reviews")
-          .select("*, users(email)")
+          .select("*")
           .eq("product_id", id)
           .eq("is_approved", true);
         if (error) throw error;
@@ -163,7 +165,6 @@ const ProductPage = () => {
   if (!product) {
     return (
       <div className="min-h-screen bg-white">
-        {/* <Header /> */}
         <div className="text-center py-24">
           <h2 className="text-3xl font-bold text-black mb-4">Product not found</h2>
           <p className="text-gray-600 mb-8">
@@ -470,7 +471,7 @@ const ProductPage = () => {
                     ))}
                   </div>
                   <span className="ml-4 text-sm text-gray-600">
-                    by {r.users.email}
+                    by User
                   </span>
                 </div>
                 <p>{r.comment}</p>
@@ -571,4 +572,5 @@ const ProductPage = () => {
     </div>
   );
 };
+
 export default ProductPage;
