@@ -21,8 +21,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FaPlus, FaEdit, FaTrash, FaEye } from "react-icons/fa";
 import { useToast } from "@/hooks/use-toast";
+
 interface Product {
   id: string;
   name: string;
@@ -33,6 +35,7 @@ interface Product {
   stock_quantity: number;
   is_active: boolean;
 }
+
 interface OrderWithUser {
   id: string;
   user_id: string;
@@ -46,6 +49,7 @@ interface OrderWithUser {
     last_name: string | null;
   } | null;
 }
+
 interface Journal {
   id: string;
   title: string;
@@ -56,6 +60,7 @@ interface Journal {
   published: boolean;
   created_at: string;
 }
+
 interface CouponCode {
   id: string;
   code: string;
@@ -67,6 +72,7 @@ interface CouponCode {
   expires_at?: string;
   is_active: boolean;
 }
+
 interface ShippingMethod {
   id: string;
   name: string;
@@ -75,6 +81,7 @@ interface ShippingMethod {
   estimated_days: string;
   is_active: boolean;
 }
+
 const AdminDashboard = () => {
   const {
     isAdmin,
@@ -138,14 +145,17 @@ const AdminDashboard = () => {
     price: "",
     estimated_days: ""
   });
+
   useEffect(() => {
     if (isAdmin) {
       fetchAllData();
     }
   }, [isAdmin]);
+
   const fetchAllData = async () => {
     await Promise.all([fetchProducts(), fetchOrders(), fetchJournals(), fetchCoupons(), fetchShippingMethods()]);
   };
+
   const fetchProducts = async () => {
     try {
       const {
@@ -160,6 +170,7 @@ const AdminDashboard = () => {
       console.error("Error fetching products:", error);
     }
   };
+
   const fetchOrders = async () => {
     try {
       // Fetch orders first
@@ -193,6 +204,7 @@ const AdminDashboard = () => {
       console.error("Error fetching orders:", error);
     }
   };
+
   const fetchJournals = async () => {
     try {
       const {
@@ -207,6 +219,7 @@ const AdminDashboard = () => {
       console.error("Error fetching journals:", error);
     }
   };
+
   const fetchCoupons = async () => {
     try {
       const {
@@ -221,6 +234,7 @@ const AdminDashboard = () => {
       console.error("Error fetching coupons:", error);
     }
   };
+
   const fetchShippingMethods = async () => {
     try {
       const {
@@ -247,6 +261,7 @@ const AdminDashboard = () => {
       stock_quantity: ""
     });
   };
+
   const resetJournalForm = () => {
     setJournalForm({
       title: "",
@@ -257,6 +272,7 @@ const AdminDashboard = () => {
       published: false
     });
   };
+
   const resetCouponForm = () => {
     setCouponForm({
       code: "",
@@ -267,6 +283,7 @@ const AdminDashboard = () => {
       expires_at: ""
     });
   };
+
   const resetShippingForm = () => {
     setShippingForm({
       name: "",
@@ -356,6 +373,7 @@ const AdminDashboard = () => {
       });
     }
   };
+
   const handleJournalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -405,6 +423,7 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+
   const handleCouponSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -454,6 +473,7 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+
   const handleShippingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -498,17 +518,22 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+
   const handleDeleteCoupon = async (couponId: string) => {
     if (!window.confirm("Are you sure you want to delete this coupon?")) return;
     try {
-      const {
-        error
-      } = await supabase.from("coupon_codes").delete().eq("id", couponId);
+      const { error } = await supabase
+        .from("coupon_codes")
+        .delete()
+        .eq("id", couponId);
+      
       if (error) throw error;
+      
       toast({
         title: "Success",
         description: "Coupon deleted successfully"
       });
+      
       await fetchCoupons();
     } catch (error) {
       console.error("Error deleting coupon:", error);
@@ -519,6 +544,7 @@ const AdminDashboard = () => {
       });
     }
   };
+
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
       const {
@@ -555,6 +581,7 @@ const AdminDashboard = () => {
     });
     setIsProductModalOpen(true);
   };
+
   const handleEditJournal = (journal: Journal) => {
     setEditingJournal(journal);
     setJournalForm({
@@ -567,6 +594,7 @@ const AdminDashboard = () => {
     });
     setIsJournalModalOpen(true);
   };
+
   const handleEditCoupon = (coupon: CouponCode) => {
     setEditingCoupon(coupon);
     setCouponForm({
@@ -579,6 +607,7 @@ const AdminDashboard = () => {
     });
     setIsCouponModalOpen(true);
   };
+
   const handleEditShipping = (shipping: ShippingMethod) => {
     setEditingShipping(shipping);
     setShippingForm({
@@ -589,15 +618,18 @@ const AdminDashboard = () => {
     });
     setIsShippingModalOpen(true);
   };
+
   const handleViewOrder = (order: OrderWithUser) => {
     setSelectedOrder(order);
     setIsOrderDialogOpen(true);
   };
+
   if (adminLoading) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-xl">Loading...</div>
       </div>;
   }
+
   if (!isAdmin) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -606,7 +638,9 @@ const AdminDashboard = () => {
         </div>
       </div>;
   }
-  return <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       
       <div className="flex-1 overflow-auto">
@@ -630,7 +664,8 @@ const AdminDashboard = () => {
           {activeTab === "users" && <UsersTab />}
 
           {/* Products Tab */}
-          {activeTab === "products" && <Card className="bg-white">
+          {activeTab === "products" && (
+            <Card className="bg-white">
               <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
                 <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Products Management</CardTitle>
                 <Dialog open={isProductModalOpen} onOpenChange={setIsProductModalOpen}>
@@ -720,7 +755,8 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {products.map(product => <TableRow key={product.id}>
+                    {products.map(product => (
+                      <TableRow key={product.id}>
                         <TableCell>
                           <img src={product.image_url} alt={product.name} className="w-12 h-12 object-cover rounded" />
                         </TableCell>
@@ -744,23 +780,31 @@ const AdminDashboard = () => {
                             <Button size="sm" variant="outline" onClick={() => handleEditProduct(product)}>
                               <FaEdit />
                             </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteCoupon(coupon.id)}>
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteCoupon(product.id)}>
                               <FaTrash />
                             </Button>
                           </div>
                         </TableCell>
-                      </TableRow>)}
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </CardContent>
-            </Card>}
+            </Card>
+          )}
 
           {/* Orders Tab */}
-          {activeTab === "orders" && <Card className="bg-white">
+          {activeTab === "orders" && (
+            <Card className="bg-white">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-gray-900">Orders Management</CardTitle>
                 <div className="flex items-center space-x-4 mt-4">
-                  <Input placeholder="Search by customer or order ID" value={orderSearchTerm} onChange={e => setOrderSearchTerm(e.target.value)} className="max-w-sm" />
+                  <Input 
+                    placeholder="Search by customer or order ID" 
+                    value={orderSearchTerm} 
+                    onChange={(e) => setOrderSearchTerm(e.target.value)} 
+                    className="max-w-sm" 
+                  />
                   <Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Filter by status" />
@@ -789,43 +833,46 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {orders.filter(order => (order.users?.first_name?.toLowerCase().includes(orderSearchTerm.toLowerCase()) || order.users?.last_name?.toLowerCase().includes(orderSearchTerm.toLowerCase()) || order.users?.email?.toLowerCase().includes(orderSearchTerm.toLowerCase()) || order.id.includes(orderSearchTerm)) && (orderStatusFilter === "all" || order.status === orderStatusFilter)).map(order => <TableRow key={order.id}>
-                          <TableCell className="font-mono text-sm">
-                            #{generateOrderNumber(order.id)}
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">
-                                {order.users?.first_name ? `${order.users.first_name} ${order.users.last_name || ""}`.trim() : order.users?.email || "Guest User"}
+                    {orders.filter(order => (order.users?.first_name?.toLowerCase().includes(orderSearchTerm.toLowerCase()) || order.users?.last_name?.toLowerCase().includes(orderSearchTerm.toLowerCase()) || order.users?.email?.toLowerCase().includes(orderSearchTerm.toLowerCase()) || order.id.includes(orderSearchTerm)) && (orderStatusFilter === "all" || order.status === orderStatusFilter)).map(order => (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-mono text-sm">
+                              #{generateOrderNumber(order.id)}
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <div className="font-medium">
+                                  {order.users?.first_name ? `${order.users.first_name} ${order.users.last_name || ""}`.trim() : order.users?.email || "Guest User"}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {order.users?.email || "No email"}
+                                </div>
                               </div>
-                              <div className="text-sm text-gray-500">
-                                {order.users?.email || "No email"}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>₹{order.total_amount}</TableCell>
-                          <TableCell>
-                            <select value={order.status} onChange={e => updateOrderStatus(order.id, e.target.value)} className="border rounded px-2 py-1 text-sm">
-                              <option value="pending">Pending</option>
-                              <option value="processing">Processing</option>
-                              <option value="shipped">Shipped</option>
-                              <option value="delivered">Delivered</option>
-                              <option value="cancelled">Cancelled</option>
-                            </select>
-                          </TableCell>
-                          <TableCell>
-                            {new Date(order.created_at).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell>
-                            <Button size="sm" variant="outline" onClick={() => handleViewOrder(order)}>
-                              <FaEye />
-                            </Button>
-                          </TableCell>
-                        </TableRow>)}
+                            </TableCell>
+                            <TableCell>₹{order.total_amount}</TableCell>
+                            <TableCell>
+                              <select value={order.status} onChange={e => updateOrderStatus(order.id, e.target.value)} className="border rounded px-2 py-1 text-sm">
+                                <option value="pending">Pending</option>
+                                <option value="processing">Processing</option>
+                                <option value="shipped">Shipped</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                              </select>
+                            </TableCell>
+                            <TableCell>
+                              {new Date(order.created_at).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell>
+                              <Button size="sm" variant="outline" onClick={() => handleViewOrder(order)}>
+                                <FaEye />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
                   </TableBody>
                 </Table>
               </CardContent>
-            </Card>}
+            </Card>
+          )}
 
           {/* Messages Tab */}
           {activeTab === "messages" && <MessagesSection />}
@@ -843,7 +890,8 @@ const AdminDashboard = () => {
           {activeTab === "content" && <ContentTab />}
 
           {/* Journals Tab */}
-          {activeTab === "journals" && <Card className="bg-white">
+          {activeTab === "journals" && (
+            <Card className="bg-white">
               <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
                 <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Journals Management</CardTitle>
                 <Dialog open={isJournalModalOpen} onOpenChange={setIsJournalModalOpen}>
@@ -931,32 +979,36 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {journals.map(journal => <TableRow key={journal.id}>
-                        <TableCell className="font-medium">{journal.title}</TableCell>
-                        <TableCell>{journal.author}</TableCell>
-                        <TableCell>
-                          <Badge variant={journal.published ? "default" : "secondary"}>
-                            {journal.published ? "Published" : "Draft"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(journal.created_at).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="outline" onClick={() => handleEditJournal(journal)}>
-                              <FaEdit />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>)}
+                    {journals.map(journal => (
+                        <TableRow key={journal.id}>
+                          <TableCell className="font-medium">{journal.title}</TableCell>
+                          <TableCell>{journal.author}</TableCell>
+                          <TableCell>
+                            <Badge variant={journal.published ? "default" : "secondary"}>
+                              {journal.published ? "Published" : "Draft"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {new Date(journal.created_at).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button size="sm" variant="outline" onClick={() => handleEditJournal(journal)}>
+                                <FaEdit />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                   </TableBody>
                 </Table>
               </CardContent>
-            </Card>}
+            </Card>
+          )}
 
           {/* Coupons Tab */}
-          {activeTab === "coupons" && <Card className="bg-white">
+          {activeTab === "coupons" && (
+            <Card className="bg-white">
               <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
                 <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Coupon Codes Management</CardTitle>
                 <Dialog open={isCouponModalOpen} onOpenChange={setIsCouponModalOpen}>
@@ -1054,36 +1106,39 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {coupons.map(coupon => <TableRow key={coupon.id}>
-                        <TableCell className="font-mono font-medium">{coupon.code}</TableCell>
-                        <TableCell>{coupon.discount_type}</TableCell>
-                        <TableCell>
-                          {coupon.discount_type === "percentage" ? `${coupon.discount_value}%` : `$${coupon.discount_value}`}
-                        </TableCell>
-                        <TableCell>${coupon.minimum_order_amount}</TableCell>
-                        <TableCell>
-                          {coupon.used_count}/{coupon.max_uses || "∞"}
-                        </TableCell>
-                        <TableCell>
-                          {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : "Never"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={coupon.is_active ? "default" : "secondary"}>
-                            {coupon.is_active ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="outline" onClick={() => handleEditCoupon(coupon)}>
-                              <FaEdit />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>)}
+                    {coupons.map(coupon => (
+                        <TableRow key={coupon.id}>
+                          <TableCell className="font-mono font-medium">{coupon.code}</TableCell>
+                          <TableCell>{coupon.discount_type}</TableCell>
+                          <TableCell>
+                            {coupon.discount_type === "percentage" ? `${coupon.discount_value}%` : `$${coupon.discount_value}`}
+                          </TableCell>
+                          <TableCell>${coupon.minimum_order_amount}</TableCell>
+                          <TableCell>
+                            {coupon.used_count}/{coupon.max_uses || "∞"}
+                          </TableCell>
+                          <TableCell>
+                            {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : "Never"}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={coupon.is_active ? "default" : "secondary"}>
+                              {coupon.is_active ? "Active" : "Inactive"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button size="sm" variant="outline" onClick={() => handleEditCoupon(coupon)}>
+                                <FaEdit />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                   </TableBody>
                 </Table>
               </CardContent>
-            </Card>}
+            </Card>
+          )}
 
           {/* Shipping Tab */}
           {activeTab === "shipping"}
@@ -1091,7 +1146,13 @@ const AdminDashboard = () => {
       </div>
 
       {/* Order View Dialog */}
-      <OrderDetailsDialog order={selectedOrder} isOpen={isOrderDialogOpen} onClose={() => setIsOrderDialogOpen(false)} />
-    </div>;
+      <OrderDetailsDialog 
+        order={selectedOrder} 
+        isOpen={isOrderDialogOpen} 
+        onClose={() => setIsOrderDialogOpen(false)} 
+      />
+    </div>
+  );
 };
+
 export default AdminDashboard;
