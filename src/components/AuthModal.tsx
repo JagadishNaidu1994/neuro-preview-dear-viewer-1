@@ -162,12 +162,12 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[425px] bg-brand-white">
+        <DialogContent className="sm:max-w-[425px] bg-white">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center text-brand-blue-700">
+            <DialogTitle className="text-2xl font-bold text-center text-[#161616]">
               {isSignUp ? "Create Account" : "Welcome Back"}
             </DialogTitle>
-            <DialogDescription className="text-center text-brand-gray-400">
+            <DialogDescription className="text-center text-[#B2AFAB]">
               {isSignUp
                 ? "Join DearNeuro for exclusive benefits and personalized wellness"
                 : "Sign in to your DearNeuro account"}
@@ -177,8 +177,8 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           <div className="space-y-6 py-4">
             {/* Error Message */}
             {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                <p className="text-sm">{error}</p>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-sm text-red-600">{error}</p>
               </div>
             )}
 
@@ -186,7 +186,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             <Button
               onClick={handleGoogleSignIn}
               variant="outline"
-              className="w-full border-2 border-brand-gray-200 hover:bg-brand-gray-100 rounded-xl py-3 h-auto"
+              className="w-full border-2 border-gray-200 hover:bg-gray-50 rounded-xl py-3 h-auto"
             >
               <div className="flex items-center gap-3">
                 <img
@@ -195,7 +195,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                   width="20"
                   height="20"
                 />
-                <span className="text-sm font-medium text-brand-gray-500">
+                <span className="text-sm font-medium text-gray-700">
                   Continue with Google
                 </span>
               </div>
@@ -204,7 +204,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             <div className="relative">
               <Separator />
               <div className="absolute inset-0 flex justify-center items-center">
-                <span className="bg-brand-white px-3 text-xs text-brand-gray-400">
+                <span className="bg-white px-3 text-xs text-[#B2AFAB]">
                   or continue with email
                 </span>
               </div>
@@ -255,7 +255,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                     <button
                       type="button"
                       onClick={() => setShowForgotPassword(true)}
-                      className="text-xs text-brand-blue-700 hover:underline"
+                      className="text-xs text-[#514B3D] hover:underline"
                     >
                       Forgot password?
                     </button>
@@ -288,7 +288,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-brand-blue-700 hover:bg-brand-blue-600 text-brand-white rounded-xl py-3 h-auto"
+                className="w-full bg-[#514B3D] hover:bg-[#5a5147] text-white rounded-xl py-3 h-auto"
               >
                 {loading
                   ? isSignUp
@@ -301,14 +301,14 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             </form>
 
             <div className="text-center">
-              <span className="text-sm text-brand-gray-400">
+              <span className="text-sm text-[#B2AFAB]">
                 {isSignUp
                   ? "Already have an account?"
                   : "Don't have an account?"}
               </span>
               <button
                 onClick={toggleMode}
-                className="ml-1 text-sm text-brand-blue-700 hover:underline font-medium"
+                className="ml-1 text-sm text-[#514B3D] hover:underline font-medium"
               >
                 {isSignUp ? "Sign In" : "Sign Up"}
               </button>
