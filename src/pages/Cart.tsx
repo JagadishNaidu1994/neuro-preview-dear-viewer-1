@@ -147,9 +147,6 @@ const Cart = () => {
               <Button variant="destructive" className="w-full mt-2" onClick={clearCart}>
                 Clear Cart
               </Button>
-              <Button variant="destructive" className="w-full mt-2" onClick={clearCart}>
-                Clear Cart
-              </Button>
             </div>
           </div>
         </div>
