@@ -32,7 +32,7 @@ const Breadcrumb = () => {
     "rewards": "Rewards"
   };
   if (pathnames.length === 0) return null;
-  return <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-6 px-[21px] py-[14px] my-0">
+  return <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-6 px-[21px] my-0 py-[9px]">
       <Link to="/" className="hover:text-[#514B3D] flex items-center">
         <FaHome className="mr-1" />
         Home
