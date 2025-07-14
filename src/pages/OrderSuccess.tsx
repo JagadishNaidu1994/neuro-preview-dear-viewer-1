@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { FaCheckCircle } from "react-icons/fa";
 import { motion } from "framer-motion";
+import Confetti from "@/components/Confetti";
 
 interface Order {
   id: string;
@@ -70,24 +71,25 @@ const OrderSuccess = () => {
   return (
     <div className="min-h-screen bg-[#F8F8F5] overflow-hidden">
       <Header />
+      <Confetti />
       <div className="max-w-4xl mx-auto px-4 py-16">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.3 }}
           className="bg-white rounded-lg p-8 shadow-sm text-center relative"
         >
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 260, damping: 20 }}
+            transition={{ delay: 0.1, type: "spring", stiffness: 260, damping: 20 }}
           >
             <FaCheckCircle className="text-green-500 text-6xl mx-auto mb-6" />
           </motion.div>
           <motion.h1
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
+            transition={{ delay: 0.2, duration: 0.3 }}
             className="text-3xl font-bold mb-4"
           >
             Order Confirmed!
@@ -95,7 +97,7 @@ const OrderSuccess = () => {
           <motion.p
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
+            transition={{ delay: 0.3, duration: 0.3 }}
             className="text-gray-600 mb-6"
           >
             Thank you for your purchase. Your order has been successfully placed.

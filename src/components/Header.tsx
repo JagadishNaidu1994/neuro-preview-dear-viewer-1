@@ -78,7 +78,7 @@ const Header = forwardRef<HTMLButtonElement>((_, ref) => {
 
               {/* Cart Icon */}
               <Button variant="ghost" size="sm" onClick={openCart} className="relative p-2" ref={ref}>
-                <ShoppingCart className="w-8 h-8" />
+                <ShoppingCart className="w-10 h-10" />
                 {totalItems > 0 && (
                   <span className="absolute -top-1 -right-1 bg-[#514B3D] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {totalItems}
@@ -93,7 +93,7 @@ const Header = forwardRef<HTMLButtonElement>((_, ref) => {
                 onClick={handleAccountClick}
                 className="hidden md:flex items-center gap-2 text-slate-900 font-normal"
               >
-                <User className="w-8 h-8" />
+                <User className="w-10 h-10" />
                 {user ? "Account" : "Sign In"}
               </Button>
 
@@ -104,7 +104,7 @@ const Header = forwardRef<HTMLButtonElement>((_, ref) => {
                 onClick={() => setShowMobileDrawer(true)}
                 className="lg:hidden font-normal text-2xl"
               >
-                <Menu className="w-8 h-8" />
+                <Menu className="w-10 h-10" />
               </Button>
             </div>
           </div>

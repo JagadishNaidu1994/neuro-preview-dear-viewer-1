@@ -3,7 +3,6 @@ import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/context/CartProvider";
 import { useAuth } from "@/context/AuthProvider";
-import Header from "../components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -114,7 +113,6 @@ const ProductPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
         <div className="flex items-center justify-center min-h-[80vh]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
         </div>
@@ -158,27 +156,24 @@ const ProductPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header ref={cartRef} />
       <AnimatePresence>
         {isAnimating && imageRef.current && cartRef.current && (
           <motion.img
             src={productImages[selectedImage]}
             alt="flying-product"
-            className="fixed z-50 rounded-full"
+            className="fixed z-50 rounded-lg"
             initial={{
               top: imageRef.current.getBoundingClientRect().top,
               left: imageRef.current.getBoundingClientRect().left,
               width: imageRef.current.getBoundingClientRect().width,
               height: imageRef.current.getBoundingClientRect().height,
+              opacity: 1,
             }}
             animate={{
-              top: cartRef.current.getBoundingClientRect().top,
-              left: cartRef.current.getBoundingClientRect().left,
-              width: 0,
-              height: 0,
-              rotate: 360,
+              scale: 1.2,
+              opacity: 0,
             }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             onAnimationComplete={() => setIsAnimating(false)}
           />
         )}
