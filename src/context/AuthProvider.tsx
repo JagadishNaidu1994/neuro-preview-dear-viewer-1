@@ -21,38 +21,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const init = async () => {
-      try {
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-        // Handle refresh token errors by clearing the session
-        if (error && (
-          error.message?.includes('Refresh Token Not Found') ||
-          error.message?.includes('invalid_grant') ||
-          error.message?.includes('refresh_token_not_found')
-        )) {
-          console.log('🔄 Clearing invalid session due to refresh token error');
-          await supabase.auth.signOut();
-          setSession(null);
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      } catch (err) {
-        console.error('🔴 Auth initialization error:', err);
-        // Clear any potentially corrupted session
-        await supabase.auth.signOut();
-        setSession(null);
-        setUser(null);
-        setLoading(false);
-        return;
-      }
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
 
       // ✅ Sync Google user metadata to users table
       if (session?.user) {

@@ -56,7 +56,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
           id,
           product_id,
           quantity,
-          is_subscription,
           products(id, name, price, image_url)
         `)
         .eq("user_id", user.id);

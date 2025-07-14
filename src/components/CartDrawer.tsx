@@ -12,7 +12,7 @@ interface CartDrawerProps {
 }
 
 const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
-  const { items, loading, removeFromCart, updateQuantity, clearCart, totalPrice, totalItems } = useCart();
+  const { items, loading, removeFromCart, updateQuantity, totalPrice, totalItems, clearCart } = useCart();
 
   if (!isOpen) return null;
 
@@ -126,9 +126,16 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                 >
                   <Link to="/cart">View Full Cart</Link>
                 </Button>
-                <Button variant="destructive" className="w-full mt-2" onClick={clearCart}>
-                Clear Cart
-              </Button>
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  onClick={() => {
+                    clearCart();
+                    onClose();
+                  }}
+                >
+                  Clear Cart
+                </Button>
               </div>
             </div>
           )}
