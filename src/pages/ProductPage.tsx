@@ -196,28 +196,6 @@ const ProductPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <AnimatePresence>
-        {isAnimating && imageRef.current && cartRef.current && (
-          <motion.img
-            src={productImages[selectedImage]}
-            alt="flying-product"
-            className="fixed z-50 rounded-lg"
-            initial={{
-              top: imageRef.current.getBoundingClientRect().top,
-              left: imageRef.current.getBoundingClientRect().left,
-              width: imageRef.current.getBoundingClientRect().width,
-              height: imageRef.current.getBoundingClientRect().height,
-              opacity: 1,
-            }}
-            animate={{
-              scale: 1.2,
-              opacity: 0,
-            }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            onAnimationComplete={() => setIsAnimating(false)}
-          />
-        )}
-      </AnimatePresence>
       <div className="w-full px-4 md:px-6 lg:px-8 py-0">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-none">
           {/* Product Images */}
@@ -381,9 +359,19 @@ const ProductPage = () => {
             </div>
 
             {/* Add to Cart Button */}
-            <Button onClick={handleAddToCart} className="w-full bg-black hover:bg-gray-800 text-white py-4 px-8 rounded-xl font-medium text-base" disabled={product.stock_quantity === 0}>
-              {product.stock_quantity > 0 ? purchaseType === 'subscribe' ? `SUBSCRIBE - £${finalPrice.toFixed(2)}` : `ADD TO CART - £${finalPrice.toFixed(2)}` : 'Out of Stock'}
-            </Button>
+            <motion.div whileTap={{ scale: 0.95 }}>
+              <Button
+                onClick={handleAddToCart}
+                className="w-full bg-black hover:bg-gray-800 text-white py-4 px-8 rounded-xl font-medium text-base"
+                disabled={product.stock_quantity === 0}
+              >
+                {product.stock_quantity > 0
+                  ? purchaseType === "subscribe"
+                    ? `SUBSCRIBE - £${finalPrice.toFixed(2)}`
+                    : `ADD TO CART - £${finalPrice.toFixed(2)}`
+                  : "Out of Stock"}
+              </Button>
+            </motion.div>
 
             {/* Benefits - More Compact Grid */}
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
