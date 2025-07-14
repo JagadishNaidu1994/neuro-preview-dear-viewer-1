@@ -37,6 +37,8 @@ const ProductPage = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const cartRef = useRef<HTMLButtonElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const [review, setReview] = useState({ rating: 5, comment: "" });
+  const [reviews, setReviews] = useState<any[]>([]);
 
   const { user } = useAuth();
   const { addToCart } = useCart();
@@ -72,8 +74,24 @@ const ProductPage = () => {
         setIsInWishlist(true);
       }
     };
+    const fetchReviews = async () => {
+      if (!id) return;
+      try {
+        const { data, error } = await supabase
+          .from("reviews")
+          .select("*, users(email)")
+          .eq("product_id", id)
+          .eq("is_approved", true);
+        if (error) throw error;
+        setReviews(data || []);
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+      }
+    };
+
     fetchProduct();
     checkWishlist();
+    fetchReviews();
   }, [id, user]);
 
   const handleAddToCart = async () => {
@@ -107,6 +125,28 @@ const ProductPage = () => {
       } else {
         setIsInWishlist(true);
       }
+    }
+  };
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !product) return;
+
+    try {
+      const { error } = await supabase.from("reviews").insert([
+        {
+          product_id: product.id,
+          user_id: user.id,
+          rating: review.rating,
+          comment: review.comment,
+        },
+      ]);
+      if (error) throw error;
+      setReview({ rating: 5, comment: "" });
+      alert("Review submitted for approval!");
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      alert("Failed to submit review.");
     }
   };
 
@@ -421,6 +461,71 @@ const ProductPage = () => {
             </CollapsibleContent>
           </Collapsible>
         </div>
+
+        {/* Existing Reviews */}
+        <div className="mt-16 pt-16 border-t border-gray-200">
+          <h2 className="text-2xl font-light text-black mb-8 text-center">
+            Customer Reviews
+          </h2>
+          <div className="space-y-8 max-w-xl mx-auto">
+            {reviews.map((r) => (
+              <div key={r.id} className="border-b pb-4">
+                <div className="flex items-center mb-2">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <FaStar
+                        key={i}
+                        className={`
+                          ${i < r.rating ? "text-yellow-400" : "text-gray-300"}
+                        `}
+                      />
+                    ))}
+                  </div>
+                  <span className="ml-4 text-sm text-gray-600">
+                    by {r.users.email}
+                  </span>
+                </div>
+                <p>{r.comment}</p>
+              </div>
+            ))}
+            {reviews.length === 0 && <p className="text-center text-gray-500">No reviews yet.</p>}
+          </div>
+        </div>
+
+        {/* Review Submission Form */}
+        {user && (
+          <div className="mt-16 pt-16 border-t border-gray-200">
+            <h2 className="text-2xl font-light text-black mb-8 text-center">
+              Write a Review
+            </h2>
+            <form onSubmit={handleReviewSubmit} className="max-w-xl mx-auto">
+              <div className="flex items-center mb-4">
+                <span className="mr-4">Your Rating:</span>
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <FaStar
+                      key={i}
+                      className={`cursor-pointer ${
+                        i < review.rating ? "text-yellow-400" : "text-gray-300"
+                      }`}
+                      onClick={() => setReview({ ...review, rating: i + 1 })}
+                    />
+                  ))}
+                </div>
+              </div>
+              <Textarea
+                placeholder="Write your review here..."
+                value={review.comment}
+                onChange={(e) =>
+                  setReview({ ...review, comment: e.target.value })
+                }
+                rows={5}
+                className="mb-4"
+              />
+              <Button type="submit">Submit Review</Button>
+            </form>
+          </div>
+        )}
 
         {/* You Might Like Section */}
         <div className="mt-16 pt-16 border-t border-gray-200">
