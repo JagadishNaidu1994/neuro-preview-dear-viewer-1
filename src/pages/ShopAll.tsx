@@ -7,7 +7,6 @@ import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { FaShoppingCart } from "react-icons/fa";
 import { Input } from "@/components/ui/input";
-
 interface Product {
   id: string;
   name: string;
@@ -44,11 +43,12 @@ export default function ShopAll() {
     }
   };
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-
   const handleQuantityChange = (productId: string, quantity: number) => {
-    setQuantities(prev => ({ ...prev, [productId]: quantity }));
+    setQuantities(prev => ({
+      ...prev,
+      [productId]: quantity
+    }));
   };
-
   const handleAddToCart = async (productId: string) => {
     const quantity = quantities[productId] || 1;
     await addToCart(productId, quantity);
@@ -63,7 +63,7 @@ export default function ShopAll() {
       </div>;
   }
   return <div className="min-h-screen bg-[#F8F8F5]">
-           <main className="w-full px-4 md:px-8 py-8">
+           <main className="w-full px-4 md:px-8 py-8 bg-white">
         <div className="max-w-[1400px] mx-auto">
           <h1 className="text-3xl font-bold mb-8 text-center">Shop All Products</h1>
           
@@ -93,14 +93,7 @@ export default function ShopAll() {
                       ${product.price}
                     </div>
                     <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        min="1"
-                        max={product.stock_quantity}
-                        value={quantities[product.id] || 1}
-                        onChange={(e) => handleQuantityChange(product.id, parseInt(e.target.value))}
-                        className="w-16 h-8 text-center"
-                      />
+                      <Input type="number" min="1" max={product.stock_quantity} value={quantities[product.id] || 1} onChange={e => handleQuantityChange(product.id, parseInt(e.target.value))} className="w-16 h-8 text-center" />
                       <Button size="sm" onClick={() => handleAddToCart(product.id)} disabled={!product.is_active || product.stock_quantity === 0} className="text-white bg-gray-950 hover:bg-gray-800 text-base font-medium">
                         <FaShoppingCart className="mr-2" />
                         {!product.is_active || product.stock_quantity === 0 ? "Out of Stock" : "Add to Cart"}
