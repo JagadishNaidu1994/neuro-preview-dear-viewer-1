@@ -13,7 +13,7 @@ const Cart = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#F8F8F5]">
+      <div className="min-h-screen bg-brand-white">
         <Header />
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <h1 className="text-2xl font-bold mb-4">Please sign in to view your cart</h1>
@@ -25,7 +25,7 @@ const Cart = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8F8F5]">
+      <div className="min-h-screen bg-brand-white">
         <Header />
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <div className="text-xl">Loading cart...</div>
@@ -36,11 +36,11 @@ const Cart = () => {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-[#F8F8F5]">
+      <div className="min-h-screen bg-brand-white">
         <Header />
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
-          <p className="text-gray-600 mb-8">Add some products to get started!</p>
+          <p className="text-brand-gray-500 mb-8">Add some products to get started!</p>
           <Link to="/shop-all">
             <Button>Continue Shopping</Button>
           </Link>
@@ -50,9 +50,9 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F8F5]">
+    <div className="min-h-screen bg-brand-white">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
+        <h1 className="text-3xl font-bold mb-8 text-brand-blue-700">Shopping Cart</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
@@ -60,7 +60,7 @@ const Cart = () => {
             {items.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-lg p-6 shadow-sm flex items-center space-x-4"
+                className="bg-brand-white rounded-lg p-6 shadow-sm flex items-center space-x-4"
               >
                 <img
                   src={item.product.image_url}
@@ -68,8 +68,8 @@ const Cart = () => {
                   className="w-20 h-20 object-cover rounded-lg"
                 />
                 <div className="flex-1">
-                  <h3 className="font-semibold text-lg">{item.product.name}</h3>
-                  <p className="text-gray-600">${item.product.price}</p>
+                  <h3 className="font-semibold text-lg text-brand-blue-700">{item.product.name}</h3>
+                  <p className="text-brand-gray-500">${item.product.price}</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Button
@@ -96,7 +96,7 @@ const Cart = () => {
                     <FaPlus />
                   </Button>
                 </div>
-                <div className="text-lg font-semibold">
+                <div className="text-lg font-semibold text-brand-blue-700">
                   ${(item.product.price * item.quantity).toFixed(2)}
                 </div>
                 <Button
@@ -112,9 +112,9 @@ const Cart = () => {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg p-6 shadow-sm sticky top-4">
-              <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-              <div className="space-y-2 mb-4">
+            <div className="bg-brand-white rounded-lg p-6 shadow-sm sticky top-4">
+              <h2 className="text-xl font-semibold mb-4 text-brand-blue-700">Order Summary</h2>
+              <div className="space-y-2 mb-4 text-brand-blue-700">
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
                   <span>${totalPrice.toFixed(2)}</span>
@@ -127,14 +127,14 @@ const Cart = () => {
                   <span>Tax:</span>
                   <span>${(totalPrice * 0.08).toFixed(2)}</span>
                 </div>
-                <hr />
+                <hr className="border-brand-gray-200"/>
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total:</span>
                   <span>${(totalPrice * 1.08).toFixed(2)}</span>
                 </div>
               </div>
               <Link to="/checkout">
-                <Button className="w-full bg-[#514B3D] hover:bg-[#3f3a2f]">
+                <Button className="w-full">
                   Proceed to Checkout
                 </Button>
               </Link>

@@ -382,44 +382,6 @@ export type Database = {
         }
         Relationships: []
       }
-      reviews: {
-        Row: {
-          comment: string | null
-          created_at: string | null
-          id: string
-          is_approved: boolean | null
-          product_id: string | null
-          rating: number
-          user_id: string | null
-        }
-        Insert: {
-          comment?: string | null
-          created_at?: string | null
-          id?: string
-          is_approved?: boolean | null
-          product_id?: string | null
-          rating: number
-          user_id?: string | null
-        }
-        Update: {
-          comment?: string | null
-          created_at?: string | null
-          id?: string
-          is_approved?: boolean | null
-          product_id?: string | null
-          rating?: number
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reviews_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       shipping_methods: {
         Row: {
           available_pincodes: string[] | null
