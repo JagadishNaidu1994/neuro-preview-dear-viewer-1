@@ -25,13 +25,13 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
       />
       
       {/* Drawer */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out">
+      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-brand-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out">
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b">
+          <div className="flex items-center justify-between p-6 border-b border-brand-gray-200">
             <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5" />
-              <h2 className="text-lg font-semibold">Cart ({totalItems})</h2>
+              <ShoppingBag className="w-5 h-5 text-brand-blue-700" />
+              <h2 className="text-lg font-semibold text-brand-blue-700">Cart ({totalItems})</h2>
             </div>
             <Button
               variant="ghost"
@@ -39,19 +39,19 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
               onClick={onClose}
               className="p-2"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 text-brand-blue-700" />
             </Button>
           </div>
 
           {/* Cart Items */}
           <div className="flex-1 overflow-y-auto p-6">
             {loading ? (
-              <div className="text-center py-8">Loading cart...</div>
+              <div className="text-center py-8 text-brand-gray-500">Loading cart...</div>
             ) : items.length === 0 ? (
               <div className="text-center py-16">
-                <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium mb-2">Your cart is empty</h3>
-                <p className="text-gray-600 mb-6">Add some products to get started!</p>
+                <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-brand-gray-300" />
+                <h3 className="text-lg font-medium mb-2 text-brand-blue-700">Your cart is empty</h3>
+                <p className="text-brand-gray-500 mb-6">Add some products to get started!</p>
                 <Button onClick={onClose} asChild>
                   <Link to="/shop-all">Continue Shopping</Link>
                 </Button>
@@ -59,15 +59,15 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
             ) : (
               <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.id} className="flex gap-4 p-4 border rounded-lg">
+                  <div key={item.id} className="flex gap-4 p-4 border border-brand-gray-200 rounded-lg">
                     <img
                       src={item.product.image_url}
                       alt={item.product.name}
                       className="w-16 h-16 object-cover rounded-lg"
                     />
                     <div className="flex-1">
-                      <h4 className="font-medium text-sm">{item.product.name}</h4>
-                      <p className="text-[#514B3D] font-semibold">₹{item.product.price}</p>
+                      <h4 className="font-medium text-sm text-brand-blue-700">{item.product.name}</h4>
+                      <p className="text-brand-blue-700 font-semibold">₹{item.product.price}</p>
                       
                       <div className="flex items-center gap-2 mt-2">
                         <Button
@@ -78,7 +78,7 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                         >
                           <Minus className="w-3 h-3" />
                         </Button>
-                        <span className="w-8 text-center text-sm">{item.quantity}</span>
+                        <span className="w-8 text-center text-sm text-brand-blue-700">{item.quantity}</span>
                         <Button
                           size="sm"
                           variant="outline"
@@ -105,14 +105,14 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
 
           {/* Footer */}
           {items.length > 0 && (
-            <div className="border-t p-6 space-y-4">
-              <div className="flex justify-between items-center text-lg font-semibold">
+            <div className="border-t border-brand-gray-200 p-6 space-y-4">
+              <div className="flex justify-between items-center text-lg font-semibold text-brand-blue-700">
                 <span>Total:</span>
                 <span>₹{totalPrice.toFixed(2)}</span>
               </div>
               <div className="space-y-2">
                 <Button 
-                  className="w-full bg-[#514B3D] hover:bg-[#3f3a2f]"
+                  className="w-full"
                   onClick={onClose}
                   asChild
                 >
