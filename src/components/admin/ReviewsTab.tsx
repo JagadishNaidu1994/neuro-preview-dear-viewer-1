@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -21,11 +22,8 @@ interface Review {
   comment: string;
   is_approved: boolean;
   created_at: string;
-  products: {
+  products?: {
     name: string;
-  };
-  users: {
-    email: string;
   };
 }
 
@@ -43,13 +41,10 @@ const ReviewsTab = () => {
     try {
       const { data, error } = await supabase
         .from("reviews")
-        .select(
-          `
+        .select(`
           *,
-          products(name),
-          users(email)
-        `
-        )
+          products(name)
+        `)
         .order("created_at", { ascending: false });
       if (error) throw error;
       setReviews(data || []);
@@ -105,7 +100,7 @@ const ReviewsTab = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Product</TableHead>
-              <TableHead>Customer</TableHead>
+              <TableHead>User ID</TableHead>
               <TableHead>Rating</TableHead>
               <TableHead>Comment</TableHead>
               <TableHead>Status</TableHead>
@@ -122,8 +117,8 @@ const ReviewsTab = () => {
             ) : (
               reviews.map((review) => (
                 <TableRow key={review.id}>
-                  <TableCell>{review.products.name}</TableCell>
-                  <TableCell>{review.users.email}</TableCell>
+                  <TableCell>{review.products?.name || 'Unknown Product'}</TableCell>
+                  <TableCell>{review.user_id?.slice(0, 8)}...</TableCell>
                   <TableCell>{review.rating}/5</TableCell>
                   <TableCell>{review.comment}</TableCell>
                   <TableCell>
