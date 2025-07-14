@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import AuthModal from "./AuthModal";
 import CartDrawer from "./CartDrawer";
 import MobileDrawer from "./MobileDrawer";
-import { ShoppingBag, User, Menu, Settings } from "lucide-react";
+import { FiShoppingCart, FiUser, FiMenu, FiSettings } from "react-icons/fi";
 const Header = () => {
   const {
     user
@@ -77,27 +77,27 @@ const Header = () => {
               {/* Admin Link - Only show for admin users */}
               {user && isAdmin && !adminLoading && <Link to="/admin">
                   <Button variant="ghost" size="sm" className="relative p-2 hidden md:flex" title="Admin Dashboard">
-                    <Settings className="w-5 h-5" />
+                    <FiSettings className="w-6 h-6" />
                   </Button>
                 </Link>}
 
               {/* Cart Icon */}
-              <Button variant="ghost" size="icon" onClick={openCart} className="relative">
-                <ShoppingBag className="w-6 h-6" />
-                {totalItems > 0 && <span className="absolute -top-1 -right-1 bg-[#514B3D] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              <Button variant="ghost" size="icon" onClick={openCart} className="relative group">
+                <FiShoppingCart className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
+                {totalItems > 0 && <span className="absolute -top-1 -right-1 bg-[#514B3D] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
                     {totalItems}
                   </span>}
               </Button>
 
               {/* User Account */}
               <Button variant="ghost" size="sm" onClick={handleAccountClick} className="hidden md:flex items-center gap-2 text-slate-900 font-normal">
-                <User className="w-6 h-6" />
+                <FiUser className="w-6 h-6" />
                 {user ? "Account" : "Sign In"}
               </Button>
 
               {/* Mobile Menu */}
-              <Button variant="ghost" size="icon" onClick={() => setShowMobileDrawer(true)} className="lg:hidden relative">
-                <Menu className={`w-6 h-6 transition-transform duration-300 ${showMobileDrawer ? 'rotate-90' : ''}`} />
+              <Button variant="ghost" size="icon" onClick={() => setShowMobileDrawer(!showMobileDrawer)} className="lg:hidden relative">
+                <FiMenu className={`w-6 h-6 transition-all duration-300 ${showMobileDrawer ? 'rotate-45' : ''}`} />
               </Button>
             </div>
           </div>
