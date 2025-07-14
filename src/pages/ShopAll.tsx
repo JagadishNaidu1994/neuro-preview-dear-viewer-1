@@ -63,7 +63,7 @@ export default function ShopAll() {
       </div>;
   }
   return <div className="min-h-screen bg-[#F8F8F5]">
-           <main className="w-full px-4 md:px-8 py-8 bg-white">
+           <main className="w-full px-4 bg-white py-px md:px-[14px]">
         <div className="max-w-[1400px] mx-auto">
           <h1 className="text-3xl font-bold mb-8 text-center">Shop All Products</h1>
           
