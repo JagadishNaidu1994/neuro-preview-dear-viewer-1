@@ -56,20 +56,20 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
               key={item.href}
               to={item.href}
               onClick={onClose}
-              className="text-[#514B3D] hover:text-[#3f3a2f] font-medium transition-colors py-2"
+              className="text-brand-gray-500 hover:text-brand-blue-700 font-medium transition-colors py-2"
             >
               {item.label}
             </Link>
           ))}
 
-          <div className="border-t pt-4 mt-4">
+          <div className="border-t border-brand-gray-200 pt-4 mt-4">
             {/* Additional Links */}
             {additionalLinks.map((item) => (
               <Link
                 key={item.href}
                 to={item.href}
                 onClick={onClose}
-                className="flex items-center text-[#514B3D] hover:text-[#3f3a2f] font-medium transition-colors py-2"
+                className="flex items-center text-brand-gray-500 hover:text-brand-blue-700 font-medium transition-colors py-2"
               >
                 <item.icon className="w-4 h-4 mr-2" />
                 {item.label}
