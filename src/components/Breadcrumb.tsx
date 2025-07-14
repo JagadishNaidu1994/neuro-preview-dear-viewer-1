@@ -45,18 +45,21 @@ const Breadcrumb = () => {
         const isLast = index === pathnames.length - 1;
         const displayName = breadcrumbNameMap[name] || name.charAt(0).toUpperCase() + name.slice(1);
 
-        return (
-          <React.Fragment key={name}>
-            <FaChevronRight className="text-gray-400" />
-            {isLast ? (
-              <span className="text-gray-900 font-medium">{displayName}</span>
-            ) : (
-              <Link to={routeTo} className="hover:text-[#514B3D]">
-                {displayName}
-              </Link>
-            )}
-          </React.Fragment>
-        );
+        if (breadcrumbNameMap[name]) {
+          return (
+            <React.Fragment key={name}>
+              <FaChevronRight className="text-gray-400" />
+              {isLast ? (
+                <span className="text-gray-900 font-medium">{displayName}</span>
+              ) : (
+                <Link to={routeTo} className="hover:text-[#514B3D]">
+                  {displayName}
+                </Link>
+              )}
+            </React.Fragment>
+          );
+        }
+        return null;
       })}
     </nav>
   );

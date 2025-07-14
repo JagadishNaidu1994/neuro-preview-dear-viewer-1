@@ -26,6 +26,7 @@ import FAQ from "@/pages/FAQ";
 import ShippingReturns from "@/pages/ShippingReturns";
 import Rewards from "@/pages/Rewards";
 import Footer from "@/components/Footer";
+import Breadcrumb from "@/components/Breadcrumb";
 import SampleJournalContent from "@/components/SampleJournalContent";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -43,9 +44,9 @@ const App = () => (
           <SampleJournalContent />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/shop-all" element={<><ShopAll /><Footer /></>} />
-            <Route path="/product" element={<><ProductPage /><Footer /></>} />
-            <Route path="/cart" element={<><Cart /><Footer /></>} />
+            <Route path="/shop-all" element={<><Breadcrumb /><ShopAll /><Footer /></>} />
+            <Route path="/product" element={<><Breadcrumb /><ProductPage /><Footer /></>} />
+            <Route path="/cart" element={<><Breadcrumb /><Cart /><Footer /></>} />
             <Route path="/checkout" element={<><Checkout /><Footer /></>} />
             <Route path="/order-success" element={<><OrderSuccess /><Footer /></>} />
             <Route path="/the-science" element={<><TheScience /><Footer /></>} />

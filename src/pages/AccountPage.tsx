@@ -34,7 +34,8 @@ import {
   FaPaypal,
   FaGooglePay,
   FaCalendarAlt,
-  FaHeart
+  FaHeart,
+  FaSignOutAlt as LogOut
 } from "react-icons/fa";
 import jsPDF from 'jspdf';
 
@@ -656,7 +657,7 @@ const AccountPage = () => {
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="lg:hidden mb-4">
+        <div className="lg:hidden mb-4 flex justify-between items-center">
           <Select value={activeTab} onValueChange={handleTabChange}>
             <SelectTrigger>
               <SelectValue />
@@ -672,6 +673,10 @@ const AccountPage = () => {
               ))}
             </SelectContent>
           </Select>
+          <Button variant="ghost" onClick={handleLogout} className="text-red-500">
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
         </div>
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
