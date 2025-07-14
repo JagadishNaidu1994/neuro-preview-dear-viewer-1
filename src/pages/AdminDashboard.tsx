@@ -21,8 +21,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FaPlus, FaEdit, FaTrash, FaEye } from "react-icons/fa";
 import { useToast } from "@/hooks/use-toast";
+
 interface Product {
   id: string;
   name: string;
@@ -33,6 +35,7 @@ interface Product {
   stock_quantity: number;
   is_active: boolean;
 }
+
 interface OrderWithUser {
   id: string;
   user_id: string;
@@ -46,6 +49,7 @@ interface OrderWithUser {
     last_name: string | null;
   } | null;
 }
+
 interface Journal {
   id: string;
   title: string;
@@ -56,6 +60,7 @@ interface Journal {
   published: boolean;
   created_at: string;
 }
+
 interface CouponCode {
   id: string;
   code: string;
@@ -67,6 +72,7 @@ interface CouponCode {
   expires_at?: string;
   is_active: boolean;
 }
+
 interface ShippingMethod {
   id: string;
   name: string;
@@ -75,6 +81,7 @@ interface ShippingMethod {
   estimated_days: string;
   is_active: boolean;
 }
+
 const AdminDashboard = () => {
   const {
     isAdmin,
@@ -138,14 +145,17 @@ const AdminDashboard = () => {
     price: "",
     estimated_days: ""
   });
+
   useEffect(() => {
     if (isAdmin) {
       fetchAllData();
     }
   }, [isAdmin]);
+
   const fetchAllData = async () => {
     await Promise.all([fetchProducts(), fetchOrders(), fetchJournals(), fetchCoupons(), fetchShippingMethods()]);
   };
+
   const fetchProducts = async () => {
     try {
       const {
@@ -160,6 +170,7 @@ const AdminDashboard = () => {
       console.error("Error fetching products:", error);
     }
   };
+
   const fetchOrders = async () => {
     try {
       // Fetch orders first
@@ -193,6 +204,7 @@ const AdminDashboard = () => {
       console.error("Error fetching orders:", error);
     }
   };
+
   const fetchJournals = async () => {
     try {
       const {
@@ -207,6 +219,7 @@ const AdminDashboard = () => {
       console.error("Error fetching journals:", error);
     }
   };
+
   const fetchCoupons = async () => {
     try {
       const {
@@ -221,6 +234,7 @@ const AdminDashboard = () => {
       console.error("Error fetching coupons:", error);
     }
   };
+
   const fetchShippingMethods = async () => {
     try {
       const {
@@ -247,6 +261,7 @@ const AdminDashboard = () => {
       stock_quantity: ""
     });
   };
+
   const resetJournalForm = () => {
     setJournalForm({
       title: "",
@@ -257,6 +272,7 @@ const AdminDashboard = () => {
       published: false
     });
   };
+
   const resetCouponForm = () => {
     setCouponForm({
       code: "",
@@ -267,6 +283,7 @@ const AdminDashboard = () => {
       expires_at: ""
     });
   };
+
   const resetShippingForm = () => {
     setShippingForm({
       name: "",
@@ -356,6 +373,7 @@ const AdminDashboard = () => {
       });
     }
   };
+
   const handleJournalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -405,6 +423,7 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+
   const handleCouponSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -454,6 +473,7 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+
   const handleShippingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -498,6 +518,7 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+
   const handleDeleteCoupon = async (couponId: string) => {
     if (!window.confirm("Are you sure you want to delete this coupon?")) return;
     try {
@@ -519,6 +540,7 @@ const AdminDashboard = () => {
       });
     }
   };
+
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
       const {
@@ -555,6 +577,7 @@ const AdminDashboard = () => {
     });
     setIsProductModalOpen(true);
   };
+
   const handleEditJournal = (journal: Journal) => {
     setEditingJournal(journal);
     setJournalForm({
@@ -567,6 +590,7 @@ const AdminDashboard = () => {
     });
     setIsJournalModalOpen(true);
   };
+
   const handleEditCoupon = (coupon: CouponCode) => {
     setEditingCoupon(coupon);
     setCouponForm({
@@ -579,6 +603,7 @@ const AdminDashboard = () => {
     });
     setIsCouponModalOpen(true);
   };
+
   const handleEditShipping = (shipping: ShippingMethod) => {
     setEditingShipping(shipping);
     setShippingForm({
@@ -589,15 +614,18 @@ const AdminDashboard = () => {
     });
     setIsShippingModalOpen(true);
   };
+
   const handleViewOrder = (order: OrderWithUser) => {
     setSelectedOrder(order);
     setIsOrderDialogOpen(true);
   };
+
   if (adminLoading) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-xl">Loading...</div>
       </div>;
   }
+
   if (!isAdmin) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -606,6 +634,7 @@ const AdminDashboard = () => {
         </div>
       </div>;
   }
+
   return <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       
@@ -743,9 +772,6 @@ const AdminDashboard = () => {
                           <div className="flex space-x-2">
                             <Button size="sm" variant="outline" onClick={() => handleEditProduct(product)}>
                               <FaEdit />
-                            </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteCoupon(coupon.id)}>
-                              <FaTrash />
                             </Button>
                           </div>
                         </TableCell>
@@ -1077,6 +1103,9 @@ const AdminDashboard = () => {
                             <Button size="sm" variant="outline" onClick={() => handleEditCoupon(coupon)}>
                               <FaEdit />
                             </Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteCoupon(coupon.id)}>
+                              <FaTrash />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>)}
@@ -1094,4 +1123,5 @@ const AdminDashboard = () => {
       <OrderDetailsDialog order={selectedOrder} isOpen={isOrderDialogOpen} onClose={() => setIsOrderDialogOpen(false)} />
     </div>;
 };
+
 export default AdminDashboard;
