@@ -21,12 +21,14 @@ const DashboardOverview = () => {
     ordersFulfilled: 0,
     totalOrders: 0,
     recentOrdersData: [],
-    salesBreakdown: []
+    salesBreakdown: [],
   });
+  const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchDashboardData();
+    fetchLowStockProducts();
   }, []);
 
   const fetchDashboardData = async () => {
@@ -82,6 +84,20 @@ const DashboardOverview = () => {
     }
   };
 
+  const fetchLowStockProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .lte("stock_quantity", 10); // Assuming low stock is 10 or less
+
+      if (error) throw error;
+      setLowStockProducts(data || []);
+    } catch (error) {
+      console.error("Error fetching low stock products:", error);
+    }
+  };
+
   // Sample data for charts when no real data
   const salesOverTimeData = stats.recentOrdersData.length > 0 
     ? stats.recentOrdersData 
@@ -110,6 +126,26 @@ const DashboardOverview = () => {
 
   return (
     <div className="space-y-6">
+      {/* Low Stock Alert */}
+      {lowStockProducts.length > 0 && (
+        <Card className="bg-yellow-50 border-yellow-300">
+          <CardHeader>
+            <CardTitle className="text-yellow-800">Low Stock Alert</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-yellow-700">
+              The following products are running low on stock:
+            </p>
+            <ul className="list-disc list-inside mt-2">
+              {lowStockProducts.map((product) => (
+                <li key={product.id} className="text-yellow-700">
+                  {product.name} ({product.stock_quantity} remaining)
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
       {/* Top Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="bg-white">

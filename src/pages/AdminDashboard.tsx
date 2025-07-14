@@ -4,6 +4,11 @@ import { useAdmin } from "@/hooks/useAdmin";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import DashboardOverview from "@/components/admin/DashboardOverview";
 import AnalyticsTab from "@/components/admin/AnalyticsTab";
+import UsersTab from "@/components/admin/UsersTab";
+import ShippingTab from "@/components/admin/ShippingTab";
+import ExpensesTab from "@/components/admin/ExpensesTab";
+import ReviewsTab from "@/components/admin/ReviewsTab";
+import ContentTab from "@/components/admin/ContentTab";
 import ContactSubmissionsTab from "@/components/admin/ContactSubmissionsTab";
 import OrderDetailsDialog from "@/components/admin/OrderDetailsDialog";
 import MessagesSection from "@/components/admin/MessagesSection";
@@ -99,6 +104,8 @@ const AdminDashboard = () => {
   const [coupons, setCoupons] = useState<CouponCode[]>([]);
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
   const [loading, setLoading] = useState(false);
+  const [orderSearchTerm, setOrderSearchTerm] = useState("");
+  const [orderStatusFilter, setOrderStatusFilter] = useState("all");
   
   // Modal states
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -521,6 +528,28 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleDeleteCoupon = async (couponId: string) => {
+    if (!window.confirm("Are you sure you want to delete this coupon?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("coupon_codes")
+        .delete()
+        .eq("id", couponId);
+
+      if (error) throw error;
+      toast({ title: "Success", description: "Coupon deleted successfully" });
+      await fetchCoupons();
+    } catch (error) {
+      console.error("Error deleting coupon:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete coupon",
+        variant: "destructive",
+      });
+    }
+  };
+
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
       const { error } = await supabase
@@ -636,6 +665,9 @@ const AdminDashboard = () => {
 
           {/* Analytics Tab */}
           {activeTab === "analytics" && <AnalyticsTab />}
+
+          {/* Users Tab */}
+          {activeTab === "users" && <UsersTab />}
 
           {/* Products Tab */}
           {activeTab === "products" && (
@@ -794,6 +826,13 @@ const AdminDashboard = () => {
                             >
                               <FaEdit />
                             </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteCoupon(coupon.id)}
+                            >
+                              <FaTrash />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -809,6 +848,27 @@ const AdminDashboard = () => {
             <Card className="bg-white">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-gray-900">Orders Management</CardTitle>
+                <div className="flex items-center space-x-4 mt-4">
+                  <Input
+                    placeholder="Search by customer or order ID"
+                    value={orderSearchTerm}
+                    onChange={(e) => setOrderSearchTerm(e.target.value)}
+                    className="max-w-sm"
+                  />
+                  <Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="processing">Processing</SelectItem>
+                      <SelectItem value="shipped">Shipped</SelectItem>
+                      <SelectItem value="delivered">Delivered</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardHeader>
               <CardContent className="overflow-x-auto">
                 <Table>
@@ -823,52 +883,70 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {orders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-mono text-sm">
-                          #{generateOrderNumber(order.id)}
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">
-                              {order.users?.first_name 
-                                ? `${order.users.first_name} ${order.users.last_name || ''}`.trim()
-                                : order.users?.email || "Guest User"
+                    {orders
+                      .filter(
+                        (order) =>
+                          (order.users?.first_name
+                            ?.toLowerCase()
+                            .includes(orderSearchTerm.toLowerCase()) ||
+                          order.users?.last_name
+                            ?.toLowerCase()
+                            .includes(orderSearchTerm.toLowerCase()) ||
+                          order.users?.email
+                            ?.toLowerCase()
+                            .includes(orderSearchTerm.toLowerCase()) ||
+                          order.id.includes(orderSearchTerm)) &&
+                          (orderStatusFilter === "all" || order.status === orderStatusFilter)
+                      )
+                      .map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-mono text-sm">
+                            #{generateOrderNumber(order.id)}
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">
+                                {order.users?.first_name
+                                  ? `${order.users.first_name} ${
+                                      order.users.last_name || ""
+                                    }`.trim()
+                                  : order.users?.email || "Guest User"}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {order.users?.email || "No email"}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>₹{order.total_amount}</TableCell>
+                          <TableCell>
+                            <select
+                              value={order.status}
+                              onChange={(e) =>
+                                updateOrderStatus(order.id, e.target.value)
                               }
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {order.users?.email || "No email"}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>₹{order.total_amount}</TableCell>
-                        <TableCell>
-                          <select
-                            value={order.status}
-                            onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                            className="border rounded px-2 py-1 text-sm"
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="processing">Processing</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
-                          </select>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(order.created_at).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleViewOrder(order)}
-                          >
-                            <FaEye />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                              className="border rounded px-2 py-1 text-sm"
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="processing">Processing</option>
+                              <option value="shipped">Shipped</option>
+                              <option value="delivered">Delivered</option>
+                              <option value="cancelled">Cancelled</option>
+                            </select>
+                          </TableCell>
+                          <TableCell>
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleViewOrder(order)}
+                            >
+                              <FaEye />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -877,6 +955,18 @@ const AdminDashboard = () => {
 
           {/* Messages Tab */}
           {activeTab === "messages" && <MessagesSection />}
+
+          {/* Shipping Tab */}
+          {activeTab === "shipping" && <ShippingTab />}
+
+          {/* Expenses Tab */}
+          {activeTab === "expenses" && <ExpensesTab />}
+
+          {/* Reviews Tab */}
+          {activeTab === "reviews" && <ReviewsTab />}
+
+          {/* Content Tab */}
+          {activeTab === "content" && <ContentTab />}
 
           {/* Journals Tab */}
           {activeTab === "journals" && (
