@@ -21,8 +21,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FaPlus, FaEdit, FaTrash, FaEye } from "react-icons/fa";
 import { useToast } from "@/hooks/use-toast";
+
 interface Product {
   id: string;
   name: string;
@@ -595,6 +597,28 @@ const AdminDashboard = () => {
     setSelectedOrder(order);
     setIsOrderDialogOpen(true);
   };
+  const handleDeleteProduct = async (productId: string) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    try {
+      const { error } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", productId);
+      if (error) throw error;
+      toast({
+        title: "Success",
+        description: "Product deleted successfully"
+      });
+      await fetchProducts();
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast({
+        title: "Error", 
+        description: "Failed to delete product",
+        variant: "destructive"
+      });
+    }
+  };
   if (adminLoading) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-xl">Loading...</div>
@@ -746,7 +770,7 @@ const AdminDashboard = () => {
                             <Button size="sm" variant="outline" onClick={() => handleEditProduct(product)}>
                               <FaEdit />
                             </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteCoupon(coupon.id)}>
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteProduct(product.id)}>
                               <FaTrash />
                             </Button>
                           </div>
@@ -1068,7 +1092,6 @@ const AdminDashboard = () => {
                             ? new Date(coupon.expires_at).toLocaleDateString()
                             : "Never"
                           }
-                          {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : "Never"}
                         </TableCell>
                         <TableCell>
                           <Badge variant={coupon.is_active ? "default" : "secondary"}>
@@ -1089,7 +1112,7 @@ const AdminDashboard = () => {
             </Card>}
 
           {/* Shipping Tab */}
-          {activeTab === "shipping"}
+          {activeTab === "shipping" && <ShippingTab />}
         </div>
       </div>
 
