@@ -617,16 +617,16 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       
       <div className="flex-1 overflow-auto">
-        <div className="p-8">
+        <div className="p-4 lg:p-8">
           {/* Header with Notifications */}
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600 mt-2">Manage your store and orders</p>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-600 mt-2 hidden md:block">Manage your store and orders</p>
             </div>
             <NotificationDropdown />
           </div>
@@ -640,8 +640,8 @@ const AdminDashboard = () => {
           {/* Products Tab */}
           {activeTab === "products" && (
             <Card className="bg-white">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-gray-900">Products Management</CardTitle>
+              <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
+                <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Products Management</CardTitle>
                 <Dialog open={isProductModalOpen} onOpenChange={setIsProductModalOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
@@ -680,7 +680,7 @@ const AdminDashboard = () => {
                           }
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="price">Price ($)</Label>
                           <Input
@@ -743,7 +743,7 @@ const AdminDashboard = () => {
                   </DialogContent>
                 </Dialog>
               </CardHeader>
-              <CardContent>
+              <CardContent className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -780,7 +780,8 @@ const AdminDashboard = () => {
                               variant="outline"
                               onClick={() => toggleProductStock(product.id, product.is_active)}
                             >
-                              {product.is_active ? "Disable" : "Enable"}
+                              <span className="hidden md:inline">{product.is_active ? "Disable" : "Enable"}</span>
+                              <FaEdit className="md:hidden" />
                             </Button>
                           </div>
                         </TableCell>
@@ -809,7 +810,7 @@ const AdminDashboard = () => {
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-gray-900">Orders Management</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -880,8 +881,8 @@ const AdminDashboard = () => {
           {/* Journals Tab */}
           {activeTab === "journals" && (
             <Card className="bg-white">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-gray-900">Journals Management</CardTitle>
+              <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
+                <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Journals Management</CardTitle>
                 <Dialog open={isJournalModalOpen} onOpenChange={setIsJournalModalOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
@@ -933,7 +934,7 @@ const AdminDashboard = () => {
                           required
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="author">Author</Label>
                           <Input
@@ -982,7 +983,7 @@ const AdminDashboard = () => {
                   </DialogContent>
                 </Dialog>
               </CardHeader>
-              <CardContent>
+              <CardContent className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -1028,8 +1029,8 @@ const AdminDashboard = () => {
           {/* Coupons Tab */}
           {activeTab === "coupons" && (
             <Card className="bg-white">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-gray-900">Coupon Codes Management</CardTitle>
+              <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
+                <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Coupon Codes Management</CardTitle>
                 <Dialog open={isCouponModalOpen} onOpenChange={setIsCouponModalOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
@@ -1058,7 +1059,7 @@ const AdminDashboard = () => {
                           required
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="discount_type">Discount Type</Label>
                           <select
@@ -1089,7 +1090,7 @@ const AdminDashboard = () => {
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="minimum_order_amount">Minimum Order Amount ($)</Label>
                           <Input
@@ -1141,7 +1142,7 @@ const AdminDashboard = () => {
                   </DialogContent>
                 </Dialog>
               </CardHeader>
-              <CardContent>
+              <CardContent className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -1200,8 +1201,8 @@ const AdminDashboard = () => {
           {/* Shipping Tab */}
           {activeTab === "shipping" && (
             <Card className="bg-white">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-gray-900">Shipping Methods Management</CardTitle>
+              <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
+                <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Shipping Methods Management</CardTitle>
                 <Dialog open={isShippingModalOpen} onOpenChange={setIsShippingModalOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
@@ -1240,7 +1241,7 @@ const AdminDashboard = () => {
                           }
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="shipping_price">Price ($)</Label>
                           <Input
@@ -1283,7 +1284,7 @@ const AdminDashboard = () => {
                   </DialogContent>
                 </Dialog>
               </CardHeader>
-              <CardContent>
+              <CardContent className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>

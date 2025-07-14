@@ -81,49 +81,75 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
   ];
 
   return (
-    <div className="w-64 bg-white h-screen border-r border-gray-200 flex flex-col">
-      {/* Logo/Header */}
-      <div className="p-6 border-b border-gray-200">
-        <NavLink to="/" className="flex items-center space-x-2">
-          <Home className="h-6 w-6 text-primary" />
-          <span className="text-lg font-semibold">Back to Home</span>
-        </NavLink>
+    <>
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex w-64 bg-white h-screen border-r border-gray-200 flex-col">
+        {/* Logo/Header */}
+        <div className="p-6 border-b border-gray-200">
+          <NavLink to="/" className="flex items-center space-x-2">
+            <Home className="h-6 w-6 text-primary" />
+            <span className="text-lg font-semibold">Back to Home</span>
+          </NavLink>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4">
+          <ul className="space-y-2">
+            {sidebarItems.map((item) => (
+              <li key={item.id}>
+                <button
+                  onClick={() => setActiveTab(item.id)}
+                  className={cn(
+                    "w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-colors",
+                    activeTab === item.id
+                      ? "bg-purple-50 text-purple-700 border-l-4 border-purple-700"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  )}
+                >
+                  <div className="flex items-center space-x-3">
+                    <item.icon className="h-5 w-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </div>
+                  {item.count !== undefined && item.count > 0 && (
+                    <span className={cn(
+                      "px-2 py-1 rounded-full text-xs font-medium",
+                      activeTab === item.id
+                        ? "bg-purple-100 text-purple-700"
+                        : "bg-gray-100 text-gray-600"
+                    )}>
+                      {item.count}
+                    </span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
-          {sidebarItems.map((item) => (
-            <li key={item.id}>
+      {/* Mobile Tabs */}
+      <div className="lg:hidden w-full bg-white border-b border-gray-200">
+        <div className="p-2 overflow-x-auto">
+          <div className="flex space-x-2">
+            {sidebarItems.map((item) => (
               <button
+                key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 className={cn(
-                  "w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-colors",
+                  "flex items-center px-4 py-2 rounded-lg text-sm transition-colors",
                   activeTab === item.id
-                    ? "bg-purple-50 text-purple-700 border-l-4 border-purple-700"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    ? "bg-purple-100 text-purple-700"
+                    : "text-gray-600 hover:bg-gray-100"
                 )}
               >
-                <div className="flex items-center space-x-3">
-                  <item.icon className="h-5 w-5" />
-                  <span className="font-medium">{item.label}</span>
-                </div>
-                {item.count !== undefined && item.count > 0 && (
-                  <span className={cn(
-                    "px-2 py-1 rounded-full text-xs font-medium",
-                    activeTab === item.id
-                      ? "bg-purple-100 text-purple-700"
-                      : "bg-gray-100 text-gray-600"
-                  )}>
-                    {item.count}
-                  </span>
-                )}
+                <item.icon className="h-5 w-5 mr-2" />
+                {item.label}
               </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
 
