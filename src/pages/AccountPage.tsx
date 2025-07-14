@@ -413,6 +413,22 @@ const AccountPage = () => {
       console.log("Generating invoice for order:", order.id);
       
       const doc = new jsPDF();
+
+      // Header with brand info
+      doc.setFillColor(52, 152, 219);
+      doc.rect(0, 0, 210, 40, 'F');
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(24);
+      doc.text('INVOICE', 20, 25);
+
+      doc.setFontSize(12);
+      doc.text('DearNeuro', 150, 20);
+      doc.text('www.dearneuro.com', 150, 30);
+
+      // Reset text color
+      doc.setTextColor(0, 0, 0);
+
       
       // Header with brand info
       doc.setFillColor(52, 152, 219);
@@ -434,6 +450,10 @@ const AccountPage = () => {
       doc.text(`Invoice Number: ${order.id.slice(0, 8).toUpperCase()}`, 20, 60);
       doc.text(`Date: ${new Date(order.created_at).toLocaleDateString()}`, 20, 70);
       doc.text(`Status: ${order.status.toUpperCase()}`, 20, 80);
+
+      // Bill to section
+      doc.setFontSize(16);
+      doc.text('Bill To:', 20, 100);
       
       // Bill to section
       doc.setFontSize(16);
@@ -452,17 +472,20 @@ const AccountPage = () => {
           doc.text(`Phone: ${shippingAddress.phone}`, 20, 150);
         }
       }
-      
+
       // Items table header
       let yPosition = 170;
       doc.setFillColor(240, 240, 240);
       doc.rect(20, yPosition, 170, 10, 'F');
-      
+
       doc.setFontSize(12);
       doc.text('Description', 25, yPosition + 7);
       doc.text('Qty', 100, yPosition + 7);
       doc.text('Rate', 130, yPosition + 7);
       doc.text('Amount', 160, yPosition + 7);
+
+      yPosition += 15;
+
       
       yPosition += 15;
       
@@ -472,11 +495,17 @@ const AccountPage = () => {
         order.order_items.forEach((item) => {
           const itemTotal = item.price * item.quantity;
           subtotal += itemTotal;
-          
+
           doc.text(item.products.name, 25, yPosition);
           doc.text(item.quantity.toString(), 100, yPosition);
           doc.text(`$${item.price.toFixed(2)}`, 130, yPosition);
           doc.text(`$${itemTotal.toFixed(2)}`, 160, yPosition);
+
+          yPosition += 10;
+        });
+      }
+
+
           
           yPosition += 10;
         });
@@ -486,6 +515,13 @@ const AccountPage = () => {
       yPosition += 10;
       doc.line(20, yPosition, 190, yPosition);
       yPosition += 10;
+
+      doc.text('Subtotal:', 130, yPosition);
+      doc.text(`$${subtotal.toFixed(2)}`, 160, yPosition);
+
+      yPosition += 10;
+      doc.text('Tax:', 130, yPosition);
+      doc.text('$0.00', 160, yPosition);
       
       doc.text('Subtotal:', 130, yPosition);
       doc.text(`$${subtotal.toFixed(2)}`, 160, yPosition);
@@ -498,13 +534,13 @@ const AccountPage = () => {
       doc.setFontSize(14);
       doc.text('Total:', 130, yPosition);
       doc.text(`$${order.total_amount.toFixed(2)}`, 160, yPosition);
-      
+
       // Footer
       yPosition += 30;
       doc.setFontSize(10);
       doc.text('Thank you for your business!', 20, yPosition);
       doc.text('Please pay invoice within 15 days.', 20, yPosition + 10);
-      
+
       // Save the PDF
       doc.save(`invoice-${order.id.slice(0, 8)}.pdf`);
       
@@ -604,6 +640,53 @@ const AccountPage = () => {
   const getAvatarImage = () => {
     const firstName = profileData.firstName || user?.user_metadata?.given_name || '';
     const lastName = profileData.lastName || user?.user_metadata?.family_name || '';
+
+    // Simple gender detection based on common names (this is a basic implementation)
+    const maleNames = ['john', 'james', 'robert', 'michael', 'william', 'david', 'richard', 'charles', 'joseph', 'thomas'];
+    const femaleNames = ['mary', 'patricia', 'jennifer', 'linda', 'elizabeth', 'barbara', 'susan', 'jessica', 'sarah', 'karen'];
+
+    const firstNameLower = firstName.toLowerCase();
+
+    if (maleNames.includes(firstNameLower)) {
+      return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face";
+    }
+
+    if (femaleNames.includes(firstNameLower)) {
+      return "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face";
+    }
+
+    // Default professional avatar
+    return "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face";
+  };
+
+  const PaymentMethodIcon = ({ type }: { type: string }) => {
+    switch (type.toLowerCase()) {
+      case 'paypal':
+        return <FaPaypal className="text-blue-600 text-2xl" />;
+      case 'googlepay':
+        return <FaGooglePay className="text-green-600 text-2xl" />;
+      default:
+        return <FaCreditCard className="text-[#192a3a] text-2xl" />;
+    }
+  };
+
+
+  const handleDeletePaymentMethod = async (paymentMethodId: string) => {
+    if (!user) return;
+    if (window.confirm('Are you sure you want to delete this payment method?')) {
+      try {
+        const { error } = await supabase.from('user_payment_methods').delete().eq('id', paymentMethodId);
+        if (error) throw error;
+        fetchAllData();
+      } catch (error) {
+        console.error('Error deleting payment method:', error);
+      }
+    }
+  };
+
+  const getAvatarImage = () => {
+    const firstName = profileData.firstName || user?.user_metadata?.given_name || '';
+    const lastName = profileData.lastName || user?.user_metadata?.family_name || '';
     
     // Simple gender detection based on common names (this is a basic implementation)
     const maleNames = ['john', 'james', 'robert', 'michael', 'william', 'david', 'richard', 'charles', 'joseph', 'thomas'];
@@ -658,6 +741,50 @@ const AccountPage = () => {
   }
 
   const userDisplayName = `${user?.user_metadata?.given_name || ''} ${user?.user_metadata?.family_name || ''}`.trim() || user?.email?.split('@')[0] || 'User';
+
+  return (
+    <div className="min-h-screen bg-white">
+      <Header />
+
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="lg:hidden mb-4 flex justify-between items-center">
+          <Select value={activeTab} onValueChange={handleTabChange}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="transition-all duration-300 ease-in-out">
+              {sidebarItems.map((item) => (
+                <SelectItem key={item.id} value={item.id}>
+                  <div className="flex items-center gap-2">
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="ghost" onClick={handleLogout} className="text-red-500">
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
+        </div>
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar */}
+          <div className="lg:w-80 w-full hidden lg:block">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+              <div className="text-center mb-8">
+                <Avatar className="w-20 h-20 mx-auto mb-4">
+                  <AvatarImage src={getAvatarImage()} alt={userDisplayName} />
+                  <AvatarFallback className="bg-[#192a3a] text-white text-2xl">
+                    <FaUser />
+                  </AvatarFallback>
+                </Avatar>
+                <h2 className="text-2xl font-bold text-[#192a3a]">
+                  {userDisplayName}
+                </h2>
+                <p className="text-gray-600 text-sm">{user?.email}</p>
+              </div>
+
 
   return (
     <div className="min-h-screen bg-white">
@@ -717,7 +844,6 @@ const AccountPage = () => {
                     <span className="font-medium">{item.label}</span>
                   </button>
                 ))}
-                
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-4 p-4 rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200 mt-6"
@@ -750,7 +876,7 @@ const AccountPage = () => {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="p-6 bg-gray-100 rounded-xl">
                         <div className="flex items-center gap-4">
                           <FaGift className="text-2xl text-[#192a3a]" />
@@ -760,7 +886,6 @@ const AccountPage = () => {
                           </div>
                         </div>
                       </div>
-                      
                       <div className="p-6 bg-gray-100 rounded-xl">
                         <div className="flex items-center gap-4">
                           <FaAddressBook className="text-2xl text-[#192a3a]" />
@@ -936,6 +1061,12 @@ const AccountPage = () => {
                                 )}
                               </div>
                             </div>
+
+                            <div className="flex flex-col lg:items-end gap-3">
+                              <div className="text-2xl font-bold text-[#192a3a]">₹{order.total_amount.toFixed(2)}</div>
+                              <div className="flex flex-wrap gap-2">
+                                <Button
+                                  size="sm"
                             
                             <div className="flex flex-col lg:items-end gap-3">
                               <div className="text-2xl font-bold text-[#192a3a]">₹{order.total_amount.toFixed(2)}</div>
@@ -949,6 +1080,8 @@ const AccountPage = () => {
                                   <FaEye className="mr-2" />
                                   View
                                 </Button>
+                                <Button
+                                  size="sm"
                                 <Button 
                                   size="sm" 
                                   variant="outline"
@@ -958,6 +1091,8 @@ const AccountPage = () => {
                                   <FaDownload className="mr-2" />
                                   Invoice
                                 </Button>
+                                <Button
+                                  size="sm"
                                 <Button 
                                   size="sm" 
                                   variant="outline"
@@ -968,6 +1103,8 @@ const AccountPage = () => {
                                   Reorder
                                 </Button>
                                 {order.status === 'shipped' && (
+                                  <Button
+                                    size="sm"
                                   <Button 
                                     size="sm" 
                                     variant="outline"
@@ -1179,6 +1316,7 @@ const AccountPage = () => {
                             <PaymentMethodIcon type={method.card_type} />
                             <div>
                               <h3 className="font-semibold text-[#192a3a]">
+                                {method.card_type === 'PayPal'
                                 {method.card_type === 'PayPal' 
                                   ? 'PayPal'
                                   : `${method.card_type} •••• ${method.card_last_four}`
@@ -1375,7 +1513,6 @@ const AccountPage = () => {
                   ✕
                 </Button>
               </div>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-gray-600 text-sm mb-1">Order Date</p>
@@ -1438,6 +1575,7 @@ const AccountPage = () => {
                   <FaDownload className="mr-2" />
                   Download Invoice
                 </Button>
+
                 <Button 
                   onClick={() => {
                     handleReorder(selectedOrder);
