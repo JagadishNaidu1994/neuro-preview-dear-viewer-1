@@ -37,10 +37,10 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
 
   const additionalLinks = [
     { label: "Contact Us", href: "/contact", icon: Phone },
-    { label: "FAQs", href: "/faq", icon: HelpCircle },
-    { label: "Shipping & Returns", href: "/shipping-returns", icon: Truck },
+    { label: "FAQs", href: "/faqs", icon: HelpCircle },
+    { label: "Shipping & Returns", href: "/shipping", icon: Truck },
     { label: "Rewards", href: "/rewards", icon: Gift },
-    { label: "Refer a Friend", href: "/refer-friend", icon: UserPlus },
+    { label: "Refer a Friend", href: "/refer", icon: UserPlus },
   ];
 
   return (
