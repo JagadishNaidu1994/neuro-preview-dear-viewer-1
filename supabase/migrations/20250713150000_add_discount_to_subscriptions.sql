@@ -1,0 +1,2 @@
+ALTER TABLE subscriptions
+ADD COLUMN discount NUMERIC(5, 2) DEFAULT 0.00;
