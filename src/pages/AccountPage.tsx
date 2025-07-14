@@ -588,51 +588,6 @@ const AccountPage = () => {
     }
   }
 
-  const handleDeletePaymentMethod = async (paymentMethodId: string) => {
-    if (!user) return;
-    if (window.confirm('Are you sure you want to delete this payment method?')) {
-      try {
-        const { error } = await supabase.from('user_payment_methods').delete().eq('id', paymentMethodId);
-        if (error) throw error;
-        fetchAllData();
-      } catch (error) {
-        console.error('Error deleting payment method:', error);
-      }
-    }
-  };
-
-  const getAvatarImage = () => {
-    const firstName = profileData.firstName || user?.user_metadata?.given_name || '';
-    const lastName = profileData.lastName || user?.user_metadata?.family_name || '';
-    
-    // Simple gender detection based on common names (this is a basic implementation)
-    const maleNames = ['john', 'james', 'robert', 'michael', 'william', 'david', 'richard', 'charles', 'joseph', 'thomas'];
-    const femaleNames = ['mary', 'patricia', 'jennifer', 'linda', 'elizabeth', 'barbara', 'susan', 'jessica', 'sarah', 'karen'];
-    
-    const firstNameLower = firstName.toLowerCase();
-    
-    if (maleNames.includes(firstNameLower)) {
-      return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face";
-    }
-    
-    if (femaleNames.includes(firstNameLower)) {
-      return "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face";
-    }
-    
-    // Default professional avatar
-    return "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face";
-  };
-
-  const PaymentMethodIcon = ({ type }: { type: string }) => {
-    switch (type.toLowerCase()) {
-      case 'paypal':
-        return <FaPaypal className="text-blue-600 text-2xl" />;
-      case 'googlepay':
-        return <FaGooglePay className="text-green-600 text-2xl" />;
-      default:
-        return <FaCreditCard className="text-[#192a3a] text-2xl" />;
-    }
-  };
 
   const sidebarItems = [
     { id: "dashboard", icon: <FaUser />, label: "Dashboard" },
@@ -717,6 +672,7 @@ const AccountPage = () => {
                     <span className="font-medium">{item.label}</span>
                   </button>
                 ))}
+
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-4 p-4 rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200 mt-6"
@@ -759,6 +715,7 @@ const AccountPage = () => {
                           </div>
                         </div>
                       </div>
+
                       <div className="p-6 bg-gray-100 rounded-xl">
                         <div className="flex items-center gap-4">
                           <FaAddressBook className="text-2xl text-[#192a3a]" />

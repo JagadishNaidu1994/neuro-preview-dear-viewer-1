@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,19 +25,9 @@ const ContentTab = () => {
 
   const fetchPages = async () => {
     try {
-      const { data, error } = await supabase
-        .from("pages" as any)
-        .select("*");
+      const { data, error } = await supabase.from("pages").select("*");
       if (error) throw error;
-      
-      // Transform the data to match our interface
-      const transformedData = (data || []).map((page: any) => ({
-        id: page.id,
-        page_key: page.page_key,
-        content: page.content || {}
-      }));
-      
-      setPages(transformedData);
+      setPages(data || []);
     } catch (error) {
       console.error("Error fetching pages:", error);
     }
@@ -61,7 +50,7 @@ const ContentTab = () => {
     setLoading(true);
     try {
       const { error } = await supabase
-        .from("pages" as any)
+        .from("pages")
         .update({ content })
         .eq("id", selectedPage.id);
       if (error) throw error;

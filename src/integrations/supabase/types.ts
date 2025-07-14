@@ -199,36 +199,6 @@ export type Database = {
         }
         Relationships: []
       }
-      expenses: {
-        Row: {
-          amount: number
-          category: string
-          created_at: string | null
-          date: string
-          description: string
-          id: string
-          updated_at: string | null
-        }
-        Insert: {
-          amount: number
-          category: string
-          created_at?: string | null
-          date: string
-          description: string
-          id?: string
-          updated_at?: string | null
-        }
-        Update: {
-          amount?: number
-          category?: string
-          created_at?: string | null
-          date?: string
-          description?: string
-          id?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       journals: {
         Row: {
           author: string | null
@@ -340,30 +310,6 @@ export type Database = {
         }
         Relationships: []
       }
-      pages: {
-        Row: {
-          content: Json | null
-          created_at: string | null
-          id: string
-          page_key: string
-          updated_at: string | null
-        }
-        Insert: {
-          content?: Json | null
-          created_at?: string | null
-          id?: string
-          page_key: string
-          updated_at?: string | null
-        }
-        Update: {
-          content?: Json | null
-          created_at?: string | null
-          id?: string
-          page_key?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       products: {
         Row: {
           category: string | null
@@ -435,44 +381,6 @@ export type Database = {
           status?: string | null
         }
         Relationships: []
-      }
-      reviews: {
-        Row: {
-          comment: string | null
-          created_at: string | null
-          id: string
-          is_approved: boolean | null
-          product_id: string | null
-          rating: number
-          user_id: string | null
-        }
-        Insert: {
-          comment?: string | null
-          created_at?: string | null
-          id?: string
-          is_approved?: boolean | null
-          product_id?: string | null
-          rating: number
-          user_id?: string | null
-        }
-        Update: {
-          comment?: string | null
-          created_at?: string | null
-          id?: string
-          is_approved?: boolean | null
-          product_id?: string | null
-          rating?: number
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reviews_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       shipping_methods: {
         Row: {
