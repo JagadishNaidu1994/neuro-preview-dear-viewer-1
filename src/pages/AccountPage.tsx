@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -213,7 +214,7 @@ const AccountPage = () => {
     
     try {
       const { data, error } = await supabase
-        .from('addresses')
+        .from('user_addresses')
         .select('*')
         .eq('user_id', user.id)
         .order('is_default', { ascending: false });
@@ -230,7 +231,7 @@ const AccountPage = () => {
     
     try {
       const { data, error } = await supabase
-        .from('payment_methods')
+        .from('user_payment_methods')
         .select('*')
         .eq('user_id', user.id)
         .order('is_default', { ascending: false });
@@ -441,7 +442,7 @@ const AccountPage = () => {
 
       if (editingAddress) {
         const { error } = await supabase
-          .from('addresses')
+          .from('user_addresses')
           .update(addressData)
           .eq('id', editingAddress.id);
         
@@ -453,7 +454,7 @@ const AccountPage = () => {
         });
       } else {
         const { error } = await supabase
-          .from('addresses')
+          .from('user_addresses')
           .insert([addressData]);
         
         if (error) throw error;
@@ -495,7 +496,7 @@ const AccountPage = () => {
 
       if (editingPayment) {
         const { error } = await supabase
-          .from('payment_methods')
+          .from('user_payment_methods')
           .update(paymentData)
           .eq('id', editingPayment.id);
         
@@ -507,7 +508,7 @@ const AccountPage = () => {
         });
       } else {
         const { error } = await supabase
-          .from('payment_methods')
+          .from('user_payment_methods')
           .insert([paymentData]);
         
         if (error) throw error;
@@ -610,7 +611,7 @@ const AccountPage = () => {
 
     try {
       const { error } = await supabase
-        .from('addresses')
+        .from('user_addresses')
         .delete()
         .eq('id', addressId);
 
@@ -637,7 +638,7 @@ const AccountPage = () => {
 
     try {
       const { error } = await supabase
-        .from('payment_methods')
+        .from('user_payment_methods')
         .delete()
         .eq('id', paymentId);
 
