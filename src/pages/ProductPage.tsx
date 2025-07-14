@@ -165,18 +165,18 @@ const ProductPage = () => {
   if (!product) {
     return (
       <div className="min-h-screen bg-brand-white">
-        {/* <Header /> */}
-      <div className="min-h-screen bg-white">
-        <div className="text-center py-24">
-          <h2 className="text-3xl font-bold text-brand-blue-700 mb-4">Product not found</h2>
-          <p className="text-brand-gray-500 mb-8">
-            The product you're looking for doesn't exist or has been removed.
-          </p>
-          <Button
-            onClick={() => window.history.back()}
-          >
-            Go Back
-          </Button>
+        <div className="min-h-screen bg-white">
+          <div className="text-center py-24">
+            <h2 className="text-3xl font-bold text-brand-blue-700 mb-4">Product not found</h2>
+            <p className="text-brand-gray-500 mb-8">
+              The product you're looking for doesn't exist or has been removed.
+            </p>
+            <Button
+              onClick={() => window.history.back()}
+            >
+              Go Back
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -312,7 +312,8 @@ const ProductPage = () => {
                     </div>
                     <p className="text-xs text-brand-gray-500">Pouch only, free gifts NOT included</p>
                     
-                    {purchaseType === "subscribe" && <div className="mt-3">
+                    {purchaseType === "subscribe" && (
+                      <div className="mt-3">
                         <Select value={subscriptionFrequency} onValueChange={setSubscriptionFrequency}>
                           <SelectTrigger className="w-full rounded-xl">
                             <Clock className="w-4 h-4 mr-2" />
@@ -324,7 +325,8 @@ const ProductPage = () => {
                             <SelectItem value="8">Every 8 weeks</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>}
+                      </div>
+                    )}
                   </div>
                 </div>
               </RadioGroup>
@@ -472,8 +474,6 @@ const ProductPage = () => {
                     ))}
                   </div>
                   <span className="ml-4 text-sm text-brand-gray-500">
-                    by {r.users.email}
-                  <span className="ml-4 text-sm text-gray-600">
                     by User
                   </span>
                 </div>
