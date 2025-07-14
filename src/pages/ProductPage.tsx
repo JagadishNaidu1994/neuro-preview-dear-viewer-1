@@ -115,7 +115,7 @@ const ProductPage = () => {
 
   if (!product) {
     return <div className="min-h-screen bg-white">
-        <Header />
+        {/* <Header /> */}
         <div className="text-center py-24">
           <h2 className="text-3xl font-bold text-black mb-4">Product not found</h2>
           <p className="text-gray-600 mb-8">The product you're looking for doesn't exist or has been removed.</p>
