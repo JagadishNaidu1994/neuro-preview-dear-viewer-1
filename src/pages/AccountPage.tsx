@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +18,7 @@ import {
   FaCreditCard, 
   FaGift, 
   FaCog, 
-  FaShield,
+  FaLock,
   FaCalendar,
   FaEdit,
   FaTrash,
@@ -104,6 +103,17 @@ interface SecuritySettings {
   security_questions?: any;
 }
 
+interface AddressForm {
+  name: string;
+  address_line_1: string;
+  address_line_2: string;
+  city: string;
+  state: string;
+  pincode: string;
+  phone: string;
+  is_default: boolean;
+}
+
 const AccountPage = () => {
   const { user } = useAuth();
   const location = useLocation();
@@ -139,7 +149,7 @@ const AccountPage = () => {
   const [editingPayment, setEditingPayment] = useState<PaymentMethod | null>(null);
 
   // Form states
-  const [addressForm, setAddressForm] = useState({
+  const [addressForm, setAddressForm] = useState<AddressForm>({
     name: "",
     address_line_1: "",
     address_line_2: "",
@@ -611,7 +621,7 @@ const AccountPage = () => {
               <span className="hidden sm:inline">Preferences</span>
             </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center gap-2">
-              <FaShield className="h-4 w-4" />
+              <FaLock className="h-4 w-4" />
               <span className="hidden sm:inline">Security</span>
             </TabsTrigger>
           </TabsList>
@@ -878,7 +888,16 @@ const AccountPage = () => {
                               variant="outline"
                               onClick={() => {
                                 setEditingAddress(address);
-                                setAddressForm(address);
+                                setAddressForm({
+                                  name: address.name,
+                                  address_line_1: address.address_line_1,
+                                  address_line_2: address.address_line_2 || "",
+                                  city: address.city,
+                                  state: address.state,
+                                  pincode: address.pincode,
+                                  phone: address.phone,
+                                  is_default: address.is_default
+                                });
                                 setShowAddAddress(true);
                               }}
                             >
