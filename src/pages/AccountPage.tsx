@@ -290,7 +290,7 @@ const AccountPage = () => {
         id: sub.id,
         productName: sub.product.name,
         nextDelivery: sub.next_delivery_date,
-        status: sub.status,
+        status: sub.status as "active" | "paused" | "cancelled",
       }));
       setSubscriptions(transformedSubscriptions);
 
