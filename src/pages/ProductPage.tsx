@@ -5,7 +5,6 @@ import { useCart } from "@/context/CartProvider";
 import { useAuth } from "@/context/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -40,6 +39,7 @@ const ProductPage = () => {
   const imageRef = useRef<HTMLImageElement>(null);
   const [review, setReview] = useState({ rating: 5, comment: "" });
   const [reviews, setReviews] = useState<any[]>([]);
+  const [canReview, setCanReview] = useState(false);
 
   const { user } = useAuth();
   const { addToCart } = useCart();
@@ -78,10 +78,9 @@ const ProductPage = () => {
     const fetchReviews = async () => {
       if (!id) return;
       try {
-        // Simplified query - just get reviews for the product
         const { data, error } = await supabase
           .from("reviews")
-          .select("*")
+          .select("*, users(email)")
           .eq("product_id", id)
           .eq("is_approved", true);
         if (error) throw error;
@@ -91,9 +90,50 @@ const ProductPage = () => {
       }
     };
 
+    const checkCanReview = async () => {
+      if (!user || !id) return;
+      try {
+        // Check if user has a delivered order for this product
+        const { data: orders, error: ordersError } = await supabase
+          .from("orders")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("status", "delivered");
+        if (ordersError) throw ordersError;
+
+        if (orders.length > 0) {
+          const orderIds = orders.map((o) => o.id);
+          const { data: orderItems, error: itemsError } = await supabase
+            .from("order_items")
+            .select("product_id")
+            .in("order_id", orderIds)
+            .eq("product_id", id);
+          if (itemsError) throw itemsError;
+
+          if (orderItems.length > 0) {
+            // Check if user has already reviewed this product
+            const { data: existingReview, error: reviewError } = await supabase
+              .from("reviews")
+              .select("id")
+              .eq("user_id", user.id)
+              .eq("product_id", id)
+              .single();
+            if (reviewError && reviewError.code !== 'PGRST116') throw reviewError;
+
+            if (!existingReview) {
+              setCanReview(true);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error checking if user can review:", error);
+      }
+    };
+
     fetchProduct();
     checkWishlist();
     fetchReviews();
+    checkCanReview();
   }, [id, user]);
 
   const handleAddToCart = async () => {
@@ -144,8 +184,27 @@ const ProductPage = () => {
         },
       ]);
       if (error) throw error;
+
+      // Add 25 reward points
+      const { data: currentRewards, error: rewardsError } = await supabase
+        .from("user_rewards")
+        .select("points_balance")
+        .eq("user_id", user.id)
+        .single();
+
+      if (rewardsError && rewardsError.code !== 'PGRST116') throw rewardsError;
+
+      const newBalance = (currentRewards?.points_balance || 0) + 25;
+
+      const { error: updateRewardsError } = await supabase
+        .from("user_rewards")
+        .upsert({ user_id: user.id, points_balance: newBalance }, { onConflict: 'user_id' });
+
+      if (updateRewardsError) throw updateRewardsError;
+
       setReview({ rating: 5, comment: "" });
-      alert("Review submitted for approval!");
+      alert("Thanks for your valuable review! We will soon publish this. As a token of appreciation, we have added 25 points to your rewards section for your efforts.");
+      setCanReview(false);
     } catch (error) {
       console.error("Error submitting review:", error);
       alert("Failed to submit review.");
@@ -166,7 +225,6 @@ const ProductPage = () => {
     return (
       <div className="min-h-screen bg-brand-white">
         {/* <Header /> */}
-      <div className="min-h-screen bg-white">
         <div className="text-center py-24">
           <h2 className="text-3xl font-bold text-brand-blue-700 mb-4">Product not found</h2>
           <p className="text-brand-gray-500 mb-8">
@@ -473,8 +531,6 @@ const ProductPage = () => {
                   </div>
                   <span className="ml-4 text-sm text-brand-gray-500">
                     by {r.users.email}
-                  <span className="ml-4 text-sm text-gray-600">
-                    by User
                   </span>
                 </div>
                 <p>{r.comment}</p>
@@ -485,7 +541,7 @@ const ProductPage = () => {
         </div>
 
         {/* Review Submission Form */}
-        {user && (
+        {user && canReview && (
           <div className="mt-16 pt-16 border-t border-brand-gray-200">
             <h2 className="text-2xl font-light text-brand-blue-700 mb-8 text-center">
               Write a Review
@@ -575,5 +631,4 @@ const ProductPage = () => {
     </div>
   );
 };
-
 export default ProductPage;
