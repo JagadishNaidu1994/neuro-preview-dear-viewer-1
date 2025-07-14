@@ -38,6 +38,7 @@ import {
   FaSignOutAlt as LogOut
 } from "react-icons/fa";
 import jsPDF from 'jspdf';
+import SubscriptionCancellationModal from "@/components/SubscriptionCancellationModal";
 
 interface Order {
   id: string;
@@ -130,6 +131,7 @@ const AccountPage = () => {
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null);
+  const [showCancellationModal, setShowCancellationModal] = useState(false);
   const [wishlist, setWishlist] = useState([]);
   const [profileData, setProfileData] = useState({
     firstName: "",
@@ -524,12 +526,17 @@ const AccountPage = () => {
     navigate(`/product?id=${productId}`);
   };
 
-  const handleSubscriptionChange = (subscriptionId: string, newStatus: "active" | "paused" | "cancelled") => {
-    setSubscriptions(
-      subscriptions.map((sub) =>
-        sub.id === subscriptionId ? { ...sub, status: newStatus } : sub
-      )
-    );
+  const handleSubscriptionChange = async (subscriptionId: string, newStatus: "active" | "paused" | "cancelled") => {
+    try {
+      const { error } = await supabase
+        .from("subscriptions")
+        .update({ status: newStatus })
+        .eq("id", subscriptionId);
+      if (error) throw error;
+      fetchAllData();
+    } catch (error) {
+      console.error("Error updating subscription status:", error);
+    }
   };
 
   const handleSaveAddress = async (address: Omit<Address, 'id' | 'is_default'>) => {
@@ -1082,7 +1089,7 @@ const AccountPage = () => {
                             <Button size="sm" variant="outline" onClick={() => {setSelectedSubscription(sub); setShowSubscriptionModal(true);}}>View Subscription</Button>
                             {sub.status === 'active' && <Button size="sm" variant="outline" onClick={() => handleSubscriptionChange(sub.id, 'paused')}>Pause</Button>}
                             {sub.status === 'paused' && <Button size="sm" variant="outline" onClick={() => handleSubscriptionChange(sub.id, 'active')}>Resume</Button>}
-                            {sub.status !== 'cancelled' && <Button size="sm" variant="outline" className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white" onClick={() => handleSubscriptionChange(sub.id, 'cancelled')}>Cancel</Button>}
+                            {sub.status !== 'cancelled' && <Button size="sm" variant="outline" className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white" onClick={() => {setSelectedSubscription(sub); setShowCancellationModal(true);}}>Cancel</Button>}
                           </div>
                         </div>
                       ))}
@@ -1487,6 +1494,39 @@ const AccountPage = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Subscription Cancellation Modal */}
+      <SubscriptionCancellationModal
+        isOpen={showCancellationModal}
+        onClose={() => setShowCancellationModal(false)}
+        onConfirm={async (discountAccepted) => {
+          if (selectedSubscription) {
+            if (discountAccepted) {
+              try {
+                const { error } = await supabase
+                  .from("subscriptions")
+                  .update({ discount: 0.20 })
+                  .eq("id", selectedSubscription.id);
+                if (error) throw error;
+                fetchAllData();
+                toast({
+                  title: "Success",
+                  description: "Discount applied to your subscription.",
+                });
+              } catch (error) {
+                console.error("Error applying discount:", error);
+                toast({
+                  title: "Error",
+                  description: "Failed to apply discount.",
+                  variant: "destructive",
+                });
+              }
+            } else {
+              handleSubscriptionChange(selectedSubscription.id, "cancelled");
+            }
+          }
+        }}
+      />
     </div>
   );
 };
