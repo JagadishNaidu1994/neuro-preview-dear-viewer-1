@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -41,10 +40,7 @@ const ReviewsTab = () => {
     try {
       const { data, error } = await supabase
         .from("reviews")
-        .select(`
-          *,
-          products(name)
-        `)
+        .select(`*, products(name)`)
         .order("created_at", { ascending: false });
       if (error) throw error;
       setReviews(data || []);
@@ -99,9 +95,6 @@ const ReviewsTab = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableCell colSpan={6} className="text-center">
-                Loading...
-              </TableCell>
               <TableHead>Product</TableHead>
               <TableHead>User ID</TableHead>
               <TableHead>Rating</TableHead>
@@ -116,19 +109,22 @@ const ReviewsTab = () => {
                 <TableCell colSpan={6} className="text-center">
                   Loading...
                 </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    {!review.is_approved && !review.is_archived && (
+              </TableRow>
+            ) : reviews.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-gray-500">
+                  No reviews found.
+                </TableCell>
+              </TableRow>
+            ) : (
               reviews.map((review) => (
                 <TableRow key={review.id}>
-                  <TableCell>{review.products?.name || 'Unknown Product'}</TableCell>
+                  <TableCell>{review.products?.name || "Unknown Product"}</TableCell>
                   <TableCell>{review.user_id?.slice(0, 8)}...</TableCell>
                   <TableCell>{review.rating}/5</TableCell>
                   <TableCell>{review.comment}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={review.is_approved ? "default" : "secondary"}
-                    >
+                    <Badge variant={review.is_approved ? "default" : "secondary"}>
                       {review.is_approved ? "Approved" : "Pending"}
                     </Badge>
                   </TableCell>
