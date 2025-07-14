@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import AuthModal from "./AuthModal";
 import CartDrawer from "./CartDrawer";
 import MobileDrawer from "./MobileDrawer";
-import { ShoppingBag, User, Menu, Settings } from "lucide-react";
+import { ShoppingCart, User, Menu, Settings } from "lucide-react";
 const Header = () => {
   const {
     user
@@ -82,8 +82,8 @@ const Header = () => {
                 </Link>}
 
               {/* Cart Icon */}
-              <Button variant="ghost" size="icon" onClick={openCart} className="relative">
-                <ShoppingBag className="w-6 h-6" />
+              <Button variant="ghost" size="sm" onClick={openCart} className="relative p-2">
+                <ShoppingCart className="w-8 h-8" />
                 {totalItems > 0 && <span className="absolute -top-1 -right-1 bg-[#514B3D] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {totalItems}
                   </span>}
@@ -91,13 +91,13 @@ const Header = () => {
 
               {/* User Account */}
               <Button variant="ghost" size="sm" onClick={handleAccountClick} className="hidden md:flex items-center gap-2 text-slate-900 font-normal">
-                <User className="w-6 h-6" />
+                <User className="w-8 h-8" />
                 {user ? "Account" : "Sign In"}
               </Button>
 
               {/* Mobile Menu */}
-              <Button variant="ghost" size="icon" onClick={() => setShowMobileDrawer(true)} className="lg:hidden relative">
-                <Menu className={`w-6 h-6 transition-transform duration-300 ${showMobileDrawer ? 'rotate-90' : ''}`} />
+              <Button variant="ghost" size="sm" onClick={() => setShowMobileDrawer(true)} className="lg:hidden font-normal text-2xl">
+                <Menu className="w-8 h-8" />
               </Button>
             </div>
           </div>
