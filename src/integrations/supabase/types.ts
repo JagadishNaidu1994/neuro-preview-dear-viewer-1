@@ -419,6 +419,7 @@ export type Database = {
         Row: {
           created_at: string
           discount_percentage: number | null
+          frequency: string | null
           frequency_weeks: number
           id: string
           next_delivery_date: string | null
@@ -431,6 +432,7 @@ export type Database = {
         Insert: {
           created_at?: string
           discount_percentage?: number | null
+          frequency?: string | null
           frequency_weeks?: number
           id?: string
           next_delivery_date?: string | null
@@ -443,6 +445,7 @@ export type Database = {
         Update: {
           created_at?: string
           discount_percentage?: number | null
+          frequency?: string | null
           frequency_weeks?: number
           id?: string
           next_delivery_date?: string | null
@@ -452,7 +455,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_addresses: {
         Row: {
@@ -695,7 +706,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
