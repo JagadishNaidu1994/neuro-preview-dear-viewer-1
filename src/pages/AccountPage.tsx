@@ -300,6 +300,29 @@ const AccountPage = () => {
     }
   };
 
+  const handleChangePassword = async () => {
+    const currentPassword = (document.getElementById('currentPassword') as HTMLInputElement).value;
+    const newPassword = (document.getElementById('newPassword') as HTMLInputElement).value;
+    const confirmPassword = (document.getElementById('confirmPassword') as HTMLInputElement).value;
+
+    if (newPassword !== confirmPassword) {
+      alert("New passwords do not match.");
+      return;
+    }
+
+    if (!user) return;
+
+    // The following is a simplified example. In a real application, you would
+    // want to re-authenticate the user before allowing a password change.
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+      alert("Error changing password: " + error.message);
+    } else {
+      alert("Password changed successfully.");
+    }
+  };
+
   const handleProfileUpdate = async () => {
     if (!user) return;
     
@@ -638,10 +661,13 @@ const AccountPage = () => {
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="transition-all duration-300 ease-in-out">
               {sidebarItems.map((item) => (
                 <SelectItem key={item.id} value={item.id}>
-                  {item.label}
+                  <div className="flex items-center gap-2">
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -1269,17 +1295,17 @@ const AccountPage = () => {
                       <div className="space-y-4 max-w-md">
                         <div>
                           <Label>Current Password</Label>
-                          <Input type="password" className="mt-1" />
+                          <Input id="currentPassword" type="password" className="mt-1" />
                         </div>
                         <div>
                           <Label>New Password</Label>
-                          <Input type="password" className="mt-1" />
+                          <Input id="newPassword" type="password" className="mt-1" />
                         </div>
                         <div>
                           <Label>Confirm New Password</Label>
-                          <Input type="password" className="mt-1" />
+                          <Input id="confirmPassword" type="password" className="mt-1" />
                         </div>
-                        <Button className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
+                        <Button className="bg-[#192a3a] hover:bg-[#0f1a26] text-white" onClick={handleChangePassword}>
                           Update Password
                         </Button>
                       </div>
