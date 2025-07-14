@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/context/CartProvider";
@@ -11,6 +11,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FaMinus, FaPlus, FaStar } from "react-icons/fa";
 import { ChevronDown, Package, Clock, Heart } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
 interface Product {
   id: string;
   name: string;
@@ -21,6 +23,7 @@ interface Product {
   stock_quantity: number;
   is_active: boolean;
 }
+
 const ProductPage = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
@@ -32,20 +35,23 @@ const ProductPage = () => {
   const [purchaseType, setPurchaseType] = useState("subscribe"); // Default to subscription
   const [subscriptionFrequency, setSubscriptionFrequency] = useState("4");
   const [isInWishlist, setIsInWishlist] = useState(false);
-  const {
-    user
-  } = useAuth();
-  const {
-    addToCart
-  } = useCart();
+  const [isAnimating, setIsAnimating] = useState(false);
+  const cartRef = useRef<HTMLButtonElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+
+  const { user } = useAuth();
+  const { addToCart } = useCart();
+
   useEffect(() => {
     const fetchProduct = async () => {
       if (!id) return;
       try {
-        const {
-          data,
-          error
-        } = await supabase.from("products").select("*").eq("id", id).eq("is_active", true).single();
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .eq("id", id)
+          .eq("is_active", true)
+          .single();
         if (error) throw error;
         setProduct(data);
       } catch (error) {
@@ -56,12 +62,13 @@ const ProductPage = () => {
     };
     const checkWishlist = async () => {
       if (!user || !id) return;
-      const {
-        data,
-        error
-      } = await supabase.from('wishlist_items').select('*').eq('user_id', user.id).eq('product_id', id);
+      const { data, error } = await supabase
+        .from("wishlist_items")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("product_id", id);
       if (error) {
-        console.error('Error checking wishlist:', error);
+        console.error("Error checking wishlist:", error);
       } else if (data && data.length > 0) {
         setIsInWishlist(true);
       }
@@ -69,82 +76,158 @@ const ProductPage = () => {
     fetchProduct();
     checkWishlist();
   }, [id, user]);
+
   const handleAddToCart = async () => {
     if (!product) return;
-    await addToCart(product.id, quantity, purchaseType === 'subscribe');
+    setIsAnimating(true);
+    await addToCart(product.id, quantity, purchaseType === "subscribe");
   };
+
   const handleToggleWishlist = async () => {
     if (!user || !product) return;
     if (isInWishlist) {
-      const {
-        error
-      } = await supabase.from('wishlist_items').delete().eq('user_id', user.id).eq('product_id', product.id);
+      const { error } = await supabase
+        .from("wishlist_items")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("product_id", product.id);
       if (error) {
-        console.error('Error removing from wishlist:', error);
+        console.error("Error removing from wishlist:", error);
       } else {
         setIsInWishlist(false);
       }
     } else {
-      const {
-        error
-      } = await supabase.from('wishlist_items').insert([{
-        user_id: user.id,
-        product_id: product.id
-      }]);
+      const { error } = await supabase.from("wishlist_items").insert([
+        {
+          user_id: user.id,
+          product_id: product.id,
+        },
+      ]);
       if (error) {
-        console.error('Error adding to wishlist:', error);
+        console.error("Error adding to wishlist:", error);
       } else {
         setIsInWishlist(true);
       }
     }
   };
+
   if (loading) {
-    return <div className="min-h-screen bg-white">
+    return (
+      <div className="min-h-screen bg-white">
         <Header />
         <div className="flex items-center justify-center min-h-[80vh]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
         </div>
-      </div>;
+      </div>
+    );
   }
+
   if (!product) {
-    return <div className="min-h-screen bg-white">
+    return (
+      <div className="min-h-screen bg-white">
         {/* <Header /> */}
         <div className="text-center py-24">
           <h2 className="text-3xl font-bold text-black mb-4">Product not found</h2>
-          <p className="text-gray-600 mb-8">The product you're looking for doesn't exist or has been removed.</p>
-          <Button onClick={() => window.history.back()} className="bg-black hover:bg-gray-800 text-white">
+          <p className="text-gray-600 mb-8">
+            The product you're looking for doesn't exist or has been removed.
+          </p>
+          <Button
+            onClick={() => window.history.back()}
+            className="bg-black hover:bg-gray-800 text-white"
+          >
             Go Back
           </Button>
         </div>
-      </div>;
+      </div>
+    );
   }
 
   // Sample nutrition supplement bottle images
-  const productImages = ["https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&h=500&fit=crop", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&h=500&fit=crop", "https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=500&h=500&fit=crop", "https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=500&h=500&fit=crop"];
+  const productImages = [
+    "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&h=500&fit=crop",
+    "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&h=500&fit=crop",
+    "https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=500&h=500&fit=crop",
+    "https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=500&h=500&fit=crop",
+  ];
 
   // Calculate prices based on servings and purchase type
   const basePrice = servings === "30" ? 100 : 180;
   const subscriptionDiscount = purchaseType === "subscribe" ? 0.8 : 1; // 20% off
   const finalPrice = basePrice * subscriptionDiscount;
   const pricePerServing = finalPrice / parseInt(servings);
-  return <div className="min-h-screen bg-white">      
+
+  return (
+    <div className="min-h-screen bg-white">
+      <Header ref={cartRef} />
+      <AnimatePresence>
+        {isAnimating && imageRef.current && cartRef.current && (
+          <motion.img
+            src={productImages[selectedImage]}
+            alt="flying-product"
+            className="fixed z-50 rounded-full"
+            initial={{
+              top: imageRef.current.getBoundingClientRect().top,
+              left: imageRef.current.getBoundingClientRect().left,
+              width: imageRef.current.getBoundingClientRect().width,
+              height: imageRef.current.getBoundingClientRect().height,
+            }}
+            animate={{
+              top: cartRef.current.getBoundingClientRect().top,
+              left: cartRef.current.getBoundingClientRect().left,
+              width: 0,
+              height: 0,
+              rotate: 360,
+            }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+            onAnimationComplete={() => setIsAnimating(false)}
+          />
+        )}
+      </AnimatePresence>
       <div className="w-full px-4 md:px-6 lg:px-8 py-0">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-none">
           {/* Product Images */}
           <div className="space-y-4 relative">
             {/* Main Image */}
             <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden">
-              <img src={productImages[selectedImage]} alt={product.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img
+                ref={imageRef}
+                src={productImages[selectedImage]}
+                alt={product.name}
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              />
             </div>
-            <Button size="icon" variant="ghost" className="absolute top-4 right-4 bg-white/50 backdrop-blur-sm rounded-full hover:bg-white/75" onClick={handleToggleWishlist}>
-              <Heart className={`w-5 h-5 ${isInWishlist ? 'text-red-500 fill-current' : 'text-gray-500'}`} />
+            <Button
+              size="icon"
+              variant="ghost"
+              className="absolute top-4 right-4 bg-white/50 backdrop-blur-sm rounded-full hover:bg-white/75"
+              onClick={handleToggleWishlist}
+            >
+              <Heart
+                className={`w-5 h-5 ${
+                  isInWishlist ? "text-red-500 fill-current" : "text-gray-500"
+                }`}
+              />
             </Button>
-            
+
             {/* Thumbnail Images */}
             <div className="flex gap-3">
-              {productImages.map((image, index) => <button key={index} onClick={() => setSelectedImage(index)} className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-200 ${selectedImage === index ? 'border-black shadow-md' : 'border-gray-200 hover:border-gray-300'}`}>
-                  <img src={image} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover" />
-                </button>)}
+              {productImages.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedImage(index)}
+                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-200 ${
+                    selectedImage === index
+                      ? "border-black shadow-md"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <img
+                    src={image}
+                    alt={`${product.name} ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
             </div>
           </div>
 
@@ -397,6 +480,7 @@ const ProductPage = () => {
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
 export default ProductPage;

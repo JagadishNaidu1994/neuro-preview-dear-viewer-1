@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthProvider";
@@ -11,7 +11,7 @@ import CartDrawer from "./CartDrawer";
 import MobileDrawer from "./MobileDrawer";
 import { ShoppingCart, User, Menu, Settings } from "lucide-react";
 
-const Header = () => {
+const Header = forwardRef<HTMLButtonElement>((_, ref) => {
   const { user } = useAuth();
   const { totalItems } = useCart();
   const { isAdmin, loading: adminLoading } = useAdmin();
@@ -35,7 +35,7 @@ const Header = () => {
     { label: "The Science", href: "/the-science" },
     { label: "Ethos", href: "/ethos" },
     { label: "Herbal Index", href: "/herbal-index" },
-    { label: "Journal", href: "/journal" }
+    { label: "Journal", href: "/journal" },
   ];
   return (
     <>
@@ -49,8 +49,12 @@ const Header = () => {
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-8">
-              {navItems.map(item => (
-                <Link key={item.href} to={item.href} className="text-[#514B3D] hover:text-[#3f3a2f] font-medium transition-colors">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className="text-[#514B3D] hover:text-[#3f3a2f] font-medium transition-colors"
+                >
                   {item.label}
                 </Link>
               ))}
@@ -61,14 +65,19 @@ const Header = () => {
               {/* Admin Link - Only show for admin users */}
               {user && isAdmin && !adminLoading && (
                 <Link to="/admin">
-                  <Button variant="ghost" size="sm" className="relative p-2 hidden md:flex" title="Admin Dashboard">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="relative p-2 hidden md:flex"
+                    title="Admin Dashboard"
+                  >
                     <Settings className="w-8 h-8" />
                   </Button>
                 </Link>
               )}
 
               {/* Cart Icon */}
-              <Button variant="ghost" size="sm" onClick={openCart} className="relative p-2">
+              <Button variant="ghost" size="sm" onClick={openCart} className="relative p-2" ref={ref}>
                 <ShoppingCart className="w-8 h-8" />
                 {totalItems > 0 && (
                   <span className="absolute -top-1 -right-1 bg-[#514B3D] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -116,5 +125,5 @@ const Header = () => {
       />
     </>
   );
-};
+});
 export default Header;

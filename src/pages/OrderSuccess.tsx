@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { FaCheckCircle } from "react-icons/fa";
+import { motion } from "framer-motion";
 
 interface Order {
   id: string;
@@ -67,16 +68,39 @@ const OrderSuccess = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F8F5]">
+    <div className="min-h-screen bg-[#F8F8F5] overflow-hidden">
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-16">
-        <div className="bg-white rounded-lg p-8 shadow-sm text-center">
-          <FaCheckCircle className="text-green-500 text-6xl mx-auto mb-6" />
-          <h1 className="text-3xl font-bold mb-4">Order Confirmed!</h1>
-          <p className="text-gray-600 mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white rounded-lg p-8 shadow-sm text-center relative"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 260, damping: 20 }}
+          >
+            <FaCheckCircle className="text-green-500 text-6xl mx-auto mb-6" />
+          </motion.div>
+          <motion.h1
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="text-3xl font-bold mb-4"
+          >
+            Order Confirmed!
+          </motion.h1>
+          <motion.p
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+            className="text-gray-600 mb-6"
+          >
             Thank you for your purchase. Your order has been successfully placed.
-          </p>
-          
+          </motion.p>
+
           <div className="bg-gray-50 rounded-lg p-6 mb-6">
             <h2 className="text-xl font-semibold mb-4">Order Details</h2>
             <div className="space-y-2 text-left max-w-md mx-auto">
@@ -113,7 +137,7 @@ const OrderSuccess = () => {
               </Button>
             </Link>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
