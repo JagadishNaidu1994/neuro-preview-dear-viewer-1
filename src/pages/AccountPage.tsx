@@ -452,12 +452,12 @@ const AccountPage = () => {
           doc.text(`Phone: ${shippingAddress.phone}`, 20, 150);
         }
       }
-
+      
       // Items table header
       let yPosition = 170;
       doc.setFillColor(240, 240, 240);
       doc.rect(20, yPosition, 170, 10, 'F');
-
+      
       doc.setFontSize(12);
       doc.text('Description', 25, yPosition + 7);
       doc.text('Qty', 100, yPosition + 7);
@@ -472,7 +472,7 @@ const AccountPage = () => {
         order.order_items.forEach((item) => {
           const itemTotal = item.price * item.quantity;
           subtotal += itemTotal;
-
+          
           doc.text(item.products.name, 25, yPosition);
           doc.text(item.quantity.toString(), 100, yPosition);
           doc.text(`$${item.price.toFixed(2)}`, 130, yPosition);
@@ -498,13 +498,13 @@ const AccountPage = () => {
       doc.setFontSize(14);
       doc.text('Total:', 130, yPosition);
       doc.text(`$${order.total_amount.toFixed(2)}`, 160, yPosition);
-
+      
       // Footer
       yPosition += 30;
       doc.setFontSize(10);
       doc.text('Thank you for your business!', 20, yPosition);
       doc.text('Please pay invoice within 15 days.', 20, yPosition + 10);
-
+      
       // Save the PDF
       doc.save(`invoice-${order.id.slice(0, 8)}.pdf`);
       
@@ -588,6 +588,51 @@ const AccountPage = () => {
     }
   }
 
+  const handleDeletePaymentMethod = async (paymentMethodId: string) => {
+    if (!user) return;
+    if (window.confirm('Are you sure you want to delete this payment method?')) {
+      try {
+        const { error } = await supabase.from('user_payment_methods').delete().eq('id', paymentMethodId);
+        if (error) throw error;
+        fetchAllData();
+      } catch (error) {
+        console.error('Error deleting payment method:', error);
+      }
+    }
+  };
+
+  const getAvatarImage = () => {
+    const firstName = profileData.firstName || user?.user_metadata?.given_name || '';
+    const lastName = profileData.lastName || user?.user_metadata?.family_name || '';
+    
+    // Simple gender detection based on common names (this is a basic implementation)
+    const maleNames = ['john', 'james', 'robert', 'michael', 'william', 'david', 'richard', 'charles', 'joseph', 'thomas'];
+    const femaleNames = ['mary', 'patricia', 'jennifer', 'linda', 'elizabeth', 'barbara', 'susan', 'jessica', 'sarah', 'karen'];
+    
+    const firstNameLower = firstName.toLowerCase();
+    
+    if (maleNames.includes(firstNameLower)) {
+      return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face";
+    }
+    
+    if (femaleNames.includes(firstNameLower)) {
+      return "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face";
+    }
+    
+    // Default professional avatar
+    return "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face";
+  };
+
+  const PaymentMethodIcon = ({ type }: { type: string }) => {
+    switch (type.toLowerCase()) {
+      case 'paypal':
+        return <FaPaypal className="text-blue-600 text-2xl" />;
+      case 'googlepay':
+        return <FaGooglePay className="text-green-600 text-2xl" />;
+      default:
+        return <FaCreditCard className="text-[#192a3a] text-2xl" />;
+    }
+  };
 
   const sidebarItems = [
     { id: "dashboard", icon: <FaUser />, label: "Dashboard" },
@@ -672,7 +717,6 @@ const AccountPage = () => {
                     <span className="font-medium">{item.label}</span>
                   </button>
                 ))}
-
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-4 p-4 rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200 mt-6"
@@ -705,7 +749,7 @@ const AccountPage = () => {
                           </div>
                         </div>
                       </div>
-
+                      
                       <div className="p-6 bg-gray-100 rounded-xl">
                         <div className="flex items-center gap-4">
                           <FaGift className="text-2xl text-[#192a3a]" />
@@ -715,7 +759,6 @@ const AccountPage = () => {
                           </div>
                         </div>
                       </div>
-
                       <div className="p-6 bg-gray-100 rounded-xl">
                         <div className="flex items-center gap-4">
                           <FaAddressBook className="text-2xl text-[#192a3a]" />
