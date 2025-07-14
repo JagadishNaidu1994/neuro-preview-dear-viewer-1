@@ -1087,7 +1087,16 @@ const AccountPage = () => {
                             <Button size="sm" variant="outline" onClick={() => {setSelectedSubscription(sub); setShowSubscriptionModal(true);}}>View Subscription</Button>
                             {sub.status === 'active' && <Button size="sm" variant="outline" onClick={() => handleSubscriptionChange(sub.id, 'paused')}>Pause</Button>}
                             {sub.status === 'paused' && <Button size="sm" variant="outline" onClick={() => handleSubscriptionChange(sub.id, 'active')}>Resume</Button>}
-                            {sub.status !== 'cancelled' && <Button size="sm" variant="outline" className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white" onClick={() => {setSelectedSubscription(sub); setShowCancellationModal(true);}}>Cancel</Button>}
+                            {sub.status !== 'cancelled' && (
+  <Button
+    size="sm"
+    variant="outline"
+    className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
+    onClick={() => { setShowCancellationModal(true); setSelectedSubscription(sub); }}
+  >
+    Cancel
+  </Button>
+)}
                           </div>
                         </div>
                       ))}
