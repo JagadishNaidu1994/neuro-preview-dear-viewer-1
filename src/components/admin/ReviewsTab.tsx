@@ -99,6 +99,9 @@ const ReviewsTab = () => {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableCell colSpan={6} className="text-center">
+                Loading...
+              </TableCell>
               <TableHead>Product</TableHead>
               <TableHead>User ID</TableHead>
               <TableHead>Rating</TableHead>
@@ -113,6 +116,9 @@ const ReviewsTab = () => {
                 <TableCell colSpan={6} className="text-center">
                   Loading...
                 </TableCell>
+                <TableCell>
+                  <div className="flex space-x-2">
+                    {!review.is_approved && !review.is_archived && (
               </TableRow>
             ) : (
               reviews.map((review) => (

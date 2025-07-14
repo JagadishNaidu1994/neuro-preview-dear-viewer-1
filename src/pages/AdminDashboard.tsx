@@ -182,12 +182,14 @@ const AdminDashboard = () => {
             } = await supabase.from("users").select("email, first_name, last_name").eq("id", order.user_id).single();
             userData = user;
           }
+
           ordersWithUsers.push({
             ...order,
             users: userData
           });
         }
       }
+
       setOrders(ordersWithUsers);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -798,9 +800,6 @@ const AdminDashboard = () => {
                               <div className="font-medium">
                                 {order.users?.first_name ? `${order.users.first_name} ${order.users.last_name || ""}`.trim() : order.users?.email || "Guest User"}
                               </div>
-                              <div className="text-sm text-gray-500">
-                                {order.users?.email || "No email"}
-                              </div>
                             </div>
                           </TableCell>
                           <TableCell>₹{order.total_amount}</TableCell>
@@ -1065,6 +1064,10 @@ const AdminDashboard = () => {
                           {coupon.used_count}/{coupon.max_uses || "∞"}
                         </TableCell>
                         <TableCell>
+                          {coupon.expires_at 
+                            ? new Date(coupon.expires_at).toLocaleDateString()
+                            : "Never"
+                          }
                           {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : "Never"}
                         </TableCell>
                         <TableCell>
