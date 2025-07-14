@@ -11,7 +11,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FaMinus, FaPlus, FaStar } from "react-icons/fa";
 import { ChevronDown, Package, Clock, Heart } from "lucide-react";
-
 interface Product {
   id: string;
   name: string;
@@ -22,7 +21,6 @@ interface Product {
   stock_quantity: number;
   is_active: boolean;
 }
-
 const ProductPage = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
@@ -34,11 +32,12 @@ const ProductPage = () => {
   const [purchaseType, setPurchaseType] = useState("subscribe"); // Default to subscription
   const [subscriptionFrequency, setSubscriptionFrequency] = useState("4");
   const [isInWishlist, setIsInWishlist] = useState(false);
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const {
     addToCart
   } = useCart();
-
   useEffect(() => {
     const fetchProduct = async () => {
       if (!id) return;
@@ -55,47 +54,43 @@ const ProductPage = () => {
         setLoading(false);
       }
     };
-
     const checkWishlist = async () => {
       if (!user || !id) return;
-      const { data, error } = await supabase
-        .from('wishlist_items')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('product_id', id);
+      const {
+        data,
+        error
+      } = await supabase.from('wishlist_items').select('*').eq('user_id', user.id).eq('product_id', id);
       if (error) {
         console.error('Error checking wishlist:', error);
       } else if (data && data.length > 0) {
         setIsInWishlist(true);
       }
     };
-
     fetchProduct();
     checkWishlist();
   }, [id, user]);
-
   const handleAddToCart = async () => {
     if (!product) return;
     await addToCart(product.id, quantity, purchaseType === 'subscribe');
   };
-
   const handleToggleWishlist = async () => {
     if (!user || !product) return;
     if (isInWishlist) {
-      const { error } = await supabase
-        .from('wishlist_items')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('product_id', product.id);
+      const {
+        error
+      } = await supabase.from('wishlist_items').delete().eq('user_id', user.id).eq('product_id', product.id);
       if (error) {
         console.error('Error removing from wishlist:', error);
       } else {
         setIsInWishlist(false);
       }
     } else {
-      const { error } = await supabase
-        .from('wishlist_items')
-        .insert([{ user_id: user.id, product_id: product.id }]);
+      const {
+        error
+      } = await supabase.from('wishlist_items').insert([{
+        user_id: user.id,
+        product_id: product.id
+      }]);
       if (error) {
         console.error('Error adding to wishlist:', error);
       } else {
@@ -103,7 +98,6 @@ const ProductPage = () => {
       }
     }
   };
-
   if (loading) {
     return <div className="min-h-screen bg-white">
         <Header />
@@ -112,7 +106,6 @@ const ProductPage = () => {
         </div>
       </div>;
   }
-
   if (!product) {
     return <div className="min-h-screen bg-white">
         {/* <Header /> */}
@@ -127,21 +120,15 @@ const ProductPage = () => {
   }
 
   // Sample nutrition supplement bottle images
-  const productImages = [
-    "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=500&h=500&fit=crop"
-  ];
+  const productImages = ["https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&h=500&fit=crop", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&h=500&fit=crop", "https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=500&h=500&fit=crop", "https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=500&h=500&fit=crop"];
 
   // Calculate prices based on servings and purchase type
   const basePrice = servings === "30" ? 100 : 180;
   const subscriptionDiscount = purchaseType === "subscribe" ? 0.8 : 1; // 20% off
   const finalPrice = basePrice * subscriptionDiscount;
   const pricePerServing = finalPrice / parseInt(servings);
-
   return <div className="min-h-screen bg-white">      
-      <div className="w-full px-4 md:px-6 lg:px-8 py-8">
+      <div className="w-full px-4 md:px-6 lg:px-8 py-0">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-none">
           {/* Product Images */}
           <div className="space-y-4 relative">
@@ -412,5 +399,4 @@ const ProductPage = () => {
       </div>
     </div>;
 };
-
 export default ProductPage;
