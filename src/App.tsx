@@ -44,9 +44,9 @@ const App = () => (
           <SampleJournalContent />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/shop-all" element={<><Breadcrumb /><ShopAll /><Footer /></>} />
-            <Route path="/product" element={<><Breadcrumb /><ProductPage /><Footer /></>} />
-            <Route path="/cart" element={<><Breadcrumb /><Cart /><Footer /></>} />
+            <Route path="/shop-all" element={<><Header /><Breadcrumb /><ShopAll /><Footer /></>} />
+            <Route path="/product" element={<><Header /><Breadcrumb /><ProductPage /><Footer /></>} />
+            <Route path="/cart" element={<><Header /><Breadcrumb /><Cart /><Footer /></>} />
             <Route path="/checkout" element={<><Checkout /><Footer /></>} />
             <Route path="/order-success" element={<><OrderSuccess /><Footer /></>} />
             <Route path="/the-science" element={<><TheScience /><Footer /></>} />
