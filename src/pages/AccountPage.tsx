@@ -633,9 +633,23 @@ const AccountPage = () => {
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="lg:hidden mb-4">
+          <Select value={activeTab} onValueChange={handleTabChange}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {sidebarItems.map((item) => (
+                <SelectItem key={item.id} value={item.id}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
-          <div className="lg:w-80 w-full">
+          <div className="lg:w-80 w-full hidden lg:block">
             <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
               <div className="text-center mb-8">
                 <Avatar className="w-20 h-20 mx-auto mb-4">
