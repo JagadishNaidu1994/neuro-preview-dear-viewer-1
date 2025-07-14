@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AdminSidebarProps {
   activeTab: string;
@@ -127,26 +128,27 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
         </nav>
       </div>
 
-      {/* Mobile Tabs */}
-      <div className="lg:hidden w-full bg-white border-b border-gray-200">
-        <div className="p-2 overflow-x-auto">
-          <div className="flex space-x-2">
-            {sidebarItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={cn(
-                  "flex items-center px-4 py-2 rounded-lg text-sm transition-colors",
-                  activeTab === item.id
-                    ? "bg-purple-100 text-purple-700"
-                    : "text-gray-600 hover:bg-gray-100"
-                )}
-              >
-                <item.icon className="h-5 w-5 mr-2" />
-                {item.label}
-              </button>
-            ))}
-          </div>
+      {/* Mobile Dropdown */}
+      <div className="lg:hidden w-full bg-white border-b border-gray-200 p-2">
+        <div className="flex justify-between items-center">
+          <Select value={activeTab} onValueChange={setActiveTab}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {sidebarItems.map((item) => (
+                <SelectItem key={item.id} value={item.id}>
+                  <div className="flex items-center gap-2">
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <NavLink to="/" className="flex items-center space-x-2 p-2">
+            <Home className="h-6 w-6 text-primary" />
+          </NavLink>
         </div>
       </div>
     </>
