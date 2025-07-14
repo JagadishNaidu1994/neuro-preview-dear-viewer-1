@@ -199,36 +199,6 @@ export type Database = {
         }
         Relationships: []
       }
-      expenses: {
-        Row: {
-          amount: number
-          category: string
-          created_at: string | null
-          date: string
-          description: string
-          id: string
-          updated_at: string | null
-        }
-        Insert: {
-          amount: number
-          category: string
-          created_at?: string | null
-          date: string
-          description: string
-          id?: string
-          updated_at?: string | null
-        }
-        Update: {
-          amount?: number
-          category?: string
-          created_at?: string | null
-          date?: string
-          description?: string
-          id?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       journals: {
         Row: {
           author: string | null
@@ -337,30 +307,6 @@ export type Database = {
           tracking_link?: string | null
           updated_at?: string | null
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      pages: {
-        Row: {
-          content: Json | null
-          created_at: string | null
-          id: string
-          page_key: string
-          updated_at: string | null
-        }
-        Insert: {
-          content?: Json | null
-          created_at?: string | null
-          id?: string
-          page_key: string
-          updated_at?: string | null
-        }
-        Update: {
-          content?: Json | null
-          created_at?: string | null
-          id?: string
-          page_key?: string
-          updated_at?: string | null
         }
         Relationships: []
       }
