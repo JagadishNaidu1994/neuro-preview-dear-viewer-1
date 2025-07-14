@@ -45,7 +45,7 @@ const MobileDrawer = ({ isOpen, onClose, onAccountClick }: MobileDrawerProps) =>
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-[300px]">
+      <SheetContent side="right" className="w-[300px] transition-transform duration-300 ease-in-out">
         <SheetHeader>
           <SheetTitle>Menu</SheetTitle>
         </SheetHeader>
