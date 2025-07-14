@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -51,21 +50,11 @@ const ExpensesTab = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("expenses" as any)
+        .from("expenses")
         .select("*")
         .order("date", { ascending: false });
       if (error) throw error;
-      
-      // Transform the data to match our interface
-      const transformedData = (data || []).map((expense: any) => ({
-        id: expense.id,
-        description: expense.description,
-        amount: expense.amount,
-        category: expense.category,
-        date: expense.date
-      }));
-      
-      setExpenses(transformedData);
+      setExpenses(data || []);
     } catch (error) {
       console.error("Error fetching expenses:", error);
     } finally {
@@ -96,14 +85,14 @@ const ExpensesTab = () => {
 
       if (editingExpense) {
         const { error } = await supabase
-          .from("expenses" as any)
+          .from("expenses")
           .update(expenseData)
           .eq("id", editingExpense.id);
         if (error) throw error;
         toast({ title: "Success", description: "Expense updated." });
       } else {
         const { error } = await supabase
-          .from("expenses" as any)
+          .from("expenses")
           .insert([expenseData]);
         if (error) throw error;
         toast({ title: "Success", description: "Expense created." });
@@ -134,27 +123,6 @@ const ExpensesTab = () => {
       date: expense.date,
     });
     setIsModalOpen(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this expense?")) return;
-
-    try {
-      const { error } = await supabase
-        .from("expenses" as any)
-        .delete()
-        .eq("id", id);
-      if (error) throw error;
-      toast({ title: "Success", description: "Expense deleted." });
-      await fetchExpenses();
-    } catch (error) {
-      console.error("Error deleting expense:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete expense.",
-        variant: "destructive",
-      });
-    }
   };
 
   return (
@@ -268,11 +236,7 @@ const ExpensesTab = () => {
                       >
                         <FaEdit />
                       </Button>
-                      <Button 
-                        size="sm" 
-                        variant="destructive"
-                        onClick={() => handleDelete(expense.id)}
-                      >
+                      <Button size="sm" variant="destructive">
                         <FaTrash />
                       </Button>
                     </div>

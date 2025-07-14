@@ -56,7 +56,7 @@ export default function ShopAll() {
   };
   if (loading) {
     return <div className="min-h-screen bg-[#F8F8F5]">
-        {/* <Header /> */}
+        <Header />
         <div className="w-full px-4 md:px-8 py-8 text-center">
           <div className="text-xl">Loading products...</div>
         </div>
