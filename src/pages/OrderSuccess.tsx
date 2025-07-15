@@ -111,7 +111,7 @@ const OrderSuccess = () => {
           className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-2xl text-center relative overflow-hidden"
         >
           {/* Animated Background Pattern */}
-          <motion.div
+          {/* <motion.div
             className="absolute inset-0 opacity-10"
             style={{
               backgroundImage: `radial-gradient(circle at 25% 25%, #FFD700 2px, transparent 2px),
@@ -126,7 +126,7 @@ const OrderSuccess = () => {
               repeat: Infinity,
               ease: 'linear'
             }}
-          />
+          /> */}
 
           {/* Success Icon with Pulsing Ring */}
           <div className="relative mb-8">
