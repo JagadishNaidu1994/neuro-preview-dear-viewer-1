@@ -129,7 +129,7 @@ const OrderSuccess = () => {
           /> */}
 
           {/* Success Icon with Pulsing Ring */}
-          <div className="relative mb-8">
+          {/* <div className="relative mb-8">
             <motion.div
               className="absolute inset-0 border-4 border-green-200 rounded-full"
               initial={{ scale: 0 }}
@@ -139,7 +139,7 @@ const OrderSuccess = () => {
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
-            />
+            /> */}
             <motion.div
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
@@ -181,7 +181,7 @@ const OrderSuccess = () => {
               transition={{ delay: 1, duration: 0.6 }}
               className="text-lg text-gray-600"
             >
-              Your order has been successfully placed and our team is already working on it! 🚀
+              Your order has been successfully placed and our team is already working on it!
             </motion.p>
           </motion.div>
 
@@ -282,7 +282,7 @@ const OrderSuccess = () => {
             className="mt-8 p-4 bg-gradient-to-r from-pink-50 to-yellow-50 rounded-lg"
           >
             <p className="text-gray-700 font-medium text-lg">
-              Thank you for choosing us! We appreciate your business 💜
+              Thank you for choosing us!
             </p>
           </motion.div>
         </motion.div>
