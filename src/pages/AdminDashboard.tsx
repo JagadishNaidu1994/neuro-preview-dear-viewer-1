@@ -874,7 +874,7 @@ export default function AdminDashboard() {
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => handleDeleteCoupon(coupon.id)}
+                            onClick={() => handleDeleteCoupon(coupons.id)}
                           >
                             Delete
                           </Button>
