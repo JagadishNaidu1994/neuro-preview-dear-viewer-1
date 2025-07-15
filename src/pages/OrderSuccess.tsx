@@ -131,7 +131,7 @@ const OrderSuccess = () => {
           {/* Success Icon with Pulsing Ring */}
           <div className="relative mb-8">
             <motion.div
-              className="absolute inset-0 border-4 border-white-200 rounded-full"
+              className="absolute inset-0 border-0 border-white rounded-full"
               initial={{ scale: 0 }}
               animate={{ scale: [1, 1.3, 1] }}
               transition={{ 
