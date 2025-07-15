@@ -358,6 +358,27 @@ const AdminDashboard = () => {
       });
     }
   };
+
+  const handleDeleteProduct = async (productId: string) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    try {
+      const { error } = await supabase.from("products").delete().eq("id", productId);
+      if (error) throw error;
+      toast({
+        title: "Success",
+        description: "Product deleted successfully",
+      });
+      await fetchProducts();
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleJournalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -407,6 +428,27 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+
+  const handleDeleteJournal = async (journalId: string) => {
+    if (!window.confirm("Are you sure you want to delete this journal?")) return;
+    try {
+      const { error } = await supabase.from("journals").delete().eq("id", journalId);
+      if (error) throw error;
+      toast({
+        title: "Success",
+        description: "Journal deleted successfully",
+      });
+      await fetchJournals();
+    } catch (error) {
+      console.error("Error deleting journal:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete journal",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleCouponSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -456,6 +498,27 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+  const handleDeleteCoupon = async (couponId: string) => {
+    if (!window.confirm("Are you sure you want to delete this coupon?")) return;
+    try {
+      const {
+        error
+      } = await supabase.from("coupon_codes").delete().eq("id", couponId);
+      if (error) throw error;
+      toast({
+        title: "Success",
+        description: "Coupon deleted successfully"
+      });
+      await fetchCoupons();
+    } catch (error) {
+      console.error("Error deleting coupon:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete coupon",
+        variant: "destructive"
+      });
+    }
+  };
   const handleShippingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -464,7 +527,8 @@ const AdminDashboard = () => {
         name: shippingForm.name,
         description: shippingForm.description,
         price: parseFloat(shippingForm.price),
-        estimated_days: shippingForm.estimated_days
+        estimated_days: shippingForm.estimated_days,
+        is_active: true, // New shipping methods are active by default
       };
       if (editingShipping) {
         const {
@@ -500,27 +564,49 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
-  const handleDeleteCoupon = async (couponId: string) => {
-    if (!window.confirm("Are you sure you want to delete this coupon?")) return;
+
+  // Toggle shipping method status
+  const toggleShippingStatus = async (shippingId: string, currentStatus: boolean) => {
     try {
-      const {
-        error
-      } = await supabase.from("coupon_codes").delete().eq("id", couponId);
+      const { error } = await supabase.from("shipping_methods").update({
+        is_active: !currentStatus,
+      }).eq("id", shippingId);
       if (error) throw error;
       toast({
         title: "Success",
-        description: "Coupon deleted successfully"
+        description: `Shipping method ${!currentStatus ? 'activated' : 'deactivated'} successfully`,
       });
-      await fetchCoupons();
+      await fetchShippingMethods();
     } catch (error) {
-      console.error("Error deleting coupon:", error);
+      console.error("Error toggling shipping method status:", error);
       toast({
         title: "Error",
-        description: "Failed to delete coupon",
-        variant: "destructive"
+        description: "Failed to update shipping method status",
+        variant: "destructive",
       });
     }
   };
+
+  const handleDeleteShipping = async (shippingId: string) => {
+    if (!window.confirm("Are you sure you want to delete this shipping method?")) return;
+    try {
+      const { error } = await supabase.from("shipping_methods").delete().eq("id", shippingId);
+      if (error) throw error;
+      toast({
+        title: "Success",
+        description: "Shipping method deleted successfully",
+      });
+      await fetchShippingMethods();
+    } catch (error) {
+      console.error("Error deleting shipping method:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete shipping method",
+        variant: "destructive",
+      });
+    }
+  };
+
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
       const {
@@ -638,9 +724,9 @@ const AdminDashboard = () => {
                 <Dialog open={isProductModalOpen} onOpenChange={setIsProductModalOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
-                  setEditingProduct(null);
-                  resetProductForm();
-                }}>
+                    setEditingProduct(null);
+                    resetProductForm();
+                  }}>
                       <FaPlus className="mr-2" />
                       Add Product
                     </Button>
@@ -655,46 +741,46 @@ const AdminDashboard = () => {
                       <div>
                         <Label htmlFor="name">Product Name</Label>
                         <Input id="name" value={productForm.name} onChange={e => setProductForm({
-                      ...productForm,
-                      name: e.target.value
-                    })} required />
+                        ...productForm,
+                        name: e.target.value
+                      })} required />
                       </div>
                       <div>
                         <Label htmlFor="description">Description</Label>
                         <Textarea id="description" value={productForm.description} onChange={e => setProductForm({
-                      ...productForm,
-                      description: e.target.value
-                    })} />
+                        ...productForm,
+                        description: e.target.value
+                      })} />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="price">Price ($)</Label>
                           <Input id="price" type="number" step="0.01" value={productForm.price} onChange={e => setProductForm({
-                        ...productForm,
-                        price: e.target.value
-                      })} required />
+                          ...productForm,
+                          price: e.target.value
+                        })} required />
                         </div>
                         <div>
                           <Label htmlFor="stock">Stock Quantity</Label>
                           <Input id="stock" type="number" value={productForm.stock_quantity} onChange={e => setProductForm({
-                        ...productForm,
-                        stock_quantity: e.target.value
-                      })} required />
+                          ...productForm,
+                          stock_quantity: e.target.value
+                        })} required />
                         </div>
                       </div>
                       <div>
                         <Label htmlFor="category">Category</Label>
                         <Input id="category" value={productForm.category} onChange={e => setProductForm({
-                      ...productForm,
-                      category: e.target.value
-                    })} />
+                        ...productForm,
+                        category: e.target.value
+                      })} />
                       </div>
                       <div>
                         <Label htmlFor="image_url">Image URL</Label>
                         <Input id="image_url" value={productForm.image_url} onChange={e => setProductForm({
-                      ...productForm,
-                      image_url: e.target.value
-                    })} />
+                        ...productForm,
+                        image_url: e.target.value
+                      })} />
                       </div>
                       <div className="flex justify-end space-x-2">
                         <Button type="button" variant="outline" onClick={() => setIsProductModalOpen(false)}>
@@ -746,7 +832,7 @@ const AdminDashboard = () => {
                             <Button size="sm" variant="outline" onClick={() => handleEditProduct(product)}>
                               <FaEdit />
                             </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteCoupon(product.id)}>
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteProduct(product.id)}>
                               <FaTrash />
                             </Button>
                           </div>
@@ -833,6 +919,267 @@ const AdminDashboard = () => {
           {activeTab === "messages" && <MessagesSection />}
 
           {/* Shipping Tab */}
+          {activeTab === "shipping" && <ShippingTab />}
+
+          {/* Expenses Tab */}
+          {activeTab === "expenses" && <ExpensesTab />}
+
+          {/* Reviews Tab */}
+          {activeTab === "reviews" && <ReviewsTab />}
+
+          {/* Content Tab */}
+          {activeTab === "content" && <ContentTab />}
+
+          {/* Journals Tab */}
+          {activeTab === "journals" && <Card className="bg-white">
+              <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
+                <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Journals Management</CardTitle>
+                <Dialog open={isJournalModalOpen} onOpenChange={setIsJournalModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => {
+                    setEditingJournal(null);
+                    resetJournalForm();
+                  }}>
+                      <FaPlus className="mr-2" />
+                      Add Journal
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingJournal ? "Edit Journal" : "Add New Journal"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleJournalSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="title">Title</Label>
+                        <Input id="title" value={journalForm.title} onChange={e => setJournalForm({
+                        ...journalForm,
+                        title: e.target.value
+                      })} required />
+                      </div>
+                      <div>
+                        <Label htmlFor="excerpt">Excerpt</Label>
+                        <Textarea id="excerpt" value={journalForm.excerpt} onChange={e => setJournalForm({
+                        ...journalForm,
+                        excerpt: e.target.value
+                      })} rows={2} />
+                      </div>
+                      <div>
+                        <Label htmlFor="content">Content</Label>
+                        <Textarea id="content" value={journalForm.content} onChange={e => setJournalForm({
+                        ...journalForm,
+                        content: e.target.value
+                      })} rows={10} required />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="author">Author</Label>
+                          <Input id="author" value={journalForm.author} onChange={e => setJournalForm({
+                          ...journalForm,
+                          author: e.target.value
+                        })} />
+                        </div>
+                        <div>
+                          <Label htmlFor="journal_image_url">Image URL</Label>
+                          <Input id="journal_image_url" value={journalForm.image_url} onChange={e => setJournalForm({
+                          ...journalForm,
+                          image_url: e.target.value
+                        })} />
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input type="checkbox" id="published" checked={journalForm.published} onChange={e => setJournalForm({
+                        ...journalForm,
+                        published: e.target.checked
+                      })} />
+                        <Label htmlFor="published">Published</Label>
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button type="button" variant="outline" onClick={() => setIsJournalModalOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={loading}>
+                          {loading ? "Saving..." : "Save Journal"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Author</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {journals.map(journal => <TableRow key={journal.id}>
+                        <TableCell className="font-medium">{journal.title}</TableCell>
+                        <TableCell>{journal.author}</TableCell>
+                        <TableCell>
+                          <Badge variant={journal.published ? "default" : "secondary"}>
+                            {journal.published ? "Published" : "Draft"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(journal.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button size="sm" variant="outline" onClick={() => handleEditJournal(journal)}>
+                              <FaEdit />
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteJournal(journal.id)}>
+                              <FaTrash />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>)}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>}
+
+          {/* Coupons Tab */}
+          {activeTab === "coupons" && <Card className="bg-white">
+              <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
+                <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Coupon Codes Management</CardTitle>
+                <Dialog open={isCouponModalOpen} onOpenChange={setIsCouponModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => {
+                    setEditingCoupon(null);
+                    resetCouponForm();
+                  }}>
+                      <FaPlus className="mr-2" />
+                      Add Coupon
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingCoupon ? "Edit Coupon" : "Add New Coupon"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleCouponSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="code">Coupon Code</Label>
+                        <Input id="code" value={couponForm.code} onChange={e => setCouponForm({
+                        ...couponForm,
+                        code: e.target.value.toUpperCase()
+                      })} required />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="discount_type">Discount Type</Label>
+                          <select id="discount_type" value={couponForm.discount_type} onChange={e => setCouponForm({
+                          ...couponForm,
+                          discount_type: e.target.value
+                        })} className="w-full border rounded px-3 py-2">
+                            <option value="percentage">Percentage</option>
+                            <option value="fixed">Fixed Amount</option>
+                          </select>
+                        </div>
+                        <div>
+                          <Label htmlFor="discount_value">
+                            Discount Value {couponForm.discount_type === "percentage" ? "(%)" : "($)"}
+                          </Label>
+                          <Input id="discount_value" type="number" step="0.01" value={couponForm.discount_value} onChange={e => setCouponForm({
+                          ...couponForm,
+                          discount_value: e.target.value
+                        })} required />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="minimum_order_amount">Minimum Order Amount ($)</Label>
+                          <Input id="minimum_order_amount" type="number" step="0.01" value={couponForm.minimum_order_amount} onChange={e => setCouponForm({
+                          ...couponForm,
+                          minimum_order_amount: e.target.value
+                        })} />
+                        </div>
+                        <div>
+                          <Label htmlFor="max_uses">Max Uses (optional)</Label>
+                          <Input id="max_uses" type="number" value={couponForm.max_uses} onChange={e => setCouponForm({
+                          ...couponForm,
+                          max_uses: e.target.value
+                        })} />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="expires_at">Expiry Date (optional)</Label>
+                        <Input id="expires_at" type="date" value={couponForm.expires_at} onChange={e => setCouponForm({
+                        ...couponForm,
+                        expires_at: e.target.value
+                      })} />
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button type="button" variant="outline" onClick={() => setIsCouponModalOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={loading}>
+                          {loading ? "Saving..." : "Save Coupon"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Code</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead>Min Order</TableHead>
+                      <TableHead>Used/Max</TableHead>
+                      <TableHead>Expires</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {coupons.map(coupon => <TableRow key={coupon.id}>
+                        <TableCell className="font-mono font-medium">{coupon.code}</TableCell>
+                        <TableCell>{coupon.discount_type}</TableCell>
+                        <TableCell>
+                          {coupon.discount_type === "percentage" ? `${coupon.discount_value}%` : `$${coupon.discount_value}`}
+                        </TableCell>
+                        <TableCell>${coupon.minimum_order_amount}</TableCell>
+                        <TableCell>
+                          {coupon.used_count}/{coupon.max_uses || "∞"}
+                        </TableCell>
+                        <TableCell>
+                          {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : "Never"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={coupon.is_active ? "default" : "secondary"}>
+                            {coupon.is_active ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button size="sm" variant="outline" onClick={() => handleEditCoupon(coupon)}>
+                              <FaEdit />
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteCoupon(coupon.id)}>
+                              <FaTrash />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>)}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>}
+
+          {/* Shipping Methods Tab (Previously Shipping Tab) */}
           {activeTab === "shipping" && (
             <Card className="bg-white">
               <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
@@ -938,18 +1285,33 @@ const AdminDashboard = () => {
                         <TableCell>${shipping.price}</TableCell>
                         <TableCell>{shipping.estimated_days}</TableCell>
                         <TableCell>
-                          <Badge variant={shipping.is_active ? "default" : "secondary"}>
-                            {shipping.is_active ? "Active" : "Inactive"}
-                          </Badge>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={shipping.is_active ? "default" : "secondary"}>
+                              {shipping.is_active ? "Active" : "Inactive"}
+                            </Badge>
+                            <Button size="sm" variant="outline" onClick={() => toggleShippingStatus(shipping.id, shipping.is_active)}>
+                              <span className="hidden md:inline">{shipping.is_active ? "Disable" : "Enable"}</span>
+                              <FaEdit className="md:hidden" />
+                            </Button>
+                          </div>
                         </TableCell>
                         <TableCell>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeleteCoupon(shipping.id)}
-                          >
-                            Delete
-                          </Button>
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditShipping(shipping)}
+                            >
+                              <FaEdit />
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteShipping(shipping.id)}
+                            >
+                              <FaTrash />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -958,259 +1320,6 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           )}
-
-          {/* Expenses Tab */}
-          {activeTab === "expenses" && <ExpensesTab />}
-
-          {/* Reviews Tab */}
-          {activeTab === "reviews" && <ReviewsTab />}
-
-          {/* Content Tab */}
-          {activeTab === "content" && <ContentTab />}
-
-          {/* Journals Tab */}
-          {activeTab === "journals" && <Card className="bg-white">
-              <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Journals Management</CardTitle>
-                <Dialog open={isJournalModalOpen} onOpenChange={setIsJournalModalOpen}>
-                  <DialogTrigger asChild>
-                    <Button onClick={() => {
-                  setEditingJournal(null);
-                  resetJournalForm();
-                }}>
-                      <FaPlus className="mr-2" />
-                      Add Journal
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>
-                        {editingJournal ? "Edit Journal" : "Add New Journal"}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleJournalSubmit} className="space-y-4">
-                      <div>
-                        <Label htmlFor="title">Title</Label>
-                        <Input id="title" value={journalForm.title} onChange={e => setJournalForm({
-                      ...journalForm,
-                      title: e.target.value
-                    })} required />
-                      </div>
-                      <div>
-                        <Label htmlFor="excerpt">Excerpt</Label>
-                        <Textarea id="excerpt" value={journalForm.excerpt} onChange={e => setJournalForm({
-                      ...journalForm,
-                      excerpt: e.target.value
-                    })} rows={2} />
-                      </div>
-                      <div>
-                        <Label htmlFor="content">Content</Label>
-                        <Textarea id="content" value={journalForm.content} onChange={e => setJournalForm({
-                      ...journalForm,
-                      content: e.target.value
-                    })} rows={10} required />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="author">Author</Label>
-                          <Input id="author" value={journalForm.author} onChange={e => setJournalForm({
-                        ...journalForm,
-                        author: e.target.value
-                      })} />
-                        </div>
-                        <div>
-                          <Label htmlFor="journal_image_url">Image URL</Label>
-                          <Input id="journal_image_url" value={journalForm.image_url} onChange={e => setJournalForm({
-                        ...journalForm,
-                        image_url: e.target.value
-                      })} />
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <input type="checkbox" id="published" checked={journalForm.published} onChange={e => setJournalForm({
-                      ...journalForm,
-                      published: e.target.checked
-                    })} />
-                        <Label htmlFor="published">Published</Label>
-                      </div>
-                      <div className="flex justify-end space-x-2">
-                        <Button type="button" variant="outline" onClick={() => setIsJournalModalOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button type="submit" disabled={loading}>
-                          {loading ? "Saving..." : "Save Journal"}
-                        </Button>
-                      </div>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </CardHeader>
-              <CardContent className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Author</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {journals.map(journal => <TableRow key={journal.id}>
-                        <TableCell className="font-medium">{journal.title}</TableCell>
-                        <TableCell>{journal.author}</TableCell>
-                        <TableCell>
-                          <Badge variant={journal.published ? "default" : "secondary"}>
-                            {journal.published ? "Published" : "Draft"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(journal.created_at).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="outline" onClick={() => handleEditJournal(journal)}>
-                              <FaEdit />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>)}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>}
-
-          {/* Coupons Tab */}
-          {activeTab === "coupons" && <Card className="bg-white">
-              <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Coupon Codes Management</CardTitle>
-                <Dialog open={isCouponModalOpen} onOpenChange={setIsCouponModalOpen}>
-                  <DialogTrigger asChild>
-                    <Button onClick={() => {
-                  setEditingCoupon(null);
-                  resetCouponForm();
-                }}>
-                      <FaPlus className="mr-2" />
-                      Add Coupon
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>
-                        {editingCoupon ? "Edit Coupon" : "Add New Coupon"}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleCouponSubmit} className="space-y-4">
-                      <div>
-                        <Label htmlFor="code">Coupon Code</Label>
-                        <Input id="code" value={couponForm.code} onChange={e => setCouponForm({
-                      ...couponForm,
-                      code: e.target.value.toUpperCase()
-                    })} required />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="discount_type">Discount Type</Label>
-                          <select id="discount_type" value={couponForm.discount_type} onChange={e => setCouponForm({
-                        ...couponForm,
-                        discount_type: e.target.value
-                      })} className="w-full border rounded px-3 py-2">
-                            <option value="percentage">Percentage</option>
-                            <option value="fixed">Fixed Amount</option>
-                          </select>
-                        </div>
-                        <div>
-                          <Label htmlFor="discount_value">
-                            Discount Value {couponForm.discount_type === "percentage" ? "(%)" : "($)"}
-                          </Label>
-                          <Input id="discount_value" type="number" step="0.01" value={couponForm.discount_value} onChange={e => setCouponForm({
-                        ...couponForm,
-                        discount_value: e.target.value
-                      })} required />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="minimum_order_amount">Minimum Order Amount ($)</Label>
-                          <Input id="minimum_order_amount" type="number" step="0.01" value={couponForm.minimum_order_amount} onChange={e => setCouponForm({
-                        ...couponForm,
-                        minimum_order_amount: e.target.value
-                      })} />
-                        </div>
-                        <div>
-                          <Label htmlFor="max_uses">Max Uses (optional)</Label>
-                          <Input id="max_uses" type="number" value={couponForm.max_uses} onChange={e => setCouponForm({
-                        ...couponForm,
-                        max_uses: e.target.value
-                      })} />
-                        </div>
-                      </div>
-                      <div>
-                        <Label htmlFor="expires_at">Expiry Date (optional)</Label>
-                        <Input id="expires_at" type="date" value={couponForm.expires_at} onChange={e => setCouponForm({
-                      ...couponForm,
-                      expires_at: e.target.value
-                    })} />
-                      </div>
-                      <div className="flex justify-end space-x-2">
-                        <Button type="button" variant="outline" onClick={() => setIsCouponModalOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button type="submit" disabled={loading}>
-                          {loading ? "Saving..." : "Save Coupon"}
-                        </Button>
-                      </div>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </CardHeader>
-              <CardContent className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Code</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Value</TableHead>
-                      <TableHead>Min Order</TableHead>
-                      <TableHead>Used/Max</TableHead>
-                      <TableHead>Expires</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {coupons.map(coupon => <TableRow key={coupon.id}>
-                        <TableCell className="font-mono font-medium">{coupon.code}</TableCell>
-                        <TableCell>{coupon.discount_type}</TableCell>
-                        <TableCell>
-                          {coupon.discount_type === "percentage" ? `${coupon.discount_value}%` : `$${coupon.discount_value}`}
-                        </TableCell>
-                        <TableCell>${coupon.minimum_order_amount}</TableCell>
-                        <TableCell>
-                          {coupon.used_count}/{coupon.max_uses || "∞"}
-                        </TableCell>
-                        <TableCell>
-                          {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : "Never"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={coupon.is_active ? "default" : "secondary"}>
-                            {coupon.is_active ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="outline" onClick={() => handleEditCoupon(coupon)}>
-                              <FaEdit />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>)}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>}
-
         </div>
       </div>
 
@@ -1218,5 +1327,4 @@ const AdminDashboard = () => {
       <OrderDetailsDialog order={selectedOrder} isOpen={isOrderDialogOpen} onClose={() => setIsOrderDialogOpen(false)} />
     </div>;
 };
-
 export default AdminDashboard;
