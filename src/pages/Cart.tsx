@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Tag, Gift, Star } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { CouponPopup } from "@/components/CouponPopup";
+import { useCouponContext } from "@/context/CouponProvider";
 import { useToast } from "@/hooks/use-toast";
 
 interface Coupon {
@@ -31,11 +32,19 @@ const Cart = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  // State for coupons and rewards
-  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  // Use coupon context for persistence
+  const { 
+    appliedCoupon, 
+    setAppliedCoupon, 
+    pointsToUse, 
+    setPointsToUse,
+    discount: savedDiscount,
+    setDiscount: setSavedDiscount
+  } = useCouponContext();
+  
+  // Local state
   const [couponCode, setCouponCode] = useState("");
   const [rewardPoints, setRewardPoints] = useState(0);
-  const [pointsToUse, setPointsToUse] = useState(0);
   const [isCouponPopupOpen, setIsCouponPopupOpen] = useState(false);
   const [couponLoading, setCouponLoading] = useState(false);
 
@@ -165,6 +174,7 @@ const Cart = () => {
   const removeCoupon = () => {
     setAppliedCoupon(null);
     setCouponCode("");
+    setSavedDiscount(0);
     toast({
       title: "Coupon Removed",
       description: "Coupon has been removed from your order",
@@ -186,6 +196,12 @@ const Cart = () => {
   const pointsDiscount = Math.min(pointsToUse, totalPrice - couponDiscount);
   const subtotal = totalPrice;
   const finalTotal = Math.max(0, subtotal - couponDiscount - pointsDiscount);
+
+  // Update saved discount when calculated discount changes
+  useEffect(() => {
+    const totalDiscount = couponDiscount + pointsDiscount;
+    setSavedDiscount(totalDiscount);
+  }, [couponDiscount, pointsDiscount, setSavedDiscount]);
 
   if (!user) {
     return (

@@ -35,6 +35,7 @@ import SampleJournalContent from "@/components/SampleJournalContent";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { CartProvider } from "@/context/CartProvider";
+import { CouponProvider } from "@/context/CouponProvider";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +89,8 @@ const AppRoutes = () => {
           path="/checkout"
           element={
             <PageWrapper>
+              <Header />
+              <Breadcrumb />
               <Checkout />
               <Footer />
             </PageWrapper>
@@ -341,10 +344,12 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <CartProvider>
-        <BrowserRouter>
-          <SampleJournalContent />
-          <AppRoutes />
-        </BrowserRouter>
+        <CouponProvider>
+          <BrowserRouter>
+            <SampleJournalContent />
+            <AppRoutes />
+          </BrowserRouter>
+        </CouponProvider>
       </CartProvider>
     </TooltipProvider>
   </QueryClientProvider>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useCart } from "@/context/CartProvider";
 import { useAuth } from "@/context/AuthProvider";
+import { useCouponContext } from "@/context/CouponProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
