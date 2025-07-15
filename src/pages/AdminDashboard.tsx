@@ -117,7 +117,7 @@ export default function AdminDashboard() {
     }
   };
     fetchCoupons();
-  }, []);
+  } []);
 
   const fetchCoupons = async () => {
     try {
