@@ -97,29 +97,45 @@ const ExpensesTab = () => {
     setCategoryForm({ name: "" });
   };
 
+  const handleCreateCategory = async (categoryName: string) => {
+    const trimmedName = categoryName.trim();
+    if (!trimmedName) return;
+
+    const existingCategory = categories.find(c => c.name.toLowerCase() === trimmedName.toLowerCase());
+    if (existingCategory) {
+        toast({ title: "Category exists", description: "This category already exists.", variant: "destructive" });
+        setExpenseForm(prev => ({ ...prev, category: existingCategory.name }));
+        return;
+    }
+
+    try {
+        const { data: newCategory, error } = await supabase
+            .from("expense_categories")
+            .insert({ name: trimmedName })
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        toast({ title: "Success", description: `Category "${trimmedName}" created.` });
+        await fetchCategories();
+        setExpenseForm(prev => ({ ...prev, category: newCategory.name }));
+    } catch (error) {
+        console.error("Error creating category", error);
+        toast({ title: "Error", description: "Failed to create category.", variant: "destructive" });
+    }
+  };
+
+
   const handleExpenseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Find or create the category
-      let categoryName = expenseForm.category.trim();
-      const existingCategory = categories.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
-
-      if (!existingCategory && categoryName) {
-        const { data: newCategory, error } = await supabase
-            .from("expense_categories")
-            .insert({ name: categoryName })
-            .select()
-            .single();
-        if (error) throw error;
-        fetchCategories(); // Refresh categories list
-      }
-      
       const expenseData = {
         description: expenseForm.description,
         amount: parseFloat(expenseForm.amount),
-        category: categoryName,
+        category: expenseForm.category,
         date: expenseForm.date,
       };
 
@@ -145,7 +161,7 @@ const ExpensesTab = () => {
 
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingCategory) return; // For now, only editing is handled here. Add is separate.
+    if (!editingCategory) return;
 
     try {
         await supabase
@@ -230,6 +246,7 @@ const ExpensesTab = () => {
                           options={categories.map(c => ({ value: c.name, label: c.name }))}
                           value={expenseForm.category}
                           onChange={(value) => setExpenseForm({ ...expenseForm, category: value })}
+                          onCreate={handleCreateCategory}
                           placeholder="Select or create a category"
                           searchPlaceholder="Search or type new category..."
                       />
