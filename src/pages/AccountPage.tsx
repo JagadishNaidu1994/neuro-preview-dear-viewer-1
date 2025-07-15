@@ -1028,8 +1028,7 @@ const AccountPage = () => {
                         Start Shopping
                       </Button>
                     </div>
-                  )
-                  }
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -1507,19 +1506,19 @@ const AccountPage = () => {
               try {
                 const { error } = await supabase
                   .from("subscriptions")
-                  .update({ status: 'active' }) // Keep the subscription active
+                  .update({ discount_percentage: 0.20 })
                   .eq("id", selectedSubscription.id);
                 if (error) throw error;
                 fetchAllData();
                 toast({
                   title: "Success",
-                  description: "You have kept your subscription.",
+                  description: "Discount applied to your subscription.",
                 });
               } catch (error) {
-                console.error("Error keeping subscription:", error);
+                console.error("Error applying discount:", error);
                 toast({
                   title: "Error",
-                  description: "Failed to keep subscription.",
+                  description: "Failed to apply discount.",
                   variant: "destructive",
                 });
               }

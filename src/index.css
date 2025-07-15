@@ -104,16 +104,3 @@
     @apply bg-background text-foreground;
   }
 }
-
-.noon-product-page .accordion-item {
-  border-bottom: 1px solid hsl(var(--border));
-}
-
-.noon-product-page .accordion-trigger {
-  padding: 1rem;
-  font-weight: 600;
-}
-
-.noon-product-page .accordion-content {
-  padding: 1rem;
-}
