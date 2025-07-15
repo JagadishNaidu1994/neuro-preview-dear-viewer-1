@@ -128,10 +128,8 @@ const Header = forwardRef<HTMLButtonElement>((_, ref) => {
                 className="lg:hidden font-normal text-2xl"
               >
                 
-                <Menu className="w-10 h-10 text-brand-blue-700" />
-                
-<!--                 <Menu className="w-10 h-10" /> -->
-              
+                <Menu className="w-10 h-10 text-brand-blue-700" />              
+             
               
               </Button>
             </div>
