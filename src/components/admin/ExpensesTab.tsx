@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -50,7 +51,7 @@ const ExpensesTab = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("expenses")
+        .from("expenses" as any)
         .select("*")
         .order("date", { ascending: false });
       if (error) throw error;
@@ -85,14 +86,14 @@ const ExpensesTab = () => {
 
       if (editingExpense) {
         const { error } = await supabase
-          .from("expenses")
+          .from("expenses" as any)
           .update(expenseData)
           .eq("id", editingExpense.id);
         if (error) throw error;
         toast({ title: "Success", description: "Expense updated." });
       } else {
         const { error } = await supabase
-          .from("expenses")
+          .from("expenses" as any)
           .insert([expenseData]);
         if (error) throw error;
         toast({ title: "Success", description: "Expense created." });

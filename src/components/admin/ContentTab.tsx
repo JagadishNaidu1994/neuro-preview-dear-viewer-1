@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ const ContentTab = () => {
 
   const fetchPages = async () => {
     try {
-      const { data, error } = await supabase.from("pages").select("*");
+      const { data, error } = await supabase.from("pages" as any).select("*");
       if (error) throw error;
       setPages(data || []);
     } catch (error) {
@@ -50,7 +51,7 @@ const ContentTab = () => {
     setLoading(true);
     try {
       const { error } = await supabase
-        .from("pages")
+        .from("pages" as any)
         .update({ content })
         .eq("id", selectedPage.id);
       if (error) throw error;

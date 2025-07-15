@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -44,7 +45,7 @@ const ReviewsTab = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("reviews")
+        .from("reviews" as any)
         .select(
           `
           *,
@@ -65,7 +66,7 @@ const ReviewsTab = () => {
   const handleApprove = async (id: string) => {
     try {
       const { error } = await supabase
-        .from("reviews")
+        .from("reviews" as any)
         .update({ is_approved: true })
         .eq("id", id);
       if (error) throw error;
@@ -84,7 +85,7 @@ const ReviewsTab = () => {
   const handleArchive = async (id: string) => {
     try {
       const { error } = await supabase
-        .from("reviews")
+        .from("reviews" as any)
         .update({ is_archived: true })
         .eq("id", id);
       if (error) throw error;
@@ -127,8 +128,8 @@ const ReviewsTab = () => {
           ) : (
             data.map((review) => (
               <TableRow key={review.id}>
-                <TableCell>{review.products.name}</TableCell>
-                <TableCell>{review.users.email}</TableCell>
+                <TableCell>{review.products?.name || 'N/A'}</TableCell>
+                <TableCell>{review.users?.email || 'N/A'}</TableCell>
                 <TableCell>{review.rating}/5</TableCell>
                 <TableCell>{review.comment}</TableCell>
                 <TableCell>
