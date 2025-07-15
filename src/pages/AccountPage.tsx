@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
 import { useCart } from "@/context/CartProvider";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -114,6 +115,7 @@ const AccountPage = () => {
   const { user } = useAuth();
   const { addToCart } = useCart();
   const { isAdmin } = useAdmin();
+  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
@@ -717,7 +719,6 @@ const AccountPage = () => {
                     <span className="font-medium">{item.label}</span>
                   </button>
                 ))}
-                
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-4 p-4 rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200 mt-6"
@@ -979,7 +980,7 @@ const AccountPage = () => {
                                   </Button>
                                 )}
                               </div>
-                            </div>
+
                           </div>
 
                           {order.order_items && order.order_items.length > 0 && (

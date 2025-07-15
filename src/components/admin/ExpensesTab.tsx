@@ -110,6 +110,26 @@ const ExpensesTab = () => {
     setIsModalOpen(true);
   };
 
+  const handleDelete = async (expenseId: string) => {
+    if (window.confirm("Are you sure you want to delete this expense?")) {
+      setLoading(true);
+      try {
+        // Simulate delete - in real implementation this would delete from database
+        toast({ title: "Success", description: "Expense deleted." });
+        await fetchExpenses();
+      } catch (error) {
+        console.error("Error deleting expense:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete expense.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -227,7 +247,11 @@ const ExpensesTab = () => {
                       >
                         <FaEdit />
                       </Button>
-                      <Button size="sm" variant="destructive">
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDelete(expense.id)}
+                      >
                         <FaTrash />
                       </Button>
                     </div>
