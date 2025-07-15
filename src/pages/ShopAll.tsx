@@ -101,7 +101,7 @@ export default function ShopAll() {
           <div className="text-xl text-brand-blue-700">Loading products...</div>
         </div>
       </div>
-    );
+    // );
   }
   return <div className="min-h-screen bg-brand-white">
            <main className="w-full px-4 bg-brand-white py-px md:px-[14px]">
