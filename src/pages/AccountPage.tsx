@@ -672,6 +672,7 @@ const AccountPage = () => {
                     <span className="font-medium">{item.label}</span>
                   </button>
                 ))}
+
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-4 p-4 rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200 mt-6"
@@ -933,7 +934,7 @@ const AccountPage = () => {
                                   </Button>
                                 )}
                               </div>
-                            </div>
+
                           </div>
 
                           {order.order_items && order.order_items.length > 0 && (

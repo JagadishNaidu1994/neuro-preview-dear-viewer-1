@@ -209,12 +209,14 @@ const AdminDashboard = () => {
               .single();
             userData = user;
           }
+
           ordersWithUsers.push({
             ...order,
             users: userData
           });
         }
       }
+
       setOrders(ordersWithUsers);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -913,9 +915,6 @@ const AdminDashboard = () => {
                               <div className="text-sm text-gray-500">
                                 {order.users?.email || "No email"}
                               </div>
-                              <div className="text-sm text-gray-500">
-                                {order.users?.email || "No email"}
-                              </div>
                             </div>
                           </TableCell>
                           <TableCell>₹{order.total_amount}</TableCell>
@@ -1264,7 +1263,6 @@ const AdminDashboard = () => {
                             ? new Date(coupon.expires_at).toLocaleDateString()
                             : "Never"
                           }
-                          {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : "Never"}
                         </TableCell>
                         <TableCell>
                           <Badge variant={coupon.is_active ? "default" : "secondary"}>

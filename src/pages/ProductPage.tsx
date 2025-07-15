@@ -309,10 +309,14 @@ const ProductPage = () => {
             {/* Product Title */}
             <div>
               <h1 className="text-3xl lg:text-4xl font-light text-brand-blue-700 mb-2">
-                {product.name} - Ceremonial Grade
+                {product.name}
               </h1>
-              <p className="text-brand-gray-500 mb-2">Energy, focus, beauty</p>
-              <p className="text-sm text-brand-gray-500 mb-4">The creamiest, ceremonial-grade Matcha with Lion's Mane, Tremella, and essential B vitamins.</p>
+              <p className="text-brand-gray-500 mb-2">{product.description}</p>
+              <p className="text-sm text-brand-gray-500 mb-4">
+                {
+                  product.benefits?.join(', ')
+                }
+              </p>
               
               {/* Reviews */}
               <div className="flex items-center gap-2 mb-4">
