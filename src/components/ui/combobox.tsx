@@ -23,6 +23,7 @@ interface ComboboxProps {
   options: { label: string; value: string }[];
   value?: string;
   onChange: (value: string) => void;
+  onCreate?: (value: string) => void;
   placeholder?: string;
   searchPlaceholder?: string;
   emptyPlaceholder?: string;
@@ -32,14 +33,20 @@ export function Combobox({
   options,
   value,
   onChange,
+  onCreate,
   placeholder = "Select an option",
   searchPlaceholder = "Search...",
   emptyPlaceholder = "No options found.",
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
-  
-  // Find the label for the currently selected value
-  const selectedLabel = options.find((option) => option.value.toLowerCase() === value?.toLowerCase())?.label;
+  const [inputValue, setInputValue] = React.useState("");
+
+  const handleCreate = () => {
+    if (onCreate && inputValue) {
+        onCreate(inputValue);
+        setOpen(false);
+    }
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -50,7 +57,9 @@ export function Combobox({
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {value ? selectedLabel : placeholder}
+          {value
+            ? options.find((option) => option.value.toLowerCase() === value.toLowerCase())?.label
+            : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -58,23 +67,23 @@ export function Combobox({
         <Command>
           <CommandInput 
             placeholder={searchPlaceholder} 
+            value={inputValue}
+            onValueChange={setInputValue}
           />
           <CommandList>
             <CommandEmpty>
-                <div className="p-1">
-                    <Button
-                        className="w-full"
-                        onClick={() => {
-                            const input = document.querySelector(`[cmdk-input]`) as HTMLInputElement;
-                            if (input.value) {
-                                onChange(input.value);
-                                setOpen(false);
-                            }
-                        }}
+                {onCreate && inputValue ? (
+                    <CommandItem
+                        onSelect={handleCreate}
+                        className="cursor-pointer"
                     >
-                        Create "{document.querySelector<HTMLInputElement>(`[cmdk-input]`)?.value}"
-                    </Button>
-                </div>
+                        Create "{inputValue}"
+                    </CommandItem>
+                ) : (
+                    <div className="p-4 text-sm text-center">
+                        {emptyPlaceholder}
+                    </div>
+                )}
             </CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
