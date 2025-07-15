@@ -5,6 +5,7 @@ import { useCart } from "@/context/CartProvider";
 import { useAuth } from "@/context/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -39,7 +40,6 @@ const ProductPage = () => {
   const imageRef = useRef<HTMLImageElement>(null);
   const [review, setReview] = useState({ rating: 5, comment: "" });
   const [reviews, setReviews] = useState<any[]>([]);
-  const [canReview, setCanReview] = useState(false);
 
   const { user } = useAuth();
   const { addToCart } = useCart();
@@ -78,9 +78,10 @@ const ProductPage = () => {
     const fetchReviews = async () => {
       if (!id) return;
       try {
+        // Simplified query - just get reviews for the product
         const { data, error } = await supabase
           .from("reviews")
-          .select("*, users(email)")
+          .select("*")
           .eq("product_id", id)
           .eq("is_approved", true);
         if (error) throw error;
@@ -90,50 +91,9 @@ const ProductPage = () => {
       }
     };
 
-    const checkCanReview = async () => {
-      if (!user || !id) return;
-      try {
-        // Check if user has a delivered order for this product
-        const { data: orders, error: ordersError } = await supabase
-          .from("orders")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("status", "delivered");
-        if (ordersError) throw ordersError;
-
-        if (orders.length > 0) {
-          const orderIds = orders.map((o) => o.id);
-          const { data: orderItems, error: itemsError } = await supabase
-            .from("order_items")
-            .select("product_id")
-            .in("order_id", orderIds)
-            .eq("product_id", id);
-          if (itemsError) throw itemsError;
-
-          if (orderItems.length > 0) {
-            // Check if user has already reviewed this product
-            const { data: existingReview, error: reviewError } = await supabase
-              .from("reviews")
-              .select("id")
-              .eq("user_id", user.id)
-              .eq("product_id", id)
-              .single();
-            if (reviewError && reviewError.code !== 'PGRST116') throw reviewError;
-
-            if (!existingReview) {
-              setCanReview(true);
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error checking if user can review:", error);
-      }
-    };
-
     fetchProduct();
     checkWishlist();
     fetchReviews();
-    checkCanReview();
   }, [id, user]);
 
   const handleAddToCart = async () => {
@@ -184,27 +144,8 @@ const ProductPage = () => {
         },
       ]);
       if (error) throw error;
-
-      // Add 25 reward points
-      const { data: currentRewards, error: rewardsError } = await supabase
-        .from("user_rewards")
-        .select("points_balance")
-        .eq("user_id", user.id)
-        .single();
-
-      if (rewardsError && rewardsError.code !== 'PGRST116') throw rewardsError;
-
-      const newBalance = (currentRewards?.points_balance || 0) + 25;
-
-      const { error: updateRewardsError } = await supabase
-        .from("user_rewards")
-        .upsert({ user_id: user.id, points_balance: newBalance }, { onConflict: 'user_id' });
-
-      if (updateRewardsError) throw updateRewardsError;
-
       setReview({ rating: 5, comment: "" });
-      alert("Thanks for your valuable review! We will soon publish this. As a token of appreciation, we have added 25 points to your rewards section for your efforts.");
-      setCanReview(false);
+      alert("Review submitted for approval!");
     } catch (error) {
       console.error("Error submitting review:", error);
       alert("Failed to submit review.");
@@ -213,9 +154,9 @@ const ProductPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-brand-white">
+      <div className="min-h-screen bg-white">
         <div className="flex items-center justify-center min-h-[80vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-blue-700"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
         </div>
       </div>
     );
@@ -223,15 +164,15 @@ const ProductPage = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-brand-white">
-        {/* <Header /> */}
+      <div className="min-h-screen bg-white">
         <div className="text-center py-24">
-          <h2 className="text-3xl font-bold text-brand-blue-700 mb-4">Product not found</h2>
-          <p className="text-brand-gray-500 mb-8">
+          <h2 className="text-3xl font-bold text-black mb-4">Product not found</h2>
+          <p className="text-gray-600 mb-8">
             The product you're looking for doesn't exist or has been removed.
           </p>
           <Button
             onClick={() => window.history.back()}
+            className="bg-black hover:bg-gray-800 text-white"
           >
             Go Back
           </Button>
@@ -255,13 +196,13 @@ const ProductPage = () => {
   const pricePerServing = finalPrice / parseInt(servings);
 
   return (
-    <div className="min-h-screen bg-brand-white">
+    <div className="min-h-screen bg-white">
       <div className="w-full px-4 md:px-6 lg:px-8 py-0">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-none">
           {/* Product Images */}
           <div className="space-y-4 relative">
             {/* Main Image */}
-            <div className="aspect-square bg-brand-gray-100 rounded-2xl overflow-hidden">
+            <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden">
               <img
                 ref={imageRef}
                 src={productImages[selectedImage]}
@@ -272,12 +213,12 @@ const ProductPage = () => {
             <Button
               size="icon"
               variant="ghost"
-              className="absolute top-4 right-4 bg-brand-white/50 backdrop-blur-sm rounded-full hover:bg-brand-white/75"
+              className="absolute top-4 right-4 bg-white/50 backdrop-blur-sm rounded-full hover:bg-white/75"
               onClick={handleToggleWishlist}
             >
               <Heart
                 className={`w-5 h-5 ${
-                  isInWishlist ? "text-red-500 fill-current" : "text-brand-gray-500"
+                  isInWishlist ? "text-red-500 fill-current" : "text-gray-500"
                 }`}
               />
             </Button>
@@ -290,8 +231,8 @@ const ProductPage = () => {
                   onClick={() => setSelectedImage(index)}
                   className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-200 ${
                     selectedImage === index
-                      ? "border-brand-blue-700 shadow-md"
-                      : "border-brand-gray-200 hover:border-brand-gray-300"
+                      ? "border-black shadow-md"
+                      : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
                   <img
@@ -308,18 +249,18 @@ const ProductPage = () => {
           <div className="space-y-6">
             {/* Product Title */}
             <div>
-              <h1 className="text-3xl lg:text-4xl font-light text-brand-blue-700 mb-2">
+              <h1 className="text-3xl lg:text-4xl font-light text-black mb-2">
                 {product.name} - Ceremonial Grade
               </h1>
-              <p className="text-brand-gray-500 mb-2">Energy, focus, beauty</p>
-              <p className="text-sm text-brand-gray-500 mb-4">The creamiest, ceremonial-grade Matcha with Lion's Mane, Tremella, and essential B vitamins.</p>
+              <p className="text-gray-600 mb-2">Energy, focus, beauty</p>
+              <p className="text-sm text-gray-500 mb-4">The creamiest, ceremonial-grade Matcha with Lion's Mane, Tremella, and essential B vitamins.</p>
               
               {/* Reviews */}
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex">
                   {[...Array(5)].map((_, i) => <FaStar key={i} className="text-yellow-400 text-sm" />)}
                 </div>
-                <span className="text-sm text-brand-gray-500">4.9 • 20,564 Reviews</span>
+                <span className="text-sm text-gray-600">4.9 • 20,564 Reviews</span>
                 <span className="text-sm text-green-600 font-medium">✓ Verified</span>
               </div>
 
@@ -334,11 +275,11 @@ const ProductPage = () => {
             {/* Servings Selection */}
             <div className="space-y-3">
               <div className="flex items-center gap-4">
-                <span className="text-sm font-medium text-brand-blue-700 flex items-center gap-2">
+                <span className="text-sm font-medium text-black flex items-center gap-2">
                   <Package className="w-4 h-4" />
                   {servings} servings
                 </span>
-                <span className="text-sm text-brand-gray-500">£{pricePerServing.toFixed(2)} per serving</span>
+                <span className="text-sm text-gray-600">£{pricePerServing.toFixed(2)} per serving</span>
               </div>
             </div>
 
@@ -346,7 +287,7 @@ const ProductPage = () => {
             <div className="space-y-3">
               <RadioGroup value={purchaseType} onValueChange={setPurchaseType} className="space-y-3">
                 {/* One-time Purchase */}
-                <div className="flex items-center space-x-3 p-4 border rounded-xl transition-all hover:border-brand-gray-300">
+                <div className="flex items-center space-x-3 p-4 border rounded-xl transition-all hover:border-gray-300">
                   <RadioGroupItem value="one-time" id="one-time" />
                   <div className="flex-1 flex justify-between items-center">
                     <label htmlFor="one-time" className="font-medium cursor-pointer">One-time Purchase</label>
@@ -355,20 +296,20 @@ const ProductPage = () => {
                 </div>
 
                 {/* Subscribe & Save */}
-                <div className="flex items-center space-x-3 p-4 border-2 border-blue-500 rounded-xl bg-blue-100">
+                <div className="flex items-center space-x-3 p-4 border-2 border-blue-500 rounded-xl bg-blue-50">
                   <RadioGroupItem value="subscribe" id="subscribe" />
                   <div className="flex-1">
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center gap-2">
                         <label htmlFor="subscribe" className="font-medium cursor-pointer">Subscribe & Save</label>
-                        <span className="bg-brand-blue-700 text-brand-white px-2 py-1 rounded-full text-xs font-bold">20% OFF</span>
+                        <span className="bg-black text-white px-2 py-1 rounded-full text-xs font-bold">20% OFF</span>
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-lg">£{finalPrice.toFixed(2)}</span>
-                        <p className="text-sm text-brand-gray-500">£{pricePerServing.toFixed(2)} per serving</p>
+                        <p className="text-sm text-gray-600">£{pricePerServing.toFixed(2)} per serving</p>
                       </div>
                     </div>
-                    <p className="text-xs text-brand-gray-500">Pouch only, free gifts NOT included</p>
+                    <p className="text-xs text-gray-500">Pouch only, free gifts NOT included</p>
                     
                     {purchaseType === "subscribe" && <div className="mt-3">
                         <Select value={subscriptionFrequency} onValueChange={setSubscriptionFrequency}>
@@ -391,7 +332,7 @@ const ProductPage = () => {
             {/* Servings & Quantity - More Compact */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-brand-blue-700 mb-2">Servings:</label>
+                <label className="block text-sm font-medium text-black mb-2">Servings:</label>
                 <Select value={servings} onValueChange={setServings}>
                   <SelectTrigger className="rounded-xl">
                     <Package className="w-4 h-4 mr-2" />
@@ -405,13 +346,13 @@ const ProductPage = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-brand-blue-700 mb-2">Quantity:</label>
-                <div className="flex items-center border border-brand-gray-300 rounded-xl overflow-hidden">
-                  <Button size="sm" variant="ghost" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 hover:bg-brand-gray-100 rounded-none border-0 h-full">
+                <label className="block text-sm font-medium text-black mb-2">Quantity:</label>
+                <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden">
+                  <Button size="sm" variant="ghost" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 hover:bg-gray-100 rounded-none border-0 h-full">
                     <FaMinus className="w-3 h-3" />
                   </Button>
                   <Input type="number" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} className="w-16 text-center border-0 focus:ring-0 bg-transparent h-full" min="1" max={product.stock_quantity} />
-                  <Button size="sm" variant="ghost" onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))} className="px-3 py-2 hover:bg-brand-gray-100 rounded-none border-0 h-full">
+                  <Button size="sm" variant="ghost" onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))} className="px-3 py-2 hover:bg-gray-100 rounded-none border-0 h-full">
                     <FaPlus className="w-3 h-3" />
                   </Button>
                 </div>
@@ -422,7 +363,7 @@ const ProductPage = () => {
             <motion.div whileTap={{ scale: 0.95 }}>
               <Button
                 onClick={handleAddToCart}
-                className="w-full"
+                className="w-full bg-black hover:bg-gray-800 text-white py-4 px-8 rounded-xl font-medium text-base"
                 disabled={product.stock_quantity === 0}
               >
                 {product.stock_quantity > 0
@@ -466,44 +407,44 @@ const ProductPage = () => {
         {/* Product Information with Collapsible */}
         <div className="w-full mt-16 space-y-4">
           <Collapsible>
-            <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-brand-blue-700 border-b border-brand-gray-200 pb-4">
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
               Description
               <ChevronDown className="w-4 h-4" />
             </CollapsibleTrigger>
-            <CollapsibleContent className="pt-4 text-brand-gray-500 leading-relaxed">
+            <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
               This premium product is crafted with the finest ingredients to deliver exceptional results. 
               Our carefully formulated blend ensures maximum effectiveness while being gentle on your skin.
             </CollapsibleContent>
           </Collapsible>
 
           <Collapsible>
-            <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-brand-blue-700 border-b border-brand-gray-200 pb-4">
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
               Ingredients
               <ChevronDown className="w-4 h-4" />
             </CollapsibleTrigger>
-            <CollapsibleContent className="pt-4 text-brand-gray-500 leading-relaxed">
+            <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
               Natural clay, purified water, organic botanical extracts, essential oils, and carefully selected 
               active ingredients that work synergistically to provide optimal benefits.
             </CollapsibleContent>
           </Collapsible>
 
           <Collapsible>
-            <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-brand-blue-700 border-b border-brand-gray-200 pb-4">
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
               How to Use
               <ChevronDown className="w-4 h-4" />
             </CollapsibleTrigger>
-            <CollapsibleContent className="pt-4 text-brand-gray-500 leading-relaxed">
+            <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
               Apply a generous amount to clean, damp skin. Gently massage in circular motions for 1-2 minutes. 
               Leave on for 10-15 minutes, then rinse thoroughly with warm water. Use 2-3 times per week for best results.
             </CollapsibleContent>
           </Collapsible>
 
           <Collapsible>
-            <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-brand-blue-700 border-b border-brand-gray-200 pb-4">
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
               Shipping & Returns
               <ChevronDown className="w-4 h-4" />
             </CollapsibleTrigger>
-            <CollapsibleContent className="pt-4 text-brand-gray-500 leading-relaxed">
+            <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
               Free shipping on orders over £50. Standard delivery takes 3-5 business days. 
               We offer a 30-day return policy for unopened products in original packaging.
             </CollapsibleContent>
@@ -511,8 +452,8 @@ const ProductPage = () => {
         </div>
 
         {/* Existing Reviews */}
-        <div className="mt-16 pt-16 border-t border-brand-gray-200">
-          <h2 className="text-2xl font-light text-brand-blue-700 mb-8 text-center">
+        <div className="mt-16 pt-16 border-t border-gray-200">
+          <h2 className="text-2xl font-light text-black mb-8 text-center">
             Customer Reviews
           </h2>
           <div className="space-y-8 max-w-xl mx-auto">
@@ -524,26 +465,26 @@ const ProductPage = () => {
                       <FaStar
                         key={i}
                         className={`
-                          ${i < r.rating ? "text-yellow-400" : "text-brand-gray-300"}
+                          ${i < r.rating ? "text-yellow-400" : "text-gray-300"}
                         `}
                       />
                     ))}
                   </div>
-                  <span className="ml-4 text-sm text-brand-gray-500">
-                    by {r.users.email}
+                  <span className="ml-4 text-sm text-gray-600">
+                    by User
                   </span>
                 </div>
                 <p>{r.comment}</p>
               </div>
             ))}
-            {reviews.length === 0 && <p className="text-center text-brand-gray-500">No reviews yet.</p>}
+            {reviews.length === 0 && <p className="text-center text-gray-500">No reviews yet.</p>}
           </div>
         </div>
 
         {/* Review Submission Form */}
-        {user && canReview && (
-          <div className="mt-16 pt-16 border-t border-brand-gray-200">
-            <h2 className="text-2xl font-light text-brand-blue-700 mb-8 text-center">
+        {user && (
+          <div className="mt-16 pt-16 border-t border-gray-200">
+            <h2 className="text-2xl font-light text-black mb-8 text-center">
               Write a Review
             </h2>
             <form onSubmit={handleReviewSubmit} className="max-w-xl mx-auto">
@@ -554,7 +495,7 @@ const ProductPage = () => {
                     <FaStar
                       key={i}
                       className={`cursor-pointer ${
-                        i < review.rating ? "text-yellow-400" : "text-brand-gray-300"
+                        i < review.rating ? "text-yellow-400" : "text-gray-300"
                       }`}
                       onClick={() => setReview({ ...review, rating: i + 1 })}
                     />
@@ -576,49 +517,49 @@ const ProductPage = () => {
         )}
 
         {/* You Might Like Section */}
-        <div className="mt-16 pt-16 border-t border-brand-gray-200">
-          <h2 className="text-2xl font-light text-brand-blue-700 mb-8 text-center">You might like</h2>
+        <div className="mt-16 pt-16 border-t border-gray-200">
+          <h2 className="text-2xl font-light text-black mb-8 text-center">You might like</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center space-y-4">
-              <div className="aspect-square bg-brand-gray-100 rounded-lg overflow-hidden">
+              <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
                 <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop" alt="Clay Clean" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
               </div>
               <div>
-                <h3 className="font-medium text-brand-blue-700">Clay Clean</h3>
-                <p className="text-brand-gray-500 text-sm">₹29.99</p>
+                <h3 className="font-medium text-black">Clay Clean</h3>
+                <p className="text-gray-600 text-sm">₹29.99</p>
               </div>
             </div>
 
             <div className="text-center space-y-4">
-              <div className="aspect-square bg-brand-gray-100 rounded-lg overflow-hidden">
+              <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
                 <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop" alt="Deep Clean" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
               </div>
               <div>
-                <h3 className="font-medium text-brand-blue-700">Deep Clean</h3>
-                <p className="text-brand-gray-500 text-sm">₹39.99</p>
+                <h3 className="font-medium text-black">Deep Clean</h3>
+                <p className="text-gray-600 text-sm">₹39.99</p>
               </div>
             </div>
 
             <div className="text-center space-y-4">
-              <div className="aspect-square bg-brand-gray-100 rounded-lg overflow-hidden">
+              <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
                 <img src="https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=400&h=400&fit=crop" alt="Gentle Clean" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
               </div>
               <div>
-                <h3 className="font-medium text-brand-blue-700">Gentle Clean</h3>
-                <p className="text-brand-gray-500 text-sm">₹24.99</p>
+                <h3 className="font-medium text-black">Gentle Clean</h3>
+                <p className="text-gray-600 text-sm">₹24.99</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Newsletter Section */}
-        <div className="mt-16 bg-brand-blue-700 rounded-2xl p-8 md:p-12 text-center text-brand-white relative overflow-hidden">
+        <div className="mt-16 bg-gray-900 rounded-2xl p-8 md:p-12 text-center text-white relative overflow-hidden">
           <div className="relative z-10">
             <h2 className="text-2xl md:text-3xl font-light mb-2">Stay Updated.</h2>
-            <p className="text-brand-gray-300 mb-6">Stay Radiant</p>
+            <p className="text-gray-300 mb-6">Stay Radiant</p>
             <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <Input type="email" placeholder="Enter your mail" className="flex-1 bg-brand-white text-brand-blue-700 border-0 focus:ring-2 focus:ring-brand-white/20 rounded-xl" />
-              <Button className="bg-brand-white text-brand-blue-700 hover:bg-brand-gray-100 px-8 rounded-xl">
+              <Input type="email" placeholder="Enter your mail" className="flex-1 bg-white text-black border-0 focus:ring-2 focus:ring-white/20 rounded-xl" />
+              <Button className="bg-white text-black hover:bg-gray-100 px-8 rounded-xl">
                 Submit
               </Button>
             </div>
@@ -631,4 +572,5 @@ const ProductPage = () => {
     </div>
   );
 };
+
 export default ProductPage;

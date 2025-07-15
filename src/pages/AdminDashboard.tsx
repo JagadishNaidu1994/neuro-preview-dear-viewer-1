@@ -17,26 +17,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaPlus, FaEdit, FaTrash, FaEye } from "react-icons/fa";
 import { useToast } from "@/hooks/use-toast";
-
 interface Product {
   id: string;
   name: string;
@@ -47,7 +33,6 @@ interface Product {
   stock_quantity: number;
   is_active: boolean;
 }
-
 interface OrderWithUser {
   id: string;
   user_id: string;
@@ -61,7 +46,6 @@ interface OrderWithUser {
     last_name: string | null;
   } | null;
 }
-
 interface Journal {
   id: string;
   title: string;
@@ -72,7 +56,6 @@ interface Journal {
   published: boolean;
   created_at: string;
 }
-
 interface CouponCode {
   id: string;
   code: string;
@@ -84,7 +67,6 @@ interface CouponCode {
   expires_at?: string;
   is_active: boolean;
 }
-
 interface ShippingMethod {
   id: string;
   name: string;
@@ -93,10 +75,14 @@ interface ShippingMethod {
   estimated_days: string;
   is_active: boolean;
 }
-
 const AdminDashboard = () => {
-  const { isAdmin, loading: adminLoading } = useAdmin();
-  const { toast } = useToast();
+  const {
+    isAdmin,
+    loading: adminLoading
+  } = useAdmin();
+  const {
+    toast
+  } = useToast();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<OrderWithUser[]>([]);
@@ -128,72 +114,61 @@ const AdminDashboard = () => {
     price: "",
     image_url: "",
     category: "",
-    stock_quantity: "",
+    stock_quantity: ""
   });
-
   const [journalForm, setJournalForm] = useState({
     title: "",
     content: "",
     excerpt: "",
     author: "DearNeuro Team",
     image_url: "",
-    published: false,
+    published: false
   });
-
   const [couponForm, setCouponForm] = useState({
     code: "",
     discount_type: "percentage",
     discount_value: "",
     minimum_order_amount: "",
     max_uses: "",
-    expires_at: "",
+    expires_at: ""
   });
-
   const [shippingForm, setShippingForm] = useState({
     name: "",
     description: "",
     price: "",
-    estimated_days: "",
+    estimated_days: ""
   });
-
   useEffect(() => {
     if (isAdmin) {
       fetchAllData();
     }
   }, [isAdmin]);
-
   const fetchAllData = async () => {
-    await Promise.all([
-      fetchProducts(),
-      fetchOrders(),
-      fetchJournals(),
-      fetchCoupons(),
-      fetchShippingMethods(),
-    ]);
+    await Promise.all([fetchProducts(), fetchOrders(), fetchJournals(), fetchCoupons(), fetchShippingMethods()]);
   };
-
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("created_at", { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase.from("products").select("*").order("created_at", {
+        ascending: false
+      });
       if (error) throw error;
       setProducts(data || []);
     } catch (error) {
       console.error("Error fetching products:", error);
     }
   };
-
   const fetchOrders = async () => {
     try {
       // Fetch orders first
-      const { data: ordersData, error } = await supabase
-        .from("orders")
-        .select("*")
-        .order("created_at", { ascending: false });
-
+      const {
+        data: ordersData,
+        error
+      } = await supabase.from("orders").select("*").order("created_at", {
+        ascending: false
+      });
       if (error) throw error;
 
       // Fetch user details for each order
@@ -202,11 +177,9 @@ const AdminDashboard = () => {
         for (const order of ordersData) {
           let userData = null;
           if (order.user_id) {
-            const { data: user } = await supabase
-              .from("users")
-              .select("email, first_name, last_name")
-              .eq("id", order.user_id)
-              .single();
+            const {
+              data: user
+            } = await supabase.from("users").select("email, first_name, last_name").eq("id", order.user_id).single();
             userData = user;
           }
           ordersWithUsers.push({
@@ -220,42 +193,42 @@ const AdminDashboard = () => {
       console.error("Error fetching orders:", error);
     }
   };
-
   const fetchJournals = async () => {
     try {
-      const { data, error } = await supabase
-        .from("journals")
-        .select("*")
-        .order("created_at", { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase.from("journals").select("*").order("created_at", {
+        ascending: false
+      });
       if (error) throw error;
       setJournals(data || []);
     } catch (error) {
       console.error("Error fetching journals:", error);
     }
   };
-
   const fetchCoupons = async () => {
     try {
-      const { data, error } = await supabase
-        .from("coupon_codes")
-        .select("*")
-        .order("created_at", { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase.from("coupon_codes").select("*").order("created_at", {
+        ascending: false
+      });
       if (error) throw error;
       setCoupons(data || []);
     } catch (error) {
       console.error("Error fetching coupons:", error);
     }
   };
-
   const fetchShippingMethods = async () => {
     try {
-      const { data, error } = await supabase
-        .from("shipping_methods")
-        .select("*")
-        .order("created_at", { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase.from("shipping_methods").select("*").order("created_at", {
+        ascending: false
+      });
       if (error) throw error;
       setShippingMethods(data || []);
     } catch (error) {
@@ -271,10 +244,9 @@ const AdminDashboard = () => {
       price: "",
       image_url: "",
       category: "",
-      stock_quantity: "",
+      stock_quantity: ""
     });
   };
-
   const resetJournalForm = () => {
     setJournalForm({
       title: "",
@@ -282,10 +254,9 @@ const AdminDashboard = () => {
       excerpt: "",
       author: "DearNeuro Team",
       image_url: "",
-      published: false,
+      published: false
     });
   };
-
   const resetCouponForm = () => {
     setCouponForm({
       code: "",
@@ -293,16 +264,15 @@ const AdminDashboard = () => {
       discount_value: "",
       minimum_order_amount: "",
       max_uses: "",
-      expires_at: "",
+      expires_at: ""
     });
   };
-
   const resetShippingForm = () => {
     setShippingForm({
       name: "",
       description: "",
       price: "",
-      estimated_days: "",
+      estimated_days: ""
     });
   };
 
@@ -318,7 +288,6 @@ const AdminDashboard = () => {
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const productData = {
         name: productForm.name,
@@ -327,26 +296,27 @@ const AdminDashboard = () => {
         image_url: productForm.image_url,
         category: productForm.category,
         stock_quantity: parseInt(productForm.stock_quantity),
-        is_active: productForm.stock_quantity === "0" ? false : true, // Auto-disable if no stock
+        is_active: productForm.stock_quantity === "0" ? false : true // Auto-disable if no stock
       };
-
       if (editingProduct) {
-        const { error } = await supabase
-          .from("products")
-          .update(productData)
-          .eq("id", editingProduct.id);
-
+        const {
+          error
+        } = await supabase.from("products").update(productData).eq("id", editingProduct.id);
         if (error) throw error;
-        toast({ title: "Success", description: "Product updated successfully" });
+        toast({
+          title: "Success",
+          description: "Product updated successfully"
+        });
       } else {
-        const { error } = await supabase
-          .from("products")
-          .insert([productData]);
-
+        const {
+          error
+        } = await supabase.from("products").insert([productData]);
         if (error) throw error;
-        toast({ title: "Success", description: "Product created successfully" });
+        toast({
+          title: "Success",
+          description: "Product created successfully"
+        });
       }
-
       setIsProductModalOpen(false);
       setEditingProduct(null);
       resetProductForm();
@@ -356,7 +326,7 @@ const AdminDashboard = () => {
       toast({
         title: "Error",
         description: "Failed to save product",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
@@ -366,11 +336,11 @@ const AdminDashboard = () => {
   // Toggle product stock status
   const toggleProductStock = async (productId: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase
-        .from("products")
-        .update({ is_active: !currentStatus })
-        .eq("id", productId);
-
+      const {
+        error
+      } = await supabase.from("products").update({
+        is_active: !currentStatus
+      }).eq("id", productId);
       if (error) throw error;
       toast({
         title: "Success",
@@ -382,15 +352,13 @@ const AdminDashboard = () => {
       toast({
         title: "Error",
         description: "Failed to update product status",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const handleJournalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const journalData = {
         title: journalForm.title,
@@ -398,26 +366,30 @@ const AdminDashboard = () => {
         excerpt: journalForm.excerpt,
         author: journalForm.author,
         image_url: journalForm.image_url,
-        published: journalForm.published,
+        published: journalForm.published
       };
-
       if (editingJournal) {
-        const { error } = await supabase
-          .from("journals")
-          .update({ ...journalData, updated_at: new Date().toISOString() })
-          .eq("id", editingJournal.id);
-
+        const {
+          error
+        } = await supabase.from("journals").update({
+          ...journalData,
+          updated_at: new Date().toISOString()
+        }).eq("id", editingJournal.id);
         if (error) throw error;
-        toast({ title: "Success", description: "Journal updated successfully" });
+        toast({
+          title: "Success",
+          description: "Journal updated successfully"
+        });
       } else {
-        const { error } = await supabase
-          .from("journals")
-          .insert([journalData]);
-
+        const {
+          error
+        } = await supabase.from("journals").insert([journalData]);
         if (error) throw error;
-        toast({ title: "Success", description: "Journal created successfully" });
+        toast({
+          title: "Success",
+          description: "Journal created successfully"
+        });
       }
-
       setIsJournalModalOpen(false);
       setEditingJournal(null);
       resetJournalForm();
@@ -427,17 +399,15 @@ const AdminDashboard = () => {
       toast({
         title: "Error",
         description: "Failed to save journal",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const handleCouponSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const couponData = {
         code: couponForm.code.toUpperCase(),
@@ -445,26 +415,30 @@ const AdminDashboard = () => {
         discount_value: parseFloat(couponForm.discount_value),
         minimum_order_amount: parseFloat(couponForm.minimum_order_amount) || 0,
         max_uses: couponForm.max_uses ? parseInt(couponForm.max_uses) : null,
-        expires_at: couponForm.expires_at ? new Date(couponForm.expires_at).toISOString() : null,
+        expires_at: couponForm.expires_at ? new Date(couponForm.expires_at).toISOString() : null
       };
-
       if (editingCoupon) {
-        const { error } = await supabase
-          .from("coupon_codes")
-          .update({ ...couponData, updated_at: new Date().toISOString() })
-          .eq("id", editingCoupon.id);
-
+        const {
+          error
+        } = await supabase.from("coupon_codes").update({
+          ...couponData,
+          updated_at: new Date().toISOString()
+        }).eq("id", editingCoupon.id);
         if (error) throw error;
-        toast({ title: "Success", description: "Coupon updated successfully" });
+        toast({
+          title: "Success",
+          description: "Coupon updated successfully"
+        });
       } else {
-        const { error } = await supabase
-          .from("coupon_codes")
-          .insert([couponData]);
-
+        const {
+          error
+        } = await supabase.from("coupon_codes").insert([couponData]);
         if (error) throw error;
-        toast({ title: "Success", description: "Coupon created successfully" });
+        toast({
+          title: "Success",
+          description: "Coupon created successfully"
+        });
       }
-
       setIsCouponModalOpen(false);
       setEditingCoupon(null);
       resetCouponForm();
@@ -474,42 +448,41 @@ const AdminDashboard = () => {
       toast({
         title: "Error",
         description: "Failed to save coupon",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const handleShippingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const shippingData = {
         name: shippingForm.name,
         description: shippingForm.description,
         price: parseFloat(shippingForm.price),
-        estimated_days: shippingForm.estimated_days,
+        estimated_days: shippingForm.estimated_days
       };
-
       if (editingShipping) {
-        const { error } = await supabase
-          .from("shipping_methods")
-          .update(shippingData)
-          .eq("id", editingShipping.id);
-
+        const {
+          error
+        } = await supabase.from("shipping_methods").update(shippingData).eq("id", editingShipping.id);
         if (error) throw error;
-        toast({ title: "Success", description: "Shipping method updated successfully" });
+        toast({
+          title: "Success",
+          description: "Shipping method updated successfully"
+        });
       } else {
-        const { error } = await supabase
-          .from("shipping_methods")
-          .insert([shippingData]);
-
+        const {
+          error
+        } = await supabase.from("shipping_methods").insert([shippingData]);
         if (error) throw error;
-        toast({ title: "Success", description: "Shipping method created successfully" });
+        toast({
+          title: "Success",
+          description: "Shipping method created successfully"
+        });
       }
-
       setIsShippingModalOpen(false);
       setEditingShipping(null);
       resetShippingForm();
@@ -519,51 +492,52 @@ const AdminDashboard = () => {
       toast({
         title: "Error",
         description: "Failed to save shipping method",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const handleDeleteCoupon = async (couponId: string) => {
     if (!window.confirm("Are you sure you want to delete this coupon?")) return;
-
     try {
-      const { error } = await supabase
-        .from("coupon_codes")
-        .delete()
-        .eq("id", couponId);
-
+      const {
+        error
+      } = await supabase.from("coupon_codes").delete().eq("id", couponId);
       if (error) throw error;
-      toast({ title: "Success", description: "Coupon deleted successfully" });
+      toast({
+        title: "Success",
+        description: "Coupon deleted successfully"
+      });
       await fetchCoupons();
     } catch (error) {
       console.error("Error deleting coupon:", error);
       toast({
         title: "Error",
         description: "Failed to delete coupon",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
-      const { error } = await supabase
-        .from("orders")
-        .update({ status })
-        .eq("id", orderId);
-
+      const {
+        error
+      } = await supabase.from("orders").update({
+        status
+      }).eq("id", orderId);
       if (error) throw error;
-      toast({ title: "Success", description: "Order status updated successfully" });
+      toast({
+        title: "Success",
+        description: "Order status updated successfully"
+      });
       await fetchOrders();
     } catch (error) {
       console.error("Error updating order status:", error);
       toast({
         title: "Error",
         description: "Failed to update order status",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
@@ -577,11 +551,10 @@ const AdminDashboard = () => {
       price: product.price.toString(),
       image_url: product.image_url || "",
       category: product.category || "",
-      stock_quantity: product.stock_quantity.toString(),
+      stock_quantity: product.stock_quantity.toString()
     });
     setIsProductModalOpen(true);
   };
-
   const handleEditJournal = (journal: Journal) => {
     setEditingJournal(journal);
     setJournalForm({
@@ -590,11 +563,10 @@ const AdminDashboard = () => {
       excerpt: journal.excerpt || "",
       author: journal.author || "DearNeuro Team",
       image_url: journal.image_url || "",
-      published: journal.published,
+      published: journal.published
     });
     setIsJournalModalOpen(true);
   };
-
   const handleEditCoupon = (coupon: CouponCode) => {
     setEditingCoupon(coupon);
     setCouponForm({
@@ -603,48 +575,38 @@ const AdminDashboard = () => {
       discount_value: coupon.discount_value.toString(),
       minimum_order_amount: coupon.minimum_order_amount.toString(),
       max_uses: coupon.max_uses?.toString() || "",
-      expires_at: coupon.expires_at ? new Date(coupon.expires_at).toISOString().split('T')[0] : "",
+      expires_at: coupon.expires_at ? new Date(coupon.expires_at).toISOString().split('T')[0] : ""
     });
     setIsCouponModalOpen(true);
   };
-
   const handleEditShipping = (shipping: ShippingMethod) => {
     setEditingShipping(shipping);
     setShippingForm({
       name: shipping.name,
       description: shipping.description || "",
       price: shipping.price.toString(),
-      estimated_days: shipping.estimated_days,
+      estimated_days: shipping.estimated_days
     });
     setIsShippingModalOpen(true);
   };
-
   const handleViewOrder = (order: OrderWithUser) => {
     setSelectedOrder(order);
     setIsOrderDialogOpen(true);
   };
-
   if (adminLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-xl">Loading...</div>
-      </div>
-    );
+      </div>;
   }
-
   if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p>You don't have permission to access this page.</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+  return <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       
       <div className="flex-1 overflow-auto">
@@ -668,16 +630,15 @@ const AdminDashboard = () => {
           {activeTab === "users" && <UsersTab />}
 
           {/* Products Tab */}
-          {activeTab === "products" && (
-            <Card className="bg-white">
+          {activeTab === "products" && <Card className="bg-white">
               <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
                 <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Products Management</CardTitle>
                 <Dialog open={isProductModalOpen} onOpenChange={setIsProductModalOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
-                      setEditingProduct(null);
-                      resetProductForm();
-                    }}>
+                  setEditingProduct(null);
+                  resetProductForm();
+                }}>
                       <FaPlus className="mr-2" />
                       Add Product
                     </Button>
@@ -691,78 +652,50 @@ const AdminDashboard = () => {
                     <form onSubmit={handleProductSubmit} className="space-y-4">
                       <div>
                         <Label htmlFor="name">Product Name</Label>
-                        <Input
-                          id="name"
-                          value={productForm.name}
-                          onChange={(e) =>
-                            setProductForm({ ...productForm, name: e.target.value })
-                          }
-                          required
-                        />
+                        <Input id="name" value={productForm.name} onChange={e => setProductForm({
+                      ...productForm,
+                      name: e.target.value
+                    })} required />
                       </div>
                       <div>
                         <Label htmlFor="description">Description</Label>
-                        <Textarea
-                          id="description"
-                          value={productForm.description}
-                          onChange={(e) =>
-                            setProductForm({ ...productForm, description: e.target.value })
-                          }
-                        />
+                        <Textarea id="description" value={productForm.description} onChange={e => setProductForm({
+                      ...productForm,
+                      description: e.target.value
+                    })} />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="price">Price ($)</Label>
-                          <Input
-                            id="price"
-                            type="number"
-                            step="0.01"
-                            value={productForm.price}
-                            onChange={(e) =>
-                              setProductForm({ ...productForm, price: e.target.value })
-                            }
-                            required
-                          />
+                          <Input id="price" type="number" step="0.01" value={productForm.price} onChange={e => setProductForm({
+                        ...productForm,
+                        price: e.target.value
+                      })} required />
                         </div>
                         <div>
                           <Label htmlFor="stock">Stock Quantity</Label>
-                          <Input
-                            id="stock"
-                            type="number"
-                            value={productForm.stock_quantity}
-                            onChange={(e) =>
-                              setProductForm({ ...productForm, stock_quantity: e.target.value })
-                            }
-                            required
-                          />
+                          <Input id="stock" type="number" value={productForm.stock_quantity} onChange={e => setProductForm({
+                        ...productForm,
+                        stock_quantity: e.target.value
+                      })} required />
                         </div>
                       </div>
                       <div>
                         <Label htmlFor="category">Category</Label>
-                        <Input
-                          id="category"
-                          value={productForm.category}
-                          onChange={(e) =>
-                            setProductForm({ ...productForm, category: e.target.value })
-                          }
-                        />
+                        <Input id="category" value={productForm.category} onChange={e => setProductForm({
+                      ...productForm,
+                      category: e.target.value
+                    })} />
                       </div>
                       <div>
                         <Label htmlFor="image_url">Image URL</Label>
-                        <Input
-                          id="image_url"
-                          value={productForm.image_url}
-                          onChange={(e) =>
-                            setProductForm({ ...productForm, image_url: e.target.value })
-                          }
-                        />
+                        <Input id="image_url" value={productForm.image_url} onChange={e => setProductForm({
+                      ...productForm,
+                      image_url: e.target.value
+                    })} />
                       </div>
                       <div className="flex justify-end space-x-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setIsProductModalOpen(false)}
-                        >
+                        <Button type="button" variant="outline" onClick={() => setIsProductModalOpen(false)}>
                           Cancel
                         </Button>
                         <Button type="submit" disabled={loading}>
@@ -787,14 +720,9 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {products.map((product) => (
-                      <TableRow key={product.id}>
+                    {products.map(product => <TableRow key={product.id}>
                         <TableCell>
-                          <img
-                            src={product.image_url}
-                            alt={product.name}
-                            className="w-12 h-12 object-cover rounded"
-                          />
+                          <img src={product.image_url} alt={product.name} className="w-12 h-12 object-cover rounded" />
                         </TableCell>
                         <TableCell className="font-medium">{product.name}</TableCell>
                         <TableCell>${product.price}</TableCell>
@@ -805,11 +733,7 @@ const AdminDashboard = () => {
                             <Badge variant={product.is_active ? "default" : "secondary"}>
                               {product.is_active ? "Active" : "Out of Stock"}
                             </Badge>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => toggleProductStock(product.id, product.is_active)}
-                            >
+                            <Button size="sm" variant="outline" onClick={() => toggleProductStock(product.id, product.is_active)}>
                               <span className="hidden md:inline">{product.is_active ? "Disable" : "Enable"}</span>
                               <FaEdit className="md:hidden" />
                             </Button>
@@ -817,42 +741,26 @@ const AdminDashboard = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditProduct(product)}
-                            >
+                            <Button size="sm" variant="outline" onClick={() => handleEditProduct(product)}>
                               <FaEdit />
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleDeleteCoupon(coupon.id)}
-                            >
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteCoupon(coupon.id)}>
                               <FaTrash />
                             </Button>
                           </div>
                         </TableCell>
-                      </TableRow>
-                    ))}
+                      </TableRow>)}
                   </TableBody>
                 </Table>
               </CardContent>
-            </Card>
-          )}
+            </Card>}
 
           {/* Orders Tab */}
-          {activeTab === "orders" && (
-            <Card className="bg-white">
+          {activeTab === "orders" && <Card className="bg-white">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-gray-900">Orders Management</CardTitle>
                 <div className="flex items-center space-x-4 mt-4">
-                  <Input
-                    placeholder="Search by customer or order ID"
-                    value={orderSearchTerm}
-                    onChange={(e) => setOrderSearchTerm(e.target.value)}
-                    className="max-w-sm"
-                  />
+                  <Input placeholder="Search by customer or order ID" value={orderSearchTerm} onChange={e => setOrderSearchTerm(e.target.value)} className="max-w-sm" />
                   <Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Filter by status" />
@@ -881,37 +789,14 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {orders
-                      .filter(
-                        (order) =>
-                          (order.users?.first_name
-                            ?.toLowerCase()
-                            .includes(orderSearchTerm.toLowerCase()) ||
-                          order.users?.last_name
-                            ?.toLowerCase()
-                            .includes(orderSearchTerm.toLowerCase()) ||
-                          order.users?.email
-                            ?.toLowerCase()
-                            .includes(orderSearchTerm.toLowerCase()) ||
-                          order.id.includes(orderSearchTerm)) &&
-                          (orderStatusFilter === "all" || order.status === orderStatusFilter)
-                      )
-                      .map((order) => (
-                        <TableRow key={order.id}>
+                    {orders.filter(order => (order.users?.first_name?.toLowerCase().includes(orderSearchTerm.toLowerCase()) || order.users?.last_name?.toLowerCase().includes(orderSearchTerm.toLowerCase()) || order.users?.email?.toLowerCase().includes(orderSearchTerm.toLowerCase()) || order.id.includes(orderSearchTerm)) && (orderStatusFilter === "all" || order.status === orderStatusFilter)).map(order => <TableRow key={order.id}>
                           <TableCell className="font-mono text-sm">
                             #{generateOrderNumber(order.id)}
                           </TableCell>
                           <TableCell>
                             <div>
                               <div className="font-medium">
-                                {order.users?.first_name
-                                  ? `${order.users.first_name} ${
-                                      order.users.last_name || ""
-                                    }`.trim()
-                                  : order.users?.email || "Guest User"}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {order.users?.email || "No email"}
+                                {order.users?.first_name ? `${order.users.first_name} ${order.users.last_name || ""}`.trim() : order.users?.email || "Guest User"}
                               </div>
                               <div className="text-sm text-gray-500">
                                 {order.users?.email || "No email"}
@@ -920,13 +805,7 @@ const AdminDashboard = () => {
                           </TableCell>
                           <TableCell>₹{order.total_amount}</TableCell>
                           <TableCell>
-                            <select
-                              value={order.status}
-                              onChange={(e) =>
-                                updateOrderStatus(order.id, e.target.value)
-                              }
-                              className="border rounded px-2 py-1 text-sm"
-                            >
+                            <select value={order.status} onChange={e => updateOrderStatus(order.id, e.target.value)} className="border rounded px-2 py-1 text-sm">
                               <option value="pending">Pending</option>
                               <option value="processing">Processing</option>
                               <option value="shipped">Shipped</option>
@@ -938,21 +817,15 @@ const AdminDashboard = () => {
                             {new Date(order.created_at).toLocaleDateString()}
                           </TableCell>
                           <TableCell>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleViewOrder(order)}
-                            >
+                            <Button size="sm" variant="outline" onClick={() => handleViewOrder(order)}>
                               <FaEye />
                             </Button>
                           </TableCell>
-                        </TableRow>
-                      ))}
+                        </TableRow>)}
                   </TableBody>
                 </Table>
               </CardContent>
-            </Card>
-          )}
+            </Card>}
 
           {/* Messages Tab */}
           {activeTab === "messages" && <MessagesSection />}
@@ -970,16 +843,15 @@ const AdminDashboard = () => {
           {activeTab === "content" && <ContentTab />}
 
           {/* Journals Tab */}
-          {activeTab === "journals" && (
-            <Card className="bg-white">
+          {activeTab === "journals" && <Card className="bg-white">
               <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
                 <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Journals Management</CardTitle>
                 <Dialog open={isJournalModalOpen} onOpenChange={setIsJournalModalOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
-                      setEditingJournal(null);
-                      resetJournalForm();
-                    }}>
+                  setEditingJournal(null);
+                  resetJournalForm();
+                }}>
                       <FaPlus className="mr-2" />
                       Add Journal
                     </Button>
@@ -993,77 +865,50 @@ const AdminDashboard = () => {
                     <form onSubmit={handleJournalSubmit} className="space-y-4">
                       <div>
                         <Label htmlFor="title">Title</Label>
-                        <Input
-                          id="title"
-                          value={journalForm.title}
-                          onChange={(e) =>
-                            setJournalForm({ ...journalForm, title: e.target.value })
-                          }
-                          required
-                        />
+                        <Input id="title" value={journalForm.title} onChange={e => setJournalForm({
+                      ...journalForm,
+                      title: e.target.value
+                    })} required />
                       </div>
                       <div>
                         <Label htmlFor="excerpt">Excerpt</Label>
-                        <Textarea
-                          id="excerpt"
-                          value={journalForm.excerpt}
-                          onChange={(e) =>
-                            setJournalForm({ ...journalForm, excerpt: e.target.value })
-                          }
-                          rows={2}
-                        />
+                        <Textarea id="excerpt" value={journalForm.excerpt} onChange={e => setJournalForm({
+                      ...journalForm,
+                      excerpt: e.target.value
+                    })} rows={2} />
                       </div>
                       <div>
                         <Label htmlFor="content">Content</Label>
-                        <Textarea
-                          id="content"
-                          value={journalForm.content}
-                          onChange={(e) =>
-                            setJournalForm({ ...journalForm, content: e.target.value })
-                          }
-                          rows={10}
-                          required
-                        />
+                        <Textarea id="content" value={journalForm.content} onChange={e => setJournalForm({
+                      ...journalForm,
+                      content: e.target.value
+                    })} rows={10} required />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="author">Author</Label>
-                          <Input
-                            id="author"
-                            value={journalForm.author}
-                            onChange={(e) =>
-                              setJournalForm({ ...journalForm, author: e.target.value })
-                            }
-                          />
+                          <Input id="author" value={journalForm.author} onChange={e => setJournalForm({
+                        ...journalForm,
+                        author: e.target.value
+                      })} />
                         </div>
                         <div>
                           <Label htmlFor="journal_image_url">Image URL</Label>
-                          <Input
-                            id="journal_image_url"
-                            value={journalForm.image_url}
-                            onChange={(e) =>
-                              setJournalForm({ ...journalForm, image_url: e.target.value })
-                            }
-                          />
+                          <Input id="journal_image_url" value={journalForm.image_url} onChange={e => setJournalForm({
+                        ...journalForm,
+                        image_url: e.target.value
+                      })} />
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id="published"
-                          checked={journalForm.published}
-                          onChange={(e) =>
-                            setJournalForm({ ...journalForm, published: e.target.checked })
-                          }
-                        />
+                        <input type="checkbox" id="published" checked={journalForm.published} onChange={e => setJournalForm({
+                      ...journalForm,
+                      published: e.target.checked
+                    })} />
                         <Label htmlFor="published">Published</Label>
                       </div>
                       <div className="flex justify-end space-x-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setIsJournalModalOpen(false)}
-                        >
+                        <Button type="button" variant="outline" onClick={() => setIsJournalModalOpen(false)}>
                           Cancel
                         </Button>
                         <Button type="submit" disabled={loading}>
@@ -1086,8 +931,7 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {journals.map((journal) => (
-                      <TableRow key={journal.id}>
+                    {journals.map(journal => <TableRow key={journal.id}>
                         <TableCell className="font-medium">{journal.title}</TableCell>
                         <TableCell>{journal.author}</TableCell>
                         <TableCell>
@@ -1100,34 +944,27 @@ const AdminDashboard = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditJournal(journal)}
-                            >
+                            <Button size="sm" variant="outline" onClick={() => handleEditJournal(journal)}>
                               <FaEdit />
                             </Button>
                           </div>
                         </TableCell>
-                      </TableRow>
-                    ))}
+                      </TableRow>)}
                   </TableBody>
                 </Table>
               </CardContent>
-            </Card>
-          )}
+            </Card>}
 
           {/* Coupons Tab */}
-          {activeTab === "coupons" && (
-            <Card className="bg-white">
+          {activeTab === "coupons" && <Card className="bg-white">
               <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
                 <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Coupon Codes Management</CardTitle>
                 <Dialog open={isCouponModalOpen} onOpenChange={setIsCouponModalOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
-                      setEditingCoupon(null);
-                      resetCouponForm();
-                    }}>
+                  setEditingCoupon(null);
+                  resetCouponForm();
+                }}>
                       <FaPlus className="mr-2" />
                       Add Coupon
                     </Button>
@@ -1141,26 +978,18 @@ const AdminDashboard = () => {
                     <form onSubmit={handleCouponSubmit} className="space-y-4">
                       <div>
                         <Label htmlFor="code">Coupon Code</Label>
-                        <Input
-                          id="code"
-                          value={couponForm.code}
-                          onChange={(e) =>
-                            setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })
-                          }
-                          required
-                        />
+                        <Input id="code" value={couponForm.code} onChange={e => setCouponForm({
+                      ...couponForm,
+                      code: e.target.value.toUpperCase()
+                    })} required />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="discount_type">Discount Type</Label>
-                          <select
-                            id="discount_type"
-                            value={couponForm.discount_type}
-                            onChange={(e) =>
-                              setCouponForm({ ...couponForm, discount_type: e.target.value })
-                            }
-                            className="w-full border rounded px-3 py-2"
-                          >
+                          <select id="discount_type" value={couponForm.discount_type} onChange={e => setCouponForm({
+                        ...couponForm,
+                        discount_type: e.target.value
+                      })} className="w-full border rounded px-3 py-2">
                             <option value="percentage">Percentage</option>
                             <option value="fixed">Fixed Amount</option>
                           </select>
@@ -1169,60 +998,37 @@ const AdminDashboard = () => {
                           <Label htmlFor="discount_value">
                             Discount Value {couponForm.discount_type === "percentage" ? "(%)" : "($)"}
                           </Label>
-                          <Input
-                            id="discount_value"
-                            type="number"
-                            step="0.01"
-                            value={couponForm.discount_value}
-                            onChange={(e) =>
-                              setCouponForm({ ...couponForm, discount_value: e.target.value })
-                            }
-                            required
-                          />
+                          <Input id="discount_value" type="number" step="0.01" value={couponForm.discount_value} onChange={e => setCouponForm({
+                        ...couponForm,
+                        discount_value: e.target.value
+                      })} required />
                         </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="minimum_order_amount">Minimum Order Amount ($)</Label>
-                          <Input
-                            id="minimum_order_amount"
-                            type="number"
-                            step="0.01"
-                            value={couponForm.minimum_order_amount}
-                            onChange={(e) =>
-                              setCouponForm({ ...couponForm, minimum_order_amount: e.target.value })
-                            }
-                          />
+                          <Input id="minimum_order_amount" type="number" step="0.01" value={couponForm.minimum_order_amount} onChange={e => setCouponForm({
+                        ...couponForm,
+                        minimum_order_amount: e.target.value
+                      })} />
                         </div>
                         <div>
                           <Label htmlFor="max_uses">Max Uses (optional)</Label>
-                          <Input
-                            id="max_uses"
-                            type="number"
-                            value={couponForm.max_uses}
-                            onChange={(e) =>
-                              setCouponForm({ ...couponForm, max_uses: e.target.value })
-                            }
-                          />
+                          <Input id="max_uses" type="number" value={couponForm.max_uses} onChange={e => setCouponForm({
+                        ...couponForm,
+                        max_uses: e.target.value
+                      })} />
                         </div>
                       </div>
                       <div>
                         <Label htmlFor="expires_at">Expiry Date (optional)</Label>
-                        <Input
-                          id="expires_at"
-                          type="date"
-                          value={couponForm.expires_at}
-                          onChange={(e) =>
-                            setCouponForm({ ...couponForm, expires_at: e.target.value })
-                          }
-                        />
+                        <Input id="expires_at" type="date" value={couponForm.expires_at} onChange={e => setCouponForm({
+                      ...couponForm,
+                      expires_at: e.target.value
+                    })} />
                       </div>
                       <div className="flex justify-end space-x-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setIsCouponModalOpen(false)}
-                        >
+                        <Button type="button" variant="outline" onClick={() => setIsCouponModalOpen(false)}>
                           Cancel
                         </Button>
                         <Button type="submit" disabled={loading}>
@@ -1248,8 +1054,7 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {coupons.map((coupon) => (
-                      <TableRow key={coupon.id}>
+                    {coupons.map(coupon => <TableRow key={coupon.id}>
                         <TableCell className="font-mono font-medium">{coupon.code}</TableCell>
                         <TableCell>{coupon.discount_type}</TableCell>
                         <TableCell>
@@ -1260,10 +1065,6 @@ const AdminDashboard = () => {
                           {coupon.used_count}/{coupon.max_uses || "∞"}
                         </TableCell>
                         <TableCell>
-                          {coupon.expires_at 
-                            ? new Date(coupon.expires_at).toLocaleDateString()
-                            : "Never"
-                          }
                           {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : "Never"}
                         </TableCell>
                         <TableCell>
@@ -1273,162 +1074,24 @@ const AdminDashboard = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditCoupon(coupon)}
-                            >
+                            <Button size="sm" variant="outline" onClick={() => handleEditCoupon(coupon)}>
                               <FaEdit />
                             </Button>
                           </div>
                         </TableCell>
-                      </TableRow>
-                    ))}
+                      </TableRow>)}
                   </TableBody>
                 </Table>
               </CardContent>
-            </Card>
-          )}
+            </Card>}
 
           {/* Shipping Tab */}
-          {activeTab === "shipping" && (
-            <Card className="bg-white">
-              <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Shipping Methods Management</CardTitle>
-                <Dialog open={isShippingModalOpen} onOpenChange={setIsShippingModalOpen}>
-                  <DialogTrigger asChild>
-                    <Button onClick={() => {
-                      setEditingShipping(null);
-                      resetShippingForm();
-                    }}>
-                      <FaPlus className="mr-2" />
-                      Add Shipping Method
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>
-                        {editingShipping ? "Edit Shipping Method" : "Add New Shipping Method"}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleShippingSubmit} className="space-y-4">
-                      <div>
-                        <Label htmlFor="shipping_name">Name</Label>
-                        <Input
-                          id="shipping_name"
-                          value={shippingForm.name}
-                          onChange={(e) =>
-                            setShippingForm({ ...shippingForm, name: e.target.value })
-                          }
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="shipping_description">Description</Label>
-                        <Textarea
-                          id="shipping_description"
-                          value={shippingForm.description}
-                          onChange={(e) =>
-                            setShippingForm({ ...shippingForm, description: e.target.value })
-                          }
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="shipping_price">Price ($)</Label>
-                          <Input
-                            id="shipping_price"
-                            type="number"
-                            step="0.01"
-                            value={shippingForm.price}
-                            onChange={(e) =>
-                              setShippingForm({ ...shippingForm, price: e.target.value })
-                            }
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="estimated_days">Estimated Days</Label>
-                          <Input
-                            id="estimated_days"
-                            value={shippingForm.estimated_days}
-                            onChange={(e) =>
-                              setShippingForm({ ...shippingForm, estimated_days: e.target.value })
-                            }
-                            placeholder="e.g., 3-5 days"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="flex justify-end space-x-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setIsShippingModalOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button type="submit" disabled={loading}>
-                          {loading ? "Saving..." : "Save Shipping Method"}
-                        </Button>
-                      </div>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </CardHeader>
-              <CardContent className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Estimated Days</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {shippingMethods.map((shipping) => (
-                      <TableRow key={shipping.id}>
-                        <TableCell className="font-medium">{shipping.name}</TableCell>
-                        <TableCell>{shipping.description || "N/A"}</TableCell>
-                        <TableCell>${shipping.price}</TableCell>
-                        <TableCell>{shipping.estimated_days}</TableCell>
-                        <TableCell>
-                          <Badge variant={shipping.is_active ? "default" : "secondary"}>
-                            {shipping.is_active ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditShipping(shipping)}
-                            >
-                              <FaEdit />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          )}
+          {activeTab === "shipping"}
         </div>
       </div>
 
       {/* Order View Dialog */}
-      <OrderDetailsDialog
-        order={selectedOrder}
-        isOpen={isOrderDialogOpen}
-        onClose={() => setIsOrderDialogOpen(false)}
-      />
-    </div>
-  );
+      <OrderDetailsDialog order={selectedOrder} isOpen={isOrderDialogOpen} onClose={() => setIsOrderDialogOpen(false)} />
+    </div>;
 };
-
 export default AdminDashboard;

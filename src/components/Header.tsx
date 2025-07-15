@@ -40,18 +40,7 @@ const Header = forwardRef<HTMLButtonElement>((_, ref) => {
     await supabase.auth.signOut();
     navigate("/");
   };
-  const navItems = [
-    { label: "Shop All", href: "/shop-all" },
-    { label: "The Science", href: "/the-science" },
-    { label: "Ethos", href: "/ethos" },
-    { label: "Herbal Index", href: "/herbal-index" },
-    { label: "Journal", href: "/journal" },
-  ];
-  return (
-    <>
-      <header className="bg-brand-white shadow-sm sticky top-0 z-30">
-  const navItems = [
-     {
+  const navItems = [{
     label: "Shop All",
     href: "/shop-all"
   }, {
@@ -73,17 +62,11 @@ const Header = forwardRef<HTMLButtonElement>((_, ref) => {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center">
-              <span className="font-bold text-brand-blue-700 text-4xl">DearNeuro</span>
+              <span className="font-bold text-gray-950 text-4xl">DearNeuro</span>
             </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-8">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className="text-brand-gray-500 hover:text-brand-blue-700 font-medium transition-colors"
-                >
               {navItems.map(item => <Link key={item.href} to={item.href} className="text-[#514B3D] hover:text-[#3f3a2f] font-medium transition-colors">
                   {item.label}
                 </Link>)}
@@ -92,15 +75,6 @@ const Header = forwardRef<HTMLButtonElement>((_, ref) => {
             {/* Right Side Actions */}
             <div className="flex items-center space-x-4">
               {/* Admin Link - Only show for admin users */}
-              {user && isAdmin && !adminLoading && (
-                <Link to="/admin">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="relative p-2 hidden md:flex"
-                    title="Admin Dashboard"
-                  >
-                    <Settings className="w-8 h-8 text-brand-blue-700" />
               {user && isAdmin && !adminLoading && <Link to="/admin">
                   <Button variant="ghost" size="sm" className="relative p-2 hidden md:flex" title="Admin Dashboard">
                     <Settings className="w-8 h-8" />
@@ -109,9 +83,6 @@ const Header = forwardRef<HTMLButtonElement>((_, ref) => {
 
               {/* Cart Icon */}
               <Button variant="ghost" size="sm" onClick={openCart} className="relative p-2" ref={ref}>
-                <ShoppingCart className="w-10 h-10 text-brand-blue-700" />
-                {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-brand-blue-700 text-brand-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                 <ShoppingCart className="w-10 h-10" />
                 {totalItems > 0 && <span className="absolute -top-1 -right-1 bg-[#514B3D] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {totalItems}
@@ -119,25 +90,12 @@ const Header = forwardRef<HTMLButtonElement>((_, ref) => {
               </Button>
 
               {/* User Account */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleAccountClick}
-                className="hidden md:flex items-center gap-2 text-brand-blue-700 font-normal"
-              >
               <Button variant="ghost" size="sm" onClick={handleAccountClick} className="hidden md:flex items-center gap-2 text-slate-900 font-normal">
                 <User className="w-10 h-10" />
                 {user ? "Account" : "Sign In"}
               </Button>
 
               {/* Mobile Menu */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowMobileDrawer(true)}
-                className="lg:hidden font-normal text-2xl"
-              >
-                <Menu className="w-10 h-10 text-brand-blue-700" />
               <Button variant="ghost" size="sm" onClick={() => setShowMobileDrawer(true)} className="lg:hidden font-normal text-2xl">
                 <Menu className="w-10 h-10" />
               </Button>
