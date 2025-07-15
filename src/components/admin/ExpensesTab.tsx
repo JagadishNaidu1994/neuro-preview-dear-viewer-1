@@ -118,8 +118,11 @@ const ExpensesTab = () => {
         if (error) throw error;
 
         toast({ title: "Success", description: `Category "${trimmedName}" created.` });
-        await fetchCategories();
+        
+        // Update state directly for instant feedback
+        setCategories(prev => [...prev, newCategory].sort((a, b) => a.name.localeCompare(b.name)));
         setExpenseForm(prev => ({ ...prev, category: newCategory.name }));
+
     } catch (error) {
         console.error("Error creating category", error);
         toast({ title: "Error", description: "Failed to create category.", variant: "destructive" });
@@ -249,6 +252,7 @@ const ExpensesTab = () => {
                           onCreate={handleCreateCategory}
                           placeholder="Select or create a category"
                           searchPlaceholder="Search or type new category..."
+                          emptyPlaceholder="No categories found."
                       />
                   </div>
                   <div>
