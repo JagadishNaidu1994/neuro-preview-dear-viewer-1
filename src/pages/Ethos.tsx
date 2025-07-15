@@ -1,3 +1,4 @@
+
 // src/pages/Ethos.tsx
 import React from "react";
 import Header from "@/components/Header";
@@ -18,7 +19,7 @@ const Ethos = () => {
               </p>
             </div>
             <div>
-              <img src="https://cdn.shopify.com/s/files/1/0671/5382/1848/files/chill_editorial_ethos.png" alt="Chill Gummy Hero" className="w-full rounded-xl" />
+              <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&q=80" alt="Brain Supplements" className="w-full rounded-xl" />
             </div>
           </section>
 
