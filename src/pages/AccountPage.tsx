@@ -1,63 +1,60 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthProvider";
-import { useCart } from "@/context/CartProvider";
-import { useAdmin } from "@/hooks/useAdmin";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
+import Breadcrumb from "@/components/Breadcrumb";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  FaUser,
-  FaBox,
-  FaAddressBook,
-  FaCreditCard,
-  FaShieldAlt,
-  FaGift,
-  FaCogs,
-  FaSignOutAlt,
-  FaEye,
-  FaDownload,
-  FaRedo,
-  FaTruck,
-  FaEdit,
-  FaTrash,
-  FaPlus,
-  FaSave,
-  FaPaypal,
-  FaGooglePay,
-  FaCalendarAlt,
-  FaHeart,
-  FaSignOutAlt as LogOut
-} from "react-icons/fa";
-import jsPDF from 'jspdf';
-import SubscriptionCancellationModal from "@/components/SubscriptionCancellationModal";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { FaUser, FaBox, FaHeart, FaMapMarkerAlt, FaCreditCard, FaCog, FaShield, FaGift, FaCalendar, FaPause, FaPlay, FaTrash, FaEdit, FaPlus } from "react-icons/fa";
+import { format } from "date-fns";
+
+interface UserProfile {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
+  date_of_birth: string | null;
+}
 
 interface Order {
   id: string;
-  user_id: string;
-  total_amount: number;
-  status: string;
   created_at: string;
-  shipping_address: any;
-  tracking_link?: string;
-  order_items?: {
-    id: string;
-    quantity: number;
+  status: string;
+  total_amount: number;
+  order_items: OrderItem[];
+}
+
+interface OrderItem {
+  id: string;
+  product_id: string;
+  quantity: number;
+  price: number;
+  products: {
+    name: string;
+    image_url: string;
+  };
+}
+
+interface WishlistItem {
+  id: string;
+  product_id: string;
+  products: {
+    name: string;
     price: number;
-    products: {
-      id: string;
-      name: string;
-      image_url: string;
-    };
-  }[];
+    image_url: string;
+    is_active: boolean;
+    stock_quantity: number;
+  };
 }
 
 interface Address {
@@ -65,7 +62,7 @@ interface Address {
   name: string;
   phone: string;
   address_line_1: string;
-  address_line_2?: string;
+  address_line_2: string | null;
   city: string;
   state: string;
   pincode: string;
@@ -82,10 +79,20 @@ interface PaymentMethod {
   is_default: boolean;
 }
 
-interface UserReward {
-  points_balance: number;
-  total_earned: number;
-  total_redeemed: number;
+interface Subscription {
+  id: string;
+  product_id: string;
+  quantity: number;
+  frequency_weeks: number;
+  next_delivery_date: string | null;
+  status: string;
+  created_at: string;
+  discount_percentage: number | null;
+  products: {
+    name: string;
+    price: number;
+    image_url: string;
+  };
 }
 
 interface UserPreferences {
@@ -93,1549 +100,815 @@ interface UserPreferences {
   sms_notifications: boolean;
   marketing_emails: boolean;
   newsletter_subscription: boolean;
+  language: string;
+  timezone: string;
 }
 
 interface UserSecurity {
   two_factor_enabled: boolean;
   login_notifications: boolean;
-  last_password_change: string;
+  last_password_change: string | null;
 }
 
-interface Subscription {
-  id: string;
-  productName: string;
-  nextDelivery: string;
-  status: "active" | "paused" | "cancelled";
+interface UserRewards {
+  points_balance: number;
+  total_earned: number;
+  total_redeemed: number;
 }
 
 const AccountPage = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
   const { user } = useAuth();
-  const { addToCart } = useCart();
-  const { isAdmin } = useAdmin();
+  const { toast } = useToast();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [rewards, setRewards] = useState<UserReward | null>(null);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [security, setSecurity] = useState<UserSecurity | null>(null);
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [rewards, setRewards] = useState<UserRewards | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showAddressModal, setShowAddressModal] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null);
-  const [showCancellationModal, setShowCancellationModal] = useState(false);
-  const [wishlist, setWishlist] = useState([]);
-  const [profileData, setProfileData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    dateOfBirth: "",
-    gender: "",
-  });
-
-  useEffect(() => {
-    const path = location.pathname;
-    if (path.includes('/orders')) setActiveTab('orders');
-    else if (path.includes('/profile')) setActiveTab('profile');
-    else if (path.includes('/addresses')) setActiveTab('addresses');
-    else if (path.includes('/payments')) setActiveTab('payments');
-    else if (path.includes('/rewards')) setActiveTab('rewards');
-    else if (path.includes('/preferences')) setActiveTab('preferences');
-    else if (path.includes('/security')) setActiveTab('security');
-    else setActiveTab('dashboard');
-  }, [location]);
+  const [activeTab, setActiveTab] = useState("profile");
 
   useEffect(() => {
     if (user) {
-      fetchAllData();
-      setProfileData({
-        firstName: user.user_metadata?.given_name || "",
-        lastName: user.user_metadata?.family_name || "",
-        email: user.email || "",
-        phone: user.user_metadata?.phone || "",
-        dateOfBirth: user.user_metadata?.date_of_birth || "",
-        gender: user.user_metadata?.gender || "",
-      });
+      fetchUserData();
     }
   }, [user]);
 
-  const fetchAllData = async () => {
+  const fetchUserData = async () => {
     if (!user) return;
 
     try {
-      // Fetch orders with tracking_link
-      const { data: ordersData, error: ordersError } = await supabase
+      // Fetch user profile
+      const { data: profileData } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      
+      setProfile(profileData);
+
+      // Fetch orders with order items
+      const { data: ordersData } = await supabase
         .from("orders")
         .select(`
           *,
           order_items (
-            id,
-            quantity,
-            price,
-            products (
-              id,
-              name,
-              image_url
-            )
+            *,
+            products (name, image_url)
           )
         `)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-
-      if (ordersError) throw ordersError;
+      
       setOrders(ordersData || []);
 
-      // Add sample payment methods for demonstration
-      setPaymentMethods([
-        {
-          id: "1",
-          card_type: "Visa",
-          card_last_four: "4242",
-          card_holder_name: "John Doe",
-          expiry_month: 12,
-          expiry_year: 2025,
-          is_default: true,
-        },
-        {
-          id: "2",
-          card_type: "PayPal",
-          card_last_four: "",
-          card_holder_name: "john.doe@example.com",
-          expiry_month: 0,
-          expiry_year: 0,
-          is_default: false,
-        },
-      ]);
+      // Fetch wishlist items
+      const { data: wishlistData } = await supabase
+        .from("wishlist_items")
+        .select(`
+          *,
+          products (name, price, image_url, is_active, stock_quantity)
+        `)
+        .eq("user_id", user.id);
+      
+      setWishlist(wishlistData || []);
 
       // Fetch addresses
-      const { data: addressesData, error: addressesError } = await supabase
+      const { data: addressesData } = await supabase
         .from("user_addresses")
         .select("*")
-        .eq("user_id", user.id)
-        .order("is_default", { ascending: false });
-
-      if (addressesError) throw addressesError;
+        .eq("user_id", user.id);
+      
       setAddresses(addressesData || []);
 
-      // Fetch rewards
-      const { data: rewardsData, error: rewardsError } = await supabase
-        .from("user_rewards")
+      // Fetch payment methods
+      const { data: paymentData } = await supabase
+        .from("user_payment_methods")
         .select("*")
-        .eq("user_id", user.id)
-        .single();
+        .eq("user_id", user.id);
+      
+      setPaymentMethods(paymentData || []);
 
-      if (rewardsError && rewardsError.code !== 'PGRST116') throw rewardsError;
-      setRewards(rewardsData);
+      // Fetch subscriptions
+      const { data: subscriptionsData } = await supabase
+        .from("subscriptions")
+        .select(`
+          *,
+          products (name, price, image_url)
+        `)
+        .eq("user_id", user.id);
+      
+      setSubscriptions(subscriptionsData || []);
 
       // Fetch preferences
-      const { data: preferencesData, error: preferencesError } = await supabase
+      const { data: preferencesData } = await supabase
         .from("user_preferences")
         .select("*")
         .eq("user_id", user.id)
         .single();
-
-      if (preferencesError && preferencesError.code !== 'PGRST116') throw preferencesError;
+      
       setPreferences(preferencesData);
 
       // Fetch security settings
-      const { data: securityData, error: securityError } = await supabase
+      const { data: securityData } = await supabase
         .from("user_security")
         .select("*")
         .eq("user_id", user.id)
         .single();
-
-      if (securityError && securityError.code !== 'PGRST116') throw securityError;
+      
       setSecurity(securityData);
 
-      // Fetch wishlist
-      const { data: wishlistData, error: wishlistError } = await supabase
-        .from("wishlist_items")
-        .select(`
-          id,
-          product:products (
-            id,
-            name,
-            price,
-            image_url
-          )
-        `)
-        .eq("user_id", user.id);
-
-      if (wishlistError) throw wishlistError;
-      setWishlist(wishlistData || []);
-
-      // Fetch subscriptions
-      const { data: subscriptionsData, error: subscriptionsError } = await supabase
-        .from("subscriptions")
-        .select(`
-          id,
-          status,
-          next_delivery_date,
-          product:products (
-            name
-          )
-        `)
-        .eq("user_id", user.id);
-
-      if (subscriptionsError) throw subscriptionsError;
-
-      const transformedSubscriptions = subscriptionsData.map(sub => ({
-        id: sub.id,
-        productName: sub.product.name,
-        nextDelivery: sub.next_delivery_date,
-        status: sub.status as "active" | "paused" | "cancelled",
-      }));
-      setSubscriptions(transformedSubscriptions);
+      // Fetch rewards
+      const { data: rewardsData } = await supabase
+        .from("user_rewards")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+      
+      setRewards(rewardsData);
 
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching user data:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChangePassword = async () => {
-    const currentPassword = (document.getElementById('currentPassword') as HTMLInputElement).value;
-    const newPassword = (document.getElementById('newPassword') as HTMLInputElement).value;
-    const confirmPassword = (document.getElementById('confirmPassword') as HTMLInputElement).value;
-
-    if (newPassword !== confirmPassword) {
-      alert("New passwords do not match.");
-      return;
-    }
-
+  const updateProfile = async (updatedProfile: Partial<UserProfile>) => {
     if (!user) return;
 
-    // The following is a simplified example. In a real application, you would
-    // want to re-authenticate the user before allowing a password change.
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-
-    if (error) {
-      alert("Error changing password: " + error.message);
-    } else {
-      alert("Password changed successfully.");
-    }
-  };
-
-  const handleProfileUpdate = async () => {
-    if (!user) return;
-    
-    setProfileLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          given_name: profileData.firstName,
-          family_name: profileData.lastName,
-          phone: profileData.phone,
-          date_of_birth: profileData.dateOfBirth,
-          gender: profileData.gender,
-        },
-      });
-
-      if (error) throw error;
-      
-      // Also update the users table
-      const { error: updateError } = await supabase
+      const { error } = await supabase
         .from("users")
-        .update({
-          first_name: profileData.firstName,
-          last_name: profileData.lastName,
-          phone: profileData.phone,
-          date_of_birth: profileData.dateOfBirth,
-        })
+        .update(updatedProfile)
         .eq("id", user.id);
 
-      if (updateError) throw updateError;
-      
-      setIsEditingProfile(false);
-      alert("Profile updated successfully!");
+      if (error) throw error;
+
+      setProfile(prev => prev ? { ...prev, ...updatedProfile } : null);
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully.",
+      });
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Error updating profile. Please try again.");
-    } finally {
-      setProfileLoading(false);
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error("Logout error:", error.message);
-    } else {
-      navigate("/");
-    }
-  };
-
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    const newPath = tab === 'dashboard' ? '/account' : `/account/${tab}`;
-    window.history.pushState({}, '', newPath);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "delivered":
-        return "bg-emerald-100 text-emerald-700 border-emerald-200";
-      case "shipped":
-        return "bg-blue-100 text-blue-700 border-blue-200";
-      case "processing":
-        return "bg-amber-100 text-amber-700 border-amber-200";
-      case "cancelled":
-        return "bg-red-100 text-red-700 border-red-200";
-      default:
-        return "bg-slate-100 text-slate-700 border-slate-200";
-    }
-  };
-
-  const handleReorder = async (order: Order) => {
-    if (!order.order_items) return;
-    try {
-      for (const item of order.order_items) {
-        await addToCart(item.products.id, item.quantity);
-      }
-      navigate("/checkout");
-    } catch (error) {
-      console.error("Error reordering:", error);
-    }
-  };
-
-  const handleDownloadInvoice = async (order: Order) => {
-    try {
-      console.log("Generating invoice for order:", order.id);
-      
-      const doc = new jsPDF();
-      
-      // Header with brand info
-      doc.setFillColor(52, 152, 219);
-      doc.rect(0, 0, 210, 40, 'F');
-      
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(24);
-      doc.text('INVOICE', 20, 25);
-      
-      doc.setFontSize(12);
-      doc.text('DearNeuro', 150, 20);
-      doc.text('www.dearneuro.com', 150, 30);
-      
-      // Reset text color
-      doc.setTextColor(0, 0, 0);
-      
-      // Invoice details
-      doc.setFontSize(14);
-      doc.text(`Invoice Number: ${order.id.slice(0, 8).toUpperCase()}`, 20, 60);
-      doc.text(`Date: ${new Date(order.created_at).toLocaleDateString()}`, 20, 70);
-      doc.text(`Status: ${order.status.toUpperCase()}`, 20, 80);
-      
-      // Bill to section
-      doc.setFontSize(16);
-      doc.text('Bill To:', 20, 100);
-      
-      doc.setFontSize(12);
-      const shippingAddress = order.shipping_address;
-      if (shippingAddress) {
-        doc.text(`${shippingAddress.name || 'Customer'}`, 20, 110);
-        doc.text(`${shippingAddress.address_line_1 || ''}`, 20, 120);
-        if (shippingAddress.address_line_2) {
-          doc.text(`${shippingAddress.address_line_2}`, 20, 130);
-        }
-        doc.text(`${shippingAddress.city || ''}, ${shippingAddress.state || ''} ${shippingAddress.pincode || ''}`, 20, 140);
-        if (shippingAddress.phone) {
-          doc.text(`Phone: ${shippingAddress.phone}`, 20, 150);
-        }
-      }
-      
-      // Items table header
-      let yPosition = 170;
-      doc.setFillColor(240, 240, 240);
-      doc.rect(20, yPosition, 170, 10, 'F');
-      
-      doc.setFontSize(12);
-      doc.text('Description', 25, yPosition + 7);
-      doc.text('Qty', 100, yPosition + 7);
-      doc.text('Rate', 130, yPosition + 7);
-      doc.text('Amount', 160, yPosition + 7);
-      
-      yPosition += 15;
-      
-      // Items
-      let subtotal = 0;
-      if (order.order_items) {
-        order.order_items.forEach((item) => {
-          const itemTotal = item.price * item.quantity;
-          subtotal += itemTotal;
-          
-          doc.text(item.products.name, 25, yPosition);
-          doc.text(item.quantity.toString(), 100, yPosition);
-          doc.text(`$${item.price.toFixed(2)}`, 130, yPosition);
-          doc.text(`$${itemTotal.toFixed(2)}`, 160, yPosition);
-          
-          yPosition += 10;
-        });
-      }
-      
-      // Totals
-      yPosition += 10;
-      doc.line(20, yPosition, 190, yPosition);
-      yPosition += 10;
-      
-      doc.text('Subtotal:', 130, yPosition);
-      doc.text(`$${subtotal.toFixed(2)}`, 160, yPosition);
-      
-      yPosition += 10;
-      doc.text('Tax:', 130, yPosition);
-      doc.text('$0.00', 160, yPosition);
-      
-      yPosition += 10;
-      doc.setFontSize(14);
-      doc.text('Total:', 130, yPosition);
-      doc.text(`$${order.total_amount.toFixed(2)}`, 160, yPosition);
-      
-      // Footer
-      yPosition += 30;
-      doc.setFontSize(10);
-      doc.text('Thank you for your business!', 20, yPosition);
-      doc.text('Please pay invoice within 15 days.', 20, yPosition + 10);
-      
-      // Save the PDF
-      doc.save(`invoice-${order.id.slice(0, 8)}.pdf`);
-      
-    } catch (error) {
-      console.error("Error generating invoice:", error);
-      alert("Error generating invoice. Please try again.");
-    }
-  };
-
-  const handleTrackOrder = (order: Order) => {
-    if (order.tracking_link) {
-      window.open(order.tracking_link, '_blank');
-    } else {
-      alert("Tracking information not available yet.");
-    }
-  };
-
-  const handleViewProduct = (productId: string) => {
-    navigate(`/product?id=${productId}`);
-  };
-
-  const handleSubscriptionChange = async (subscriptionId: string, newStatus: "active" | "paused" | "cancelled") => {
+  const updateSubscription = async (subscriptionId: string, updates: { status?: string; frequency_weeks?: number; next_delivery_date?: string }) => {
     try {
       const { error } = await supabase
         .from("subscriptions")
-        .update({ status: newStatus })
+        .update(updates)
         .eq("id", subscriptionId);
+
       if (error) throw error;
-      fetchAllData();
+
+      setSubscriptions(prev => 
+        prev.map(sub => 
+          sub.id === subscriptionId 
+            ? { ...sub, ...updates }
+            : sub
+        )
+      );
+
+      toast({
+        title: "Subscription updated",
+        description: "Your subscription has been updated successfully.",
+      });
     } catch (error) {
-      console.error("Error updating subscription status:", error);
+      console.error("Error updating subscription:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update subscription. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleSaveAddress = async (address: Omit<Address, 'id' | 'is_default'>) => {
-    if (!user) return;
+  const cancelSubscription = async (subscriptionId: string) => {
     try {
-      if (editingAddress) {
-        const { error } = await supabase.from('user_addresses').update(address).eq('id', editingAddress.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('user_addresses').insert([{ ...address, user_id: user.id }]);
-        if (error) throw error;
-      }
-      setShowAddressModal(false);
-      fetchAllData();
-    } catch (error) {
-      console.error('Error saving address:', error);
-    }
-  };
+      const { error } = await supabase
+        .from("subscriptions")
+        .update({ status: "cancelled" })
+        .eq("id", subscriptionId);
 
-  const handleDeleteAddress = async (addressId: string) => {
-    if (!user) return;
-    if (window.confirm('Are you sure you want to delete this address?')) {
-      try {
-        const { error } = await supabase.from('user_addresses').delete().eq('id', addressId);
-        if (error) throw error;
-        fetchAllData();
-      } catch (error) {
-        console.error('Error deleting address:', error);
-      }
-    }
-  };
-
-  const handleBuyNow = async (productId: string) => {
-    await addToCart(productId, 1);
-    navigate('/checkout');
-  };
-
-  const handleSavePaymentMethod = async (paymentMethod) => {
-    if(!user) return;
-    try {
-      // In a real app, you'd use a payment gateway's tokenization process
-      // and only store a reference to the payment method, not the raw details.
-      const { error } = await supabase.from('user_payment_methods').insert([{ ...paymentMethod, user_id: user.id }]);
       if (error) throw error;
-      setShowPaymentModal(false);
-      fetchAllData();
+
+      setSubscriptions(prev => 
+        prev.map(sub => 
+          sub.id === subscriptionId 
+            ? { ...sub, status: "cancelled" }
+            : sub
+        )
+      );
+
+      toast({
+        title: "Subscription cancelled",
+        description: "Your subscription has been cancelled successfully.",
+      });
     } catch (error) {
-      console.error('Error saving payment method:', error);
-    }
-  }
-
-  const handleDeletePaymentMethod = async (paymentMethodId: string) => {
-    if (!user) return;
-    if (window.confirm('Are you sure you want to delete this payment method?')) {
-      try {
-        const { error } = await supabase.from('user_payment_methods').delete().eq('id', paymentMethodId);
-        if (error) throw error;
-        fetchAllData();
-      } catch (error) {
-        console.error('Error deleting payment method:', error);
-      }
+      console.error("Error cancelling subscription:", error);
+      toast({
+        title: "Error",
+        description: "Failed to cancel subscription. Please try again.",
+        variant: "destructive",
+      });
     }
   };
-
-  const getAvatarImage = () => {
-    const firstName = profileData.firstName || user?.user_metadata?.given_name || '';
-    const lastName = profileData.lastName || user?.user_metadata?.family_name || '';
-    
-    // Simple gender detection based on common names (this is a basic implementation)
-    const maleNames = ['john', 'james', 'robert', 'michael', 'william', 'david', 'richard', 'charles', 'joseph', 'thomas'];
-    const femaleNames = ['mary', 'patricia', 'jennifer', 'linda', 'elizabeth', 'barbara', 'susan', 'jessica', 'sarah', 'karen'];
-    
-    const firstNameLower = firstName.toLowerCase();
-    
-    if (maleNames.includes(firstNameLower)) {
-      return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face";
-    }
-    
-    if (femaleNames.includes(firstNameLower)) {
-      return "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face";
-    }
-    
-    // Default professional avatar
-    return "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face";
-  };
-
-  const PaymentMethodIcon = ({ type }: { type: string }) => {
-    switch (type.toLowerCase()) {
-      case 'paypal':
-        return <FaPaypal className="text-blue-600 text-2xl" />;
-      case 'googlepay':
-        return <FaGooglePay className="text-green-600 text-2xl" />;
-      default:
-        return <FaCreditCard className="text-[#192a3a] text-2xl" />;
-    }
-  };
-
-  const sidebarItems = [
-    { id: "dashboard", icon: <FaUser />, label: "Dashboard" },
-    { id: "orders", icon: <FaBox />, label: "Orders" },
-    { id: "subscriptions", icon: <FaBox />, label: "Subscriptions" },
-    { id: "wishlist", icon: <FaHeart />, label: "Wishlist" },
-    { id: "addresses", icon: <FaAddressBook />, label: "Addresses" },
-    { id: "payments", icon: <FaCreditCard />, label: "Payments" },
-    { id: "rewards", icon: <FaGift />, label: "Rewards" },
-    { id: "preferences", icon: <FaCogs />, label: "Preferences" },
-    { id: "security", icon: <FaShieldAlt />, label: "Security" },
-  ];
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-[#F8F8F5]">
         <Header />
-        <div className="flex items-center justify-center min-h-[80vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#192a3a]"></div>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#514B3D]"></div>
         </div>
       </div>
     );
   }
 
-  const userDisplayName = `${user?.user_metadata?.given_name || ''} ${user?.user_metadata?.family_name || ''}`.trim() || user?.email?.split('@')[0] || 'User';
-
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#F8F8F5]">
       <Header />
-      
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="lg:hidden mb-4 flex justify-between items-center">
-          <Select value={activeTab} onValueChange={handleTabChange}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="transition-all duration-300 ease-in-out">
-              {sidebarItems.map((item) => (
-                <SelectItem key={item.id} value={item.id}>
-                  <div className="flex items-center gap-2">
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button variant="ghost" onClick={handleLogout} className="text-red-500">
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <Breadcrumb />
+        
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Account</h1>
+          <p className="text-gray-600">Manage your brain health journey and account settings</p>
         </div>
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar */}
-          <div className="lg:w-80 w-full hidden lg:block">
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-              <div className="text-center mb-8">
-                <Avatar className="w-20 h-20 mx-auto mb-4">
-                  <AvatarImage src={getAvatarImage()} alt={userDisplayName} />
-                  <AvatarFallback className="bg-[#192a3a] text-white text-2xl">
-                    <FaUser />
-                  </AvatarFallback>
-                </Avatar>
-                <h2 className="text-2xl font-bold text-[#192a3a]">
-                  {userDisplayName}
-                </h2>
-                <p className="text-gray-600 text-sm">{user?.email}</p>
-              </div>
-              
-              <div className="space-y-2">
-                {sidebarItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => handleTabChange(item.id)}
-                    className={`w-full flex items-center gap-4 p-4 rounded-lg transition-all duration-200 ${
-                      activeTab === item.id
-                        ? "bg-[#192a3a] text-white"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
-                    <span className="text-lg">{item.icon}</span>
-                    <span className="font-medium">{item.label}</span>
-                  </button>
-                ))}
-                
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-4 p-4 rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200 mt-6"
-                >
-                  <FaSignOutAlt className="text-lg" />
-                  <span className="font-medium">Logout</span>
-                </button>
-              </div>
-            </div>
-          </div>
 
-          {/* Main Content */}
-          <div className="flex-1">
-            {/* Dashboard */}
-            {activeTab === "dashboard" && (
-              <div className="space-y-8">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-3xl text-[#192a3a]">Welcome back!</CardTitle>
-                    <p className="text-gray-600">Here's your account overview</p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                      <div className="p-6 bg-[#192a3a] text-white rounded-xl">
-                        <div className="flex items-center gap-4">
-                          <FaBox className="text-2xl" />
-                          <div>
-                            <p className="text-sm opacity-80">Total Orders</p>
-                            <p className="text-2xl font-bold">{orders.length}</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="p-6 bg-gray-100 rounded-xl">
-                        <div className="flex items-center gap-4">
-                          <FaGift className="text-2xl text-[#192a3a]" />
-                          <div>
-                            <p className="text-sm text-gray-600">Reward Points</p>
-                            <p className="text-2xl font-bold text-[#192a3a]">{rewards?.points_balance || 0}</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="p-6 bg-gray-100 rounded-xl">
-                        <div className="flex items-center gap-4">
-                          <FaAddressBook className="text-2xl text-[#192a3a]" />
-                          <div>
-                            <p className="text-sm text-gray-600">Saved Addresses</p>
-                            <p className="text-2xl font-bold text-[#192a3a]">{addresses.length}</p>
-                          </div>
-                        </div>
-                      </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+          <TabsList className="grid w-full grid-cols-8 bg-white">
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <FaUser className="w-4 h-4" />
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="flex items-center gap-2">
+              <FaBox className="w-4 h-4" />
+              Orders
+            </TabsTrigger>
+            <TabsTrigger value="subscriptions" className="flex items-center gap-2">
+              <FaCalendar className="w-4 h-4" />
+              Subscriptions
+            </TabsTrigger>
+            <TabsTrigger value="wishlist" className="flex items-center gap-2">
+              <FaHeart className="w-4 h-4" />
+              Wishlist
+            </TabsTrigger>
+            <TabsTrigger value="addresses" className="flex items-center gap-2">
+              <FaMapMarkerAlt className="w-4 h-4" />
+              Addresses
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="flex items-center gap-2">
+              <FaCreditCard className="w-4 h-4" />
+              Payments
+            </TabsTrigger>
+            <TabsTrigger value="preferences" className="flex items-center gap-2">
+              <FaCog className="w-4 h-4" />
+              Preferences
+            </TabsTrigger>
+            <TabsTrigger value="rewards" className="flex items-center gap-2">
+              <FaGift className="w-4 h-4" />
+              Rewards
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Profile Tab */}
+          <TabsContent value="profile">
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile Information</CardTitle>
+                <CardDescription>
+                  Update your personal information and preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {profile && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">First Name</Label>
+                      <Input
+                        id="firstName"
+                        value={profile.first_name || ""}
+                        onChange={(e) => setProfile(prev => prev ? { ...prev, first_name: e.target.value } : null)}
+                        onBlur={() => updateProfile({ first_name: profile.first_name })}
+                      />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input
+                        id="lastName"
+                        value={profile.last_name || ""}
+                        onChange={(e) => setProfile(prev => prev ? { ...prev, last_name: e.target.value } : null)}
+                        onBlur={() => updateProfile({ last_name: profile.last_name })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={profile.email}
+                        readOnly
+                        className="bg-gray-50"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone</Label>
+                      <Input
+                        id="phone"
+                        value={profile.phone || ""}
+                        onChange={(e) => setProfile(prev => prev ? { ...prev, phone: e.target.value } : null)}
+                        onBlur={() => updateProfile({ phone: profile.phone })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                      <Input
+                        id="dateOfBirth"
+                        type="date"
+                        value={profile.date_of_birth || ""}
+                        onChange={(e) => setProfile(prev => prev ? { ...prev, date_of_birth: e.target.value } : null)}
+                        onBlur={() => updateProfile({ date_of_birth: profile.date_of_birth })}
+                      />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                    {/* Profile Edit Section */}
-                    <Card className="mt-6">
-                      <CardHeader>
-                        <div className="flex justify-between items-center">
-                          <CardTitle className="text-xl text-[#192a3a]">Profile Information</CardTitle>
-                          {!isEditingProfile && (
-                            <Button
-                              onClick={() => setIsEditingProfile(true)}
+          {/* Orders Tab */}
+          <TabsContent value="orders">
+            <Card>
+              <CardHeader>
+                <CardTitle>Order History</CardTitle>
+                <CardDescription>
+                  View your brain supplement orders and track their status
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {orders.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FaBox className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No orders yet</h3>
+                    <p className="text-gray-500 mb-4">Start your brain health journey with our premium supplements</p>
+                    <Button onClick={() => window.location.href = "/shop-all"}>Browse Products</Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {orders.map((order) => (
+                      <div key={order.id} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="font-semibold">Order #{order.id.slice(0, 8)}</h3>
+                            <p className="text-sm text-gray-500">
+                              {format(new Date(order.created_at), "MMM dd, yyyy")}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <Badge variant={order.status === "delivered" ? "default" : "secondary"}>
+                              {order.status}
+                            </Badge>
+                            <p className="text-lg font-semibold mt-1">₹{order.total_amount}</p>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          {order.order_items.map((item) => (
+                            <div key={item.id} className="flex items-center space-x-4">
+                              <img
+                                src={item.products.image_url}
+                                alt={item.products.name}
+                                className="w-12 h-12 object-cover rounded"
+                              />
+                              <div className="flex-1">
+                                <p className="font-medium">{item.products.name}</p>
+                                <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                              </div>
+                              <p className="font-semibold">₹{item.price}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Subscriptions Tab */}
+          <TabsContent value="subscriptions">
+            <Card>
+              <CardHeader>
+                <CardTitle>Brain Health Subscriptions</CardTitle>
+                <CardDescription>
+                  Manage your recurring cognitive support supplement deliveries
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {subscriptions.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FaCalendar className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No active subscriptions</h3>
+                    <p className="text-gray-500 mb-4">Subscribe to your favorite brain supplements and save 15%</p>
+                    <Button onClick={() => window.location.href = "/subscriptions"}>View Subscription Options</Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {subscriptions.map((subscription) => (
+                      <div key={subscription.id} className="border rounded-lg p-4">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center space-x-4">
+                            <img
+                              src={subscription.products.image_url}
+                              alt={subscription.products.name}
+                              className="w-16 h-16 object-cover rounded"
+                            />
+                            <div>
+                              <h3 className="font-semibold">{subscription.products.name}</h3>
+                              <p className="text-sm text-gray-500">
+                                Every {subscription.frequency_weeks} weeks • Qty: {subscription.quantity}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                Next delivery: {subscription.next_delivery_date ? 
+                                  format(new Date(subscription.next_delivery_date), "MMM dd, yyyy") : 
+                                  "Not scheduled"}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <Badge variant={subscription.status === "active" ? "default" : "secondary"}>
+                              {subscription.status}
+                            </Badge>
+                            <p className="text-lg font-semibold mt-1">
+                              ₹{subscription.products.price * subscription.quantity}
+                              {subscription.discount_percentage && (
+                                <span className="text-sm text-green-600 ml-2">
+                                  ({subscription.discount_percentage}% off)
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          {subscription.status === "active" ? (
+                            <Button 
+                              size="sm" 
                               variant="outline"
-                              className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
+                              onClick={() => updateSubscription(subscription.id, { status: "paused" })}
                             >
-                              <FaEdit className="mr-2" />
-                              Edit Profile
+                              <FaPause className="mr-2 h-4 w-4" />
+                              Pause
+                            </Button>
+                          ) : (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => updateSubscription(subscription.id, { status: "active" })}
+                            >
+                              <FaPlay className="mr-2 h-4 w-4" />
+                              Resume
                             </Button>
                           )}
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        {isEditingProfile ? (
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <Label htmlFor="firstName">First Name</Label>
-                                <Input
-                                  id="firstName"
-                                  value={profileData.firstName}
-                                  onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
-                                  className="mt-1"
-                                />
-                              </div>
-                              <div>
-                                <Label htmlFor="lastName">Last Name</Label>
-                                <Input
-                                  id="lastName"
-                                  value={profileData.lastName}
-                                  onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
-                                  className="mt-1"
-                                />
-                              </div>
-                            </div>
-                            <div>
-                              <Label htmlFor="email">Email</Label>
-                              <Input
-                                id="email"
-                                value={profileData.email}
-                                disabled
-                                className="mt-1 bg-gray-100"
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="phone">Phone Number</Label>
-                              <Input
-                                id="phone"
-                                value={profileData.phone}
-                                onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-                                className="mt-1"
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                              <Input
-                                id="dateOfBirth"
-                                type="date"
-                                value={profileData.dateOfBirth}
-                                onChange={(e) => setProfileData({...profileData, dateOfBirth: e.target.value})}
-                                className="mt-1"
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="gender">Gender</Label>
-                              <Select
-                                value={profileData.gender}
-                                onValueChange={(value) => setProfileData({...profileData, gender: value})}
-                              >
-                                <SelectTrigger className="mt-1">
-                                  <SelectValue placeholder="Select gender" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="male">Male</SelectItem>
-                                  <SelectItem value="female">Female</SelectItem>
-                                  <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="flex gap-3">
-                              <Button
-                                onClick={handleProfileUpdate}
-                                disabled={profileLoading}
-                                className="bg-[#192a3a] hover:bg-[#0f1a26] text-white"
-                              >
-                                <FaSave className="mr-2" />
-                                {profileLoading ? "Saving..." : "Save Changes"}
-                              </Button>
-                              <Button
-                                onClick={() => setIsEditingProfile(false)}
-                                variant="outline"
-                              >
+                          <Button size="sm" variant="outline">
+                            <FaEdit className="mr-2 h-4 w-4" />
+                            Edit
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button size="sm" variant="destructive">
+                                <FaTrash className="mr-2 h-4 w-4" />
                                 Cancel
                               </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="space-y-3">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">First Name:</span>
-                              <span className="font-medium">{profileData.firstName || 'Not set'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Last Name:</span>
-                              <span className="font-medium">{profileData.lastName || 'Not set'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Email:</span>
-                              <span className="font-medium">{profileData.email}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Phone:</span>
-                              <span className="font-medium">{profileData.phone || 'Not set'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Date of Birth:</span>
-                              <span className="font-medium">{profileData.dateOfBirth || 'Not set'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Gender:</span>
-                              <span className="font-medium">{profileData.gender || 'Not set'}</span>
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {/* Orders */}
-            {activeTab === "orders" && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl text-[#192a3a]">Your Orders ({orders.length})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {orders.length > 0 ? (
-                    <div className="space-y-6">
-                      {orders.map((order) => (
-                        <div key={order.id} className="border rounded-xl p-6">
-                          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
-                            <div>
-                              <h3 className="text-xl font-semibold text-[#192a3a] mb-2">
-                                Order #{order.id.slice(0, 8)}...
-                              </h3>
-                              <div className="flex items-center gap-4 text-sm">
-                                <span className="text-gray-600">
-                                  {new Date(order.created_at).toLocaleDateString()}
-                                </span>
-                                <Badge className={getStatusColor(order.status)}>
-                                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                                </Badge>
-                                {order.order_items?.some(item => item.products.name.includes("Subscription")) && (
-                                  <Badge className="bg-purple-100 text-purple-700">Subscription</Badge>
-                                )}
-                              </div>
-                            </div>
-                            
-                            <div className="flex flex-col lg:items-end gap-3">
-                              <div className="text-2xl font-bold text-[#192a3a]">₹{order.total_amount.toFixed(2)}</div>
-                              <div className="flex flex-wrap gap-2">
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => setSelectedOrder(order)}
-                                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
-                                >
-                                  <FaEye className="mr-2" />
-                                  View
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => handleDownloadInvoice(order)}
-                                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
-                                >
-                                  <FaDownload className="mr-2" />
-                                  Invoice
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => handleReorder(order)}
-                                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
-                                >
-                                  <FaRedo className="mr-2" />
-                                  Reorder
-                                </Button>
-                                {order.status === 'shipped' && (
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    onClick={() => handleTrackOrder(order)}
-                                    className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
-                                  >
-                                    <FaTruck className="mr-2" />
-                                    Track
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          {order.order_items && order.order_items.length > 0 && (
-                            <div className="space-y-3 mt-4">
-                              {order.order_items.map((item, index) => (
-                                <div key={index} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-                                  <img
-                                    src={item.products.image_url}
-                                    alt={item.products.name}
-                                    className="w-12 h-12 object-cover rounded-lg"
-                                  />
-                                  <div className="flex-1">
-                                    <h4 className="font-medium text-[#192a3a] flex items-center">
-                                      {item.products.name}
-                                      {subscriptions.some(s => s.productName === item.products.name) && (
-                                        <FaRedo className="text-purple-500 ml-2" title="Subscription" />
-                                      )}
-                                    </h4>
-                                    <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="font-semibold text-[#192a3a]">₹{(item.price * item.quantity).toFixed(2)}</p>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleViewProduct(item.products.id)}
-                                      className="text-[#192a3a] hover:text-[#0f1a26] p-0 h-auto"
-                                    >
-                                      View Product
-                                    </Button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-16">
-                      <FaBox className="mx-auto text-6xl text-gray-400 mb-6" />
-                      <h3 className="text-2xl font-semibold text-[#192a3a] mb-4">No orders yet</h3>
-                      <p className="text-gray-600 mb-8">Start shopping to see your orders here</p>
-                      <Button onClick={() => navigate("/shop-all")} className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
-                        Start Shopping
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Wishlist */}
-            {activeTab === "wishlist" && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl text-[#192a3a]">Your Wishlist</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {wishlist.length > 0 ? (
-                    <div className="space-y-4">
-                      {wishlist.map((item) => (
-                        <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex items-center gap-4">
-                            <img src={item.product.image_url} alt={item.product.name} className="w-16 h-16 object-cover rounded-lg" />
-                            <div>
-                              <h4 className="font-medium text-[#192a3a]">{item.product.name}</h4>
-                              <p className="text-sm text-gray-600">${item.product.price}</p>
-                            </div>
-                          </div>
-                          <Button onClick={() => handleBuyNow(item.product.id)}>Buy Now</Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p>Your wishlist is empty.</p>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Subscriptions */}
-            {activeTab === "subscriptions" && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl text-[#192a3a]">Your Subscriptions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {subscriptions.length > 0 ? (
-                    <div className="space-y-6">
-                      {subscriptions.map((sub) => (
-                        <div key={sub.id} className="border rounded-xl p-6">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="text-xl font-semibold text-[#192a3a]">{sub.productName}</h3>
-                              <p className="text-gray-600">Next delivery: {new Date(sub.nextDelivery).toLocaleDateString()}</p>
-                            </div>
-                            <Badge className={
-                              sub.status === 'active' ? "bg-green-100 text-green-700" :
-                              sub.status === 'paused' ? "bg-yellow-100 text-yellow-700" :
-                              "bg-red-100 text-red-700"
-                            }>
-                              {sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
-                            </Badge>
-                          </div>
-                          <div className="flex gap-2 mt-4">
-                            <Button size="sm" variant="outline" onClick={() => {setSelectedSubscription(sub); setShowSubscriptionModal(true);}}>View Subscription</Button>
-                            {sub.status === 'active' && <Button size="sm" variant="outline" onClick={() => handleSubscriptionChange(sub.id, 'paused')}>Pause</Button>}
-                            {sub.status === 'paused' && <Button size="sm" variant="outline" onClick={() => handleSubscriptionChange(sub.id, 'active')}>Resume</Button>}
-                            {sub.status !== 'cancelled' && <Button size="sm" variant="outline" className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white" onClick={() => {setSelectedSubscription(sub); setShowCancellationModal(true);}}>Cancel</Button>}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p>You have no active subscriptions.</p>
-                  )}
-                  <div className="mt-8 border-t pt-6">
-                    <h3 className="text-lg font-semibold text-[#192a3a] mb-4">Subscription Benefits</h3>
-                    <ul className="space-y-2 text-gray-600 list-disc list-inside">
-                      <li>Save 20% on every order</li>
-                      <li>Hassle-free automatic restocking</li>
-                      <li>Early access to new products</li>
-                      <li>Exclusive member-only discounts</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Addresses */}
-            {activeTab === "addresses" && (
-              <Card>
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-2xl text-[#192a3a]">Saved Addresses</CardTitle>
-                    <Button onClick={() => { setEditingAddress(null); setShowAddressModal(true); }} className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
-                      <FaPlus className="mr-2" />
-                      Add Address
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {addresses.map((address) => (
-                      <div key={address.id} className="border rounded-xl p-6">
-                        <div className="flex justify-between items-start mb-4">
-                          <h3 className="font-semibold text-[#192a3a]">{address.name}</h3>
-                          {address.is_default && (
-                            <Badge className="bg-[#192a3a] text-white">Default</Badge>
-                          )}
-                        </div>
-                        <div className="space-y-2 text-gray-600 mb-4">
-                          <p>{address.address_line_1}</p>
-                          {address.address_line_2 && <p>{address.address_line_2}</p>}
-                          <p>{address.city}, {address.state} {address.pincode}</p>
-                          <p>{address.phone}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white" onClick={() => { setEditingAddress(address); setShowAddressModal(true); }}>
-                            <FaEdit className="mr-2" />
-                            Edit
-                          </Button>
-                          <Button size="sm" variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white" onClick={() => handleDeleteAddress(address.id)}>
-                            <FaTrash className="mr-2" />
-                            Delete
-                          </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Cancel Subscription</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to cancel this subscription? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => cancelSubscription(subscription.id)}>
+                                  Yes, cancel subscription
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Payment Methods */}
-            {activeTab === "payments" && (
-              <Card>
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-2xl text-[#192a3a]">Payment Methods</CardTitle>
-                    <Button 
-                        onClick={() => setShowPaymentModal(true)}
-                      className="bg-[#192a3a] hover:bg-[#0f1a26] text-white"
-                    >
-                      <FaPlus className="mr-2" />
-                      Add Payment Method
-                    </Button>
+          {/* Wishlist Tab */}
+          <TabsContent value="wishlist">
+            <Card>
+              <CardHeader>
+                <CardTitle>Wishlist</CardTitle>
+                <CardDescription>
+                  Your saved brain health supplements
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {wishlist.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FaHeart className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Your wishlist is empty</h3>
+                    <p className="text-gray-500 mb-4">Save your favorite cognitive supplements for later</p>
+                    <Button onClick={() => window.location.href = "/shop-all"}>Browse Products</Button>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {paymentMethods.map((method) => (
-                      <div key={method.id} className="border rounded-xl p-6">
-                        <div className="flex justify-between items-start mb-4">
-                          <div className="flex items-center gap-3">
-                            <PaymentMethodIcon type={method.card_type} />
-                            <div>
-                              <h3 className="font-semibold text-[#192a3a]">
-                                {method.card_type === 'PayPal' 
-                                  ? 'PayPal'
-                                  : `${method.card_type} •••• ${method.card_last_four}`
-                                }
-                              </h3>
-                              <p className="text-sm text-gray-600">{method.card_holder_name}</p>
-                            </div>
-                          </div>
-                          {method.is_default && (
-                            <Badge className="bg-[#192a3a] text-white">Default</Badge>
-                          )}
-                        </div>
-                        {method.card_type !== 'PayPal' && (
-                          <p className="text-gray-600 mb-4">
-                            Expires {method.expiry_month.toString().padStart(2, '0')}/{method.expiry_year}
-                          </p>
-                        )}
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white" onClick={() => alert('Edit payment method functionality to be implemented.')}>
-                            <FaEdit className="mr-2" />
-                            Edit
-                          </Button>
-                          <Button size="sm" variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white" onClick={() => handleDeletePaymentMethod(method.id)}>
-                            <FaTrash className="mr-2" />
-                            Delete
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Rewards */}
-            {activeTab === "rewards" && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl text-[#192a3a]">Rewards Program</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="text-center p-6 bg-[#192a3a] text-white rounded-xl">
-                      <FaGift className="text-3xl mx-auto mb-2" />
-                      <p className="text-sm opacity-80">Points Balance</p>
-                      <p className="text-3xl font-bold">{rewards?.points_balance || 0}</p>
-                    </div>
-                    <div className="text-center p-6 bg-gray-100 rounded-xl">
-                      <p className="text-sm text-gray-600">Total Earned</p>
-                      <p className="text-3xl font-bold text-[#192a3a]">{rewards?.total_earned || 0}</p>
-                    </div>
-                    <div className="text-center p-6 bg-gray-100 rounded-xl">
-                      <p className="text-sm text-gray-600">Total Redeemed</p>
-                      <p className="text-3xl font-bold text-[#192a3a]">{rewards?.total_redeemed || 0}</p>
-                    </div>
-                  </div>
-                  <div className="border rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-[#192a3a] mb-4">How to Earn Points</h3>
-                    <ul className="space-y-2 text-gray-600">
-                      <li>• Make a purchase - 1 point per ₹1 spent</li>
-                      <li>• Refer a friend - 100 bonus points</li>
-                      <li>• Write a product review - 25 points</li>
-                      <li>• Birthday bonus - 50 points annually</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Preferences */}
-            {activeTab === "preferences" && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl text-[#192a3a]">Communication Preferences</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label className="text-base font-medium">Email Notifications</Label>
-                        <p className="text-sm text-gray-600">Receive order updates and account notifications</p>
-                      </div>
-                      <Switch checked={preferences?.email_notifications || false} />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label className="text-base font-medium">SMS Notifications</Label>
-                        <p className="text-sm text-gray-600">Receive text messages for important updates</p>
-                      </div>
-                      <Switch checked={preferences?.sms_notifications || false} />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label className="text-base font-medium">Marketing Emails</Label>
-                        <p className="text-sm text-gray-600">Receive promotional emails and special offers</p>
-                      </div>
-                      <Switch checked={preferences?.marketing_emails || false} />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label className="text-base font-medium">Newsletter Subscription</Label>
-                        <p className="text-sm text-gray-600">Stay updated with our latest news and tips</p>
-                      </div>
-                      <Switch checked={preferences?.newsletter_subscription || false} />
-                    </div>
-                  </div>
-                  <div className="mt-8">
-                    <Button className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
-                      Save Preferences
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Security */}
-            {activeTab === "security" && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl text-[#192a3a]">Security Settings</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-8">
-                    <div>
-                      <h3 className="text-lg font-semibold text-[#192a3a] mb-4">Change Password</h3>
-                      <div className="space-y-4 max-w-md">
-                        <div>
-                          <Label>Current Password</Label>
-                          <Input id="currentPassword" type="password" className="mt-1" />
-                        </div>
-                        <div>
-                          <Label>New Password</Label>
-                          <Input id="newPassword" type="password" className="mt-1" />
-                        </div>
-                        <div>
-                          <Label>Confirm New Password</Label>
-                          <Input id="confirmPassword" type="password" className="mt-1" />
-                        </div>
-                        <Button className="bg-[#192a3a] hover:bg-[#0f1a26] text-white" onClick={handleChangePassword}>
-                          Update Password
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="border-t pt-8">
-                      <h3 className="text-lg font-semibold text-[#192a3a] mb-4">Two-Factor Authentication</h3>
-                      <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <p className="font-medium">SMS Authentication</p>
-                          <p className="text-sm text-gray-600">Add extra security with SMS verification</p>
-                        </div>
-                        <Switch checked={security?.two_factor_enabled || false} />
-                      </div>
-                    </div>
-
-                    <div className="border-t pt-8">
-                      <h3 className="text-lg font-semibold text-[#192a3a] mb-4">Login Notifications</h3>
-                      <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <p className="font-medium">Email Login Alerts</p>
-                          <p className="text-sm text-gray-600">Get notified of new device logins</p>
-                        </div>
-                        <Switch checked={security?.login_notifications || false} />
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Add Payment Method Modal */}
-      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Payment Method</DialogTitle>
-          </DialogHeader>
-          <PaymentForm onSave={handleSavePaymentMethod} onCancel={() => setShowPaymentModal(false)} />
-        </DialogContent>
-      </Dialog>
-
-      {/* Order Details Modal */}
-      {selectedOrder && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-8">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-[#192a3a]">
-                  Order Details #{selectedOrder.id.slice(0, 8)}...
-                </h3>
-                <Button variant="ghost" onClick={() => setSelectedOrder(null)} className="text-gray-600 hover:text-[#192a3a]">
-                  ✕
-                </Button>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-gray-600 text-sm mb-1">Order Date</p>
-                  <p className="font-medium text-[#192a3a]">{new Date(selectedOrder.created_at).toLocaleDateString()}</p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-gray-600 text-sm mb-1">Status</p>
-                  <Badge className={getStatusColor(selectedOrder.status)}>
-                    {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
-                  </Badge>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-gray-600 text-sm mb-1">Total Amount</p>
-                  <p className="text-2xl font-bold text-[#192a3a]">₹{selectedOrder.total_amount.toFixed(2)}</p>
-                </div>
-              </div>
-
-              {selectedOrder.order_items && selectedOrder.order_items.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="font-semibold text-[#192a3a] mb-4 text-lg">Order Items</h4>
-                  <div className="space-y-3">
-                    {selectedOrder.order_items.map((item, index) => (
-                      <div key={index} className="flex items-center gap-4 p-4 border rounded-lg">
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {wishlist.map((item) => (
+                      <div key={item.id} className="border rounded-lg p-4">
                         <img
                           src={item.products.image_url}
                           alt={item.products.name}
-                          className="w-16 h-16 object-cover rounded-lg"
+                          className="w-full h-48 object-cover rounded mb-4"
                         />
-                        <div className="flex-1">
-                          <h5 className="font-semibold text-[#192a3a]">{item.products.name}</h5>
-                          <p className="text-sm text-gray-600">
-                            Quantity: {item.quantity} × ₹{item.price.toFixed(2)}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-[#192a3a]">₹{(item.quantity * item.price).toFixed(2)}</p>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              setSelectedOrder(null);
-                              handleViewProduct(item.products.id);
-                            }}
-                            className="text-[#192a3a] hover:text-[#0f1a26] p-0 h-auto"
-                          >
-                            View Product
-                          </Button>
+                        <h3 className="font-semibold mb-2">{item.products.name}</h3>
+                        <p className="text-lg font-bold text-[#514B3D] mb-4">₹{item.products.price}</p>
+                        <Button 
+                          className="w-full" 
+                          disabled={!item.products.is_active || item.products.stock_quantity === 0}
+                        >
+                          {item.products.is_active && item.products.stock_quantity > 0 
+                            ? "Add to Cart" 
+                            : "Out of Stock"}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Addresses Tab */}
+          <TabsContent value="addresses">
+            <Card>
+              <CardHeader>
+                <CardTitle>Delivery Addresses</CardTitle>
+                <CardDescription>
+                  Manage your shipping addresses for supplement deliveries
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {addresses.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FaMapMarkerAlt className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No addresses saved</h3>
+                    <p className="text-gray-500 mb-4">Add a delivery address to get started</p>
+                    <Button>
+                      <FaPlus className="mr-2 h-4 w-4" />
+                      Add Address
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {addresses.map((address) => (
+                      <div key={address.id} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold">{address.name}</h3>
+                            <p className="text-sm text-gray-600">{address.phone}</p>
+                            <p className="text-sm text-gray-600">
+                              {address.address_line_1}
+                              {address.address_line_2 && `, ${address.address_line_2}`}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {address.city}, {address.state} {address.pincode}
+                            </p>
+                            {address.is_default && (
+                              <Badge variant="outline" className="mt-2">Default</Badge>
+                            )}
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button size="sm" variant="outline">Edit</Button>
+                            <Button size="sm" variant="destructive">Delete</Button>
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-              <div className="flex flex-wrap gap-3">
-                <Button 
-                  onClick={() => handleDownloadInvoice(selectedOrder)}
-                  className="bg-[#192a3a] hover:bg-[#0f1a26] text-white"
-                >
-                  <FaDownload className="mr-2" />
-                  Download Invoice
-                </Button>
-                <Button 
-                  onClick={() => {
-                    handleReorder(selectedOrder);
-                    setSelectedOrder(null);
-                  }}
-                  variant="outline"
-                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
-                >
-                  <FaRedo className="mr-2" />
-                  Reorder Items
-                </Button>
-                <Button 
-                  onClick={() => handleTrackOrder(selectedOrder)}
-                  variant="outline"
-                  className="border-[#192a3a] text-[#192a3a] hover:bg-[#192a3a] hover:text-white"
-                >
-                  <FaTruck className="mr-2" />
-                  Track Order
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+          {/* Payment Methods Tab */}
+          <TabsContent value="payments">
+            <Card>
+              <CardHeader>
+                <CardTitle>Payment Methods</CardTitle>
+                <CardDescription>
+                  Manage your payment methods for supplement purchases
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {paymentMethods.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FaCreditCard className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No payment methods saved</h3>
+                    <p className="text-gray-500 mb-4">Add a payment method for faster checkout</p>
+                    <Button>
+                      <FaPlus className="mr-2 h-4 w-4" />
+                      Add Payment Method
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {paymentMethods.map((method) => (
+                      <div key={method.id} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-12 h-8 bg-gray-200 rounded flex items-center justify-center">
+                              <span className="text-xs font-semibold">{method.card_type.toUpperCase()}</span>
+                            </div>
+                            <div>
+                              <p className="font-semibold">**** **** **** {method.card_last_four}</p>
+                              <p className="text-sm text-gray-600">{method.card_holder_name}</p>
+                              <p className="text-sm text-gray-600">
+                                Expires {method.expiry_month.toString().padStart(2, '0')}/{method.expiry_year}
+                              </p>
+                              {method.is_default && (
+                                <Badge variant="outline" className="mt-2">Default</Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button size="sm" variant="outline">Edit</Button>
+                            <Button size="sm" variant="destructive">Delete</Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-      {/* Address Form Modal */}
-      <Dialog open={showAddressModal} onOpenChange={setShowAddressModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingAddress ? 'Edit Address' : 'Add New Address'}</DialogTitle>
-          </DialogHeader>
-          <AddressForm
-            initialData={editingAddress}
-            onSave={handleSaveAddress}
-            onCancel={() => setShowAddressModal(false)}
-          />
-        </DialogContent>
-      </Dialog>
+          {/* Preferences Tab */}
+          <TabsContent value="preferences">
+            <Card>
+              <CardHeader>
+                <CardTitle>Preferences</CardTitle>
+                <CardDescription>
+                  Customize your brain health supplement experience
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {preferences && (
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">Notifications</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">Email Notifications</p>
+                            <p className="text-sm text-gray-600">Receive updates about your orders and supplements</p>
+                          </div>
+                          <input 
+                            type="checkbox" 
+                            checked={preferences.email_notifications}
+                            onChange={(e) => setPreferences(prev => prev ? { ...prev, email_notifications: e.target.checked } : null)}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">Marketing Emails</p>
+                            <p className="text-sm text-gray-600">Get updates on new brain health products and offers</p>
+                          </div>
+                          <input 
+                            type="checkbox" 
+                            checked={preferences.marketing_emails}
+                            onChange={(e) => setPreferences(prev => prev ? { ...prev, marketing_emails: e.target.checked } : null)}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">Newsletter Subscription</p>
+                            <p className="text-sm text-gray-600">Brain health tips and cognitive wellness content</p>
+                          </div>
+                          <input 
+                            type="checkbox" 
+                            checked={preferences.newsletter_subscription}
+                            onChange={(e) => setPreferences(prev => prev ? { ...prev, newsletter_subscription: e.target.checked } : null)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <Separator />
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">Language & Region</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Language</Label>
+                          <Select value={preferences.language} onValueChange={(value) => setPreferences(prev => prev ? { ...prev, language: value } : null)}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="en">English</SelectItem>
+                              <SelectItem value="hi">Hindi</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Timezone</Label>
+                          <Select value={preferences.timezone} onValueChange={(value) => setPreferences(prev => prev ? { ...prev, timezone: value } : null)}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="UTC">UTC</SelectItem>
+                              <SelectItem value="Asia/Kolkata">Asia/Kolkata</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-      {/* View Subscription Modal */}
-      <Dialog open={showSubscriptionModal} onOpenChange={setShowSubscriptionModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Subscription Details</DialogTitle>
-          </DialogHeader>
-          {selectedSubscription && (
-            <div className="space-y-4">
-              <p><strong>Product Name:</strong> {selectedSubscription.productName}</p>
-              <p><strong>Quantity:</strong> 1</p>
-              <p><strong>Frequency:</strong> Monthly</p>
-              <p><strong>Price:</strong> $25.60 (includes 20% discount)</p>
-              <p><strong>Mode of Payment:</strong> Visa **** 4242</p>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Subscription Cancellation Modal */}
-      <SubscriptionCancellationModal
-        isOpen={showCancellationModal}
-        onClose={() => setShowCancellationModal(false)}
-        onConfirm={async (discountAccepted) => {
-          if (selectedSubscription) {
-            if (discountAccepted) {
-              try {
-                const { error } = await supabase
-                  .from("subscriptions")
-                  .update({ discount: 0.20 })
-                  .eq("id", selectedSubscription.id);
-                if (error) throw error;
-                fetchAllData();
-                toast({
-                  title: "Success",
-                  description: "Discount applied to your subscription.",
-                });
-              } catch (error) {
-                console.error("Error applying discount:", error);
-                toast({
-                  title: "Error",
-                  description: "Failed to apply discount.",
-                  variant: "destructive",
-                });
-              }
-            } else {
-              handleSubscriptionChange(selectedSubscription.id, "cancelled");
-            }
-          }
-        }}
-      />
+          {/* Rewards Tab */}
+          <TabsContent value="rewards">
+            <Card>
+              <CardHeader>
+                <CardTitle>Rewards Program</CardTitle>
+                <CardDescription>
+                  Earn points with every brain supplement purchase
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {rewards ? (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="text-center p-6 bg-[#514B3D]/5 rounded-lg">
+                        <h3 className="text-2xl font-bold text-[#514B3D]">{rewards.points_balance}</h3>
+                        <p className="text-sm text-gray-600">Available Points</p>
+                      </div>
+                      <div className="text-center p-6 bg-green-50 rounded-lg">
+                        <h3 className="text-2xl font-bold text-green-600">{rewards.total_earned}</h3>
+                        <p className="text-sm text-gray-600">Total Earned</p>
+                      </div>
+                      <div className="text-center p-6 bg-blue-50 rounded-lg">
+                        <h3 className="text-2xl font-bold text-blue-600">{rewards.total_redeemed}</h3>
+                        <p className="text-sm text-gray-600">Total Redeemed</p>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">How to Earn Points</h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                          <span>Purchase brain supplements</span>
+                          <span className="font-semibold">1 point per ₹10</span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                          <span>Refer a friend</span>
+                          <span className="font-semibold">100 points</span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                          <span>Write a product review</span>
+                          <span className="font-semibold">25 points</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <FaGift className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No rewards data</h3>
+                    <p className="text-gray-500">Start purchasing to earn rewards points</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };
-
-const AddressForm = ({ initialData, onSave, onCancel }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    address_line_1: '',
-    address_line_2: '',
-    city: '',
-    state: '',
-    pincode: '',
-    ...initialData,
-  });
-
-  const handleChange = (e) => {
-    const { id, value } = e.target;
-    setFormData((prev) => ({ ...prev, [id]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave(formData);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <Input id="name" placeholder="Full Name" value={formData.name} onChange={handleChange} required />
-      <Input id="phone" placeholder="Phone Number" value={formData.phone} onChange={handleChange} required />
-      <Input id="address_line_1" placeholder="Address Line 1" value={formData.address_line_1} onChange={handleChange} required />
-      <Input id="address_line_2" placeholder="Address Line 2 (Optional)" value={formData.address_line_2} onChange={handleChange} />
-      <div className="grid grid-cols-2 gap-4">
-        <Input id="city" placeholder="City" value={formData.city} onChange={handleChange} required />
-        <Input id="state" placeholder="State" value={formData.state} onChange={handleChange} required />
-      </div>
-      <Input id="pincode" placeholder="Pincode" value={formData.pincode} onChange={handleChange} required />
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
-        <Button type="submit">Save Address</Button>
-      </div>
-    </form>
-  );
-};
-
-const PaymentForm = ({ onSave, onCancel }) => {
-  const [paymentType, setPaymentType] = useState('card');
-  const [formData, setFormData] = useState({
-    card_type: 'Visa',
-    card_number: '',
-    card_holder_name: '',
-    expiry_month: '',
-    expiry_year: '',
-    cvv: '',
-    upi_id: ''
-  });
-
-  const handleChange = (e) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({...prev, [id]: value}));
-  }
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const dataToSave = paymentType === 'card' ? {
-      card_type: formData.card_type,
-      card_last_four: formData.card_number.slice(-4),
-      card_holder_name: formData.card_holder_name,
-      expiry_month: parseInt(formData.expiry_month),
-      expiry_year: parseInt(formData.expiry_year),
-    } : {
-      card_type: 'UPI',
-      card_holder_name: formData.upi_id,
-      card_last_four: '',
-      expiry_month: 0,
-      expiry_year: 0
-    };
-    onSave(dataToSave);
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <Button type="button" variant={paymentType === 'card' ? 'default' : 'outline'} onClick={() => setPaymentType('card')}>Card</Button>
-        <Button type="button" variant={paymentType === 'upi' ? 'default' : 'outline'} onClick={() => setPaymentType('upi')}>UPI</Button>
-      </div>
-
-      {paymentType === 'card' && (
-        <div className="space-y-4">
-          <Input id="card_holder_name" placeholder="Name on Card" value={formData.card_holder_name} onChange={handleChange} required />
-          <Input id="card_number" placeholder="Card Number" value={formData.card_number} onChange={handleChange} required />
-          <div className="grid grid-cols-3 gap-4">
-            <Input id="expiry_month" placeholder="MM" value={formData.expiry_month} onChange={handleChange} required />
-            <Input id="expiry_year" placeholder="YYYY" value={formData.expiry_year} onChange={handleChange} required />
-            <Input id="cvv" placeholder="CVV" value={formData.cvv} onChange={handleChange} required />
-          </div>
-        </div>
-      )}
-
-      {paymentType === 'upi' && (
-        <Input id="upi_id" placeholder="UPI ID" value={formData.upi_id} onChange={handleChange} required />
-      )}
-
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
-        <Button type="submit">Save Payment Method</Button>
-      </div>
-    </form>
-  );
-}
 
 export default AccountPage;
