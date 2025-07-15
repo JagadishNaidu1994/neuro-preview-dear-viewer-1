@@ -569,7 +569,7 @@ const ProductPage = () => {
               ) : !canReview ? (
                 <div className="text-center py-8">
                   <p className="text-gray-600">
-                    You can only review products that you have purchased and received.
+                    Please start using the product to post your valuable opinions.
                   </p>
                 </div>
               ) : (
