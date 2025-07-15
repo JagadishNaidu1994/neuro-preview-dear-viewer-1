@@ -70,7 +70,7 @@ const OrderSuccess = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 overflow-hidden relative">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-red-50 to-yellow-50 overflow-hidden relative">
       <Header />
       <Confetti />
       
@@ -162,7 +162,7 @@ const OrderSuccess = () => {
             transition={{ delay: 0.4, duration: 0.6, type: "spring" }}
             className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent"
           >
-            🎉 Order Confirmed! 🎉
+             Order Confirmed! 
           </motion.h1>
 
           {/* Celebration Message */}
@@ -173,7 +173,7 @@ const OrderSuccess = () => {
             className="mb-8"
           >
             <p className="text-xl text-gray-700 mb-4 font-medium">
-              Thank you for your amazing purchase! ✨
+              Thank you for your purchase! ✨
             </p>
             <motion.p
               initial={{ scale: 0.8 }}
