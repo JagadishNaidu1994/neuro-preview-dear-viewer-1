@@ -79,43 +79,82 @@ const Cart = () => {
   const validateCoupon = async (code: string): Promise<Coupon | null> => {
     setCouponLoading(true);
     try {
-      // Check general coupons
+      // First check general coupons (active and not expired)
       const { data: generalCoupon, error: generalError } = await supabase
-        .from("coupon_codes")
-        .select("*")
-        .eq("code", code.toUpperCase())
-        .eq("is_active", true)
+        .from('coupon_codes')
+        .select('*')
+        .eq('code', code.toUpperCase())
+        .eq('is_active', true)
+        .is('assigned_users', null)
         .single();
 
-      if (generalError && generalError.code !== 'PGRST116') {
-        throw generalError;
-      }
-
-      if (generalCoupon) {
+      if (!generalError && generalCoupon) {
+        // Check expiry
+        if (generalCoupon.expires_at && new Date(generalCoupon.expires_at) < new Date()) {
+          return null;
+        }
+        
+        // Check user usage limit
+        if (user && generalCoupon.max_uses) {
+          const { data: usage } = await supabase
+            .from('coupon_usage')
+            .select('used_count')
+            .eq('user_id', user.id)
+            .eq('coupon_id', generalCoupon.id)
+            .single();
+          
+          if (usage && usage.used_count >= generalCoupon.max_uses) {
+            return null;
+          }
+        }
+        
         return generalCoupon;
       }
 
-      // Check user-specific coupons
-      const { data: userCoupons, error: userError } = await supabase
-        .from("user_coupons")
-        .select(`
-          id,
-          is_used,
-          coupon:coupon_codes(*)
-        `)
-        .eq("user_id", user?.id)
-        .eq("is_used", false);
+      // Then check user-specific coupons
+      if (user?.email) {
+        const { data: userCoupons, error: userError } = await supabase
+          .from('coupon_codes')
+          .select('*')
+          .eq('code', code.toUpperCase())
+          .eq('is_active', true)
+          .not('assigned_users', 'is', null);
 
-      if (userError) throw userError;
-
-      const userCoupon = userCoupons?.find(uc => uc.coupon.code === code.toUpperCase());
-      if (userCoupon) {
-        return userCoupon.coupon;
+        if (!userError && userCoupons) {
+          // Check if user's email is in the assigned_users list
+          const userCoupon = userCoupons.find(coupon => 
+            coupon.assigned_users && 
+            coupon.assigned_users.split(',').map(email => email.trim().toLowerCase()).includes(user.email!.toLowerCase())
+          );
+          
+          if (userCoupon) {
+            // Check expiry
+            if (userCoupon.expires_at && new Date(userCoupon.expires_at) < new Date()) {
+              return null;
+            }
+            
+            // Check user usage limit
+            if (userCoupon.max_uses) {
+              const { data: usage } = await supabase
+                .from('coupon_usage')
+                .select('used_count')
+                .eq('user_id', user.id)
+                .eq('coupon_id', userCoupon.id)
+                .single();
+              
+              if (usage && usage.used_count >= userCoupon.max_uses) {
+                return null;
+              }
+            }
+            
+            return userCoupon;
+          }
+        }
       }
 
       return null;
     } catch (error) {
-      console.error("Error validating coupon:", error);
+      console.error('Error validating coupon:', error);
       return null;
     } finally {
       setCouponLoading(false);
@@ -493,7 +532,12 @@ const Cart = () => {
             </Card>
 
             <div className="space-y-3">
-              <Button className="w-full" size="lg" disabled={finalTotal <= 0}>
+              <Button 
+                className="w-full" 
+                size="lg" 
+                disabled={finalTotal <= 0}
+                onClick={() => navigate("/checkout")}
+              >
                 Proceed to Checkout
               </Button>
               <Button variant="outline" className="w-full" onClick={clearCart}>

@@ -159,6 +159,7 @@ export type Database = {
       }
       coupon_codes: {
         Row: {
+          assigned_users: string | null
           code: string
           created_at: string | null
           discount_type: string
@@ -172,6 +173,7 @@ export type Database = {
           used_count: number | null
         }
         Insert: {
+          assigned_users?: string | null
           code: string
           created_at?: string | null
           discount_type: string
@@ -185,6 +187,7 @@ export type Database = {
           used_count?: number | null
         }
         Update: {
+          assigned_users?: string | null
           code?: string
           created_at?: string | null
           discount_type?: string
@@ -198,6 +201,41 @@ export type Database = {
           used_count?: number | null
         }
         Relationships: []
+      }
+      coupon_usage: {
+        Row: {
+          coupon_id: string
+          created_at: string
+          id: string
+          updated_at: string
+          used_count: number
+          user_id: string
+        }
+        Insert: {
+          coupon_id: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          used_count?: number
+          user_id: string
+        }
+        Update: {
+          coupon_id?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          used_count?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_usage_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupon_codes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       expense_categories: {
         Row: {
@@ -748,6 +786,7 @@ export type Database = {
           total_redeemed: number | null
           updated_at: string | null
           user_id: string | null
+          utilized_points: number | null
         }
         Insert: {
           created_at?: string | null
@@ -757,6 +796,7 @@ export type Database = {
           total_redeemed?: number | null
           updated_at?: string | null
           user_id?: string | null
+          utilized_points?: number | null
         }
         Update: {
           created_at?: string | null
@@ -766,6 +806,7 @@ export type Database = {
           total_redeemed?: number | null
           updated_at?: string | null
           user_id?: string | null
+          utilized_points?: number | null
         }
         Relationships: []
       }

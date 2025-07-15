@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useCart } from "@/context/CartProvider";
 import { useAuth } from "@/context/AuthProvider";
+import { useCouponContext } from "@/context/CouponProvider";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Plus, Truck, CreditCard } from "lucide-react";
+import { MapPin, Plus, Truck, CreditCard, Tag, Star } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Address {
   id: string;
@@ -33,6 +35,8 @@ interface ShippingMethod {
 const Checkout = () => {
   const { items, totalPrice, clearCart } = useCart();
   const { user } = useAuth();
+  const { appliedCoupon, pointsToUse, discount, setAppliedCoupon, setPointsToUse, setDiscount } = useCouponContext();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -143,7 +147,16 @@ const Checkout = () => {
     try {
       const selectedShippingMethod = shippingMethods.find(method => method.id === selectedShipping);
       const shippingCost = selectedShippingMethod?.price || 0;
-      const finalTotal = totalPrice + shippingCost;
+      
+      // Calculate final total with discounts
+      const subtotal = totalPrice + shippingCost;
+      const couponDiscount = appliedCoupon ? 
+        (appliedCoupon.discount_type === 'percentage' ? 
+          (totalPrice * appliedCoupon.discount_value) / 100 : 
+          Math.min(appliedCoupon.discount_value, totalPrice)) : 0;
+      const pointsDiscount = Math.min(pointsToUse || 0, totalPrice - couponDiscount);
+      const finalTotal = Math.max(0, subtotal - couponDiscount - pointsDiscount);
+      
       const selectedAddressData = addresses.find(addr => addr.id === selectedAddress);
 
       // Create order
@@ -159,6 +172,46 @@ const Checkout = () => {
         .single();
 
       if (orderError) throw orderError;
+
+      // Update coupon usage if coupon was applied
+      if (appliedCoupon) {
+        // Increment coupon used_count
+        await supabase
+          .from('coupon_codes')
+          .update({ used_count: appliedCoupon.used_count + 1 })
+          .eq('id', appliedCoupon.id);
+
+        // Update user coupon usage tracking
+        await supabase
+          .from('coupon_usage')
+          .upsert({
+            user_id: user.id,
+            coupon_id: appliedCoupon.id,
+            used_count: 1
+          }, {
+            onConflict: 'user_id,coupon_id',
+            ignoreDuplicates: false
+          });
+      }
+
+      // Update reward points if used
+      if (pointsToUse && pointsToUse > 0) {
+        const { data: currentRewards } = await supabase
+          .from('user_rewards')
+          .select('points_balance, utilized_points')
+          .eq('user_id', user.id)
+          .single();
+
+        if (currentRewards) {
+          await supabase
+            .from('user_rewards')
+            .update({
+              points_balance: currentRewards.points_balance - pointsToUse,
+              utilized_points: (currentRewards.utilized_points || 0) + pointsToUse
+            })
+            .eq('user_id', user.id);
+        }
+      }
 
       // Create order items and subscriptions
       const orderItems = [];
@@ -195,14 +248,21 @@ const Checkout = () => {
         if (subsError) throw subsError;
       }
 
-      // Clear cart
+      // Clear cart and context
       await clearCart();
+      setAppliedCoupon(null);
+      setPointsToUse(0);
+      setDiscount(0);
 
       // Redirect to success page
       navigate(`/order-success?orderId=${order.id}`);
     } catch (error) {
       console.error("Error creating order:", error);
-      alert("There was an error processing your order. Please try again.");
+      toast({
+        title: "Error",
+        description: "There was an error processing your order. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -234,7 +294,14 @@ const Checkout = () => {
 
   const selectedShippingMethod = shippingMethods.find(method => method.id === selectedShipping);
   const shippingCost = selectedShippingMethod?.price || 0;
-  const finalTotal = totalPrice + shippingCost;
+  
+  // Calculate discounts
+  const couponDiscount = appliedCoupon ? 
+    (appliedCoupon.discount_type === 'percentage' ? 
+      (totalPrice * appliedCoupon.discount_value) / 100 : 
+      Math.min(appliedCoupon.discount_value, totalPrice)) : 0;
+  const pointsDiscount = Math.min(pointsToUse || 0, totalPrice - couponDiscount);
+  const finalTotal = Math.max(0, totalPrice + shippingCost - couponDiscount - pointsDiscount);
 
   return (
     <div className="min-h-screen bg-[#F8F8F5]">
@@ -443,6 +510,27 @@ const Checkout = () => {
                   {shippingCost === 0 ? "Free" : `₹${shippingCost.toFixed(2)}`}
                 </span>
               </div>
+              
+              {appliedCoupon && (
+                <div className="flex justify-between text-green-600">
+                  <span className="flex items-center gap-1">
+                    <Tag className="w-4 h-4" />
+                    {appliedCoupon.code} Discount:
+                  </span>
+                  <span>-₹{couponDiscount.toFixed(2)}</span>
+                </div>
+              )}
+              
+              {pointsToUse > 0 && (
+                <div className="flex justify-between text-blue-600">
+                  <span className="flex items-center gap-1">
+                    <Star className="w-4 h-4" />
+                    Points Used ({pointsToUse}):
+                  </span>
+                  <span>-₹{pointsDiscount.toFixed(2)}</span>
+                </div>
+              )}
+              
               <div className="flex justify-between font-semibold text-lg border-t pt-2">
                 <span>Total:</span>
                 <span>₹{finalTotal.toFixed(2)}</span>
