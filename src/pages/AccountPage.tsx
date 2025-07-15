@@ -1004,34 +1004,35 @@ const AccountPage = () => {
                                   <div className="text-right">
                                     <p className="font-semibold text-[#192a3a]">₹{(item.price * item.quantity).toFixed(2)}</p>
                                     <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleViewProduct(item.products.id)}
-                                      className="text-[#192a3a] hover:text-[#0f1a26] p-0 h-auto"
-                                    >
-                                      View Product
-                                    </Button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-16">
-                      <FaBox className="mx-auto text-6xl text-gray-400 mb-6" />
-                      <h3 className="text-2xl font-semibold text-[#192a3a] mb-4">No orders yet</h3>
-                      <p className="text-gray-600 mb-8">Start shopping to see your orders here</p>
-                      <Button onClick={() => navigate("/shop-all")} className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
-                        Start Shopping
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+  size="sm"
+  variant="ghost"
+  onClick={() => handleViewProduct(item.products.id)}
+  className="text-[#192a3a] hover:text-[#0f1a26] p-0 h-auto"
+>
+  View Product
+</Button>
+</div>
+</div>
+))}
+</div>
+)}
+</div>
+))}
+</div>
+) : ( // ← fixed colon with matching parentheses
+  <div className="text-center py-16">
+    <FaBox className="mx-auto text-6xl text-gray-400 mb-6" />
+    <h3 className="text-2xl font-semibold text-[#192a3a] mb-4">No orders yet</h3>
+    <p className="text-gray-600 mb-8">Start shopping to see your orders here</p>
+    <Button
+      onClick={() => navigate("/shop-all")}
+      className="bg-[#192a3a] hover:bg-[#0f1a26] text-white"
+    >
+      Start Shopping
+    </Button>
+  </div>
+)}
+
 
             {/* Wishlist */}
             {activeTab === "wishlist" && (
