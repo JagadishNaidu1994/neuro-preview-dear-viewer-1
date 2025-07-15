@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import ProductsTab from "@/components/admin/ProductsTab";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 
 interface Coupon {
@@ -22,6 +24,7 @@ interface Coupon {
 }
 
 export default function AdminDashboard() {
+  const [activeTab, setActiveTab] = useState("coupons");
   const { toast } = useToast();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [newCoupon, setNewCoupon] = useState({
@@ -32,7 +35,6 @@ export default function AdminDashboard() {
     max_uses: null,
     expires_at: "",
   });
-  const [activeTab, setActiveTab] = useState("coupons");
 
   useEffect(() => {
     fetchCoupons();
@@ -117,12 +119,20 @@ export default function AdminDashboard() {
         <nav>
           <ul className="space-y-2">
             <li>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => setActiveTab("coupons")}>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start" 
+                onClick={() => setActiveTab("coupons")}
+              >
                 Coupons
               </Button>
             </li>
             <li>
-              <Button variant="ghost" className="w-full justify-start">
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start" 
+                onClick={() => setActiveTab("products")}
+              >
                 Products
               </Button>
             </li>
@@ -131,14 +141,13 @@ export default function AdminDashboard() {
                 Orders
               </Button>
             </li>
-            {/* Add more admin navigation items here */}
           </ul>
         </nav>
       </aside>
       
       <main className="ml-64 p-8">
         <h1 className="text-3xl font-semibold mb-6">Welcome to the Admin Dashboard</h1>
-        <p className="text-gray-600">Manage your store efficiently.</p>
+        <p className="text-gray-600 mb-8">Manage your store efficiently.</p>
         
         {activeTab === "coupons" && (
           <div className="space-y-6">
@@ -301,7 +310,8 @@ export default function AdminDashboard() {
             </Card>
           </div>
         )}
-        
+
+        {activeTab === "products" && <ProductsTab />}
       </main>
     </div>
   );
