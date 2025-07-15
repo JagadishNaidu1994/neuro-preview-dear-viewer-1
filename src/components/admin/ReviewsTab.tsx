@@ -22,13 +22,9 @@ interface Review {
   rating: number;
   comment: string;
   is_approved: boolean;
-  is_archived?: boolean;
   created_at: string;
   products?: {
     name: string;
-  };
-  users?: {
-    email: string;
   };
 }
 
@@ -52,12 +48,7 @@ const ReviewsTab = () => {
         `)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      const transformedData = (data || []).map(review => ({
-        ...review,
-        is_archived: review.is_archived || false,
-        users: { email: 'user@example.com' } // Placeholder since users relation doesn't exist
-      }));
-      setReviews(transformedData);
+      setReviews(data || []);
     } catch (error) {
       console.error("Error fetching reviews:", error);
     } finally {
@@ -86,7 +77,6 @@ const ReviewsTab = () => {
 
   const handleArchive = async (id: string) => {
     try {
-      // Note: is_archived field may not exist in database, so we'll just update is_approved to false
       const { error } = await supabase
         .from("reviews")
         .update({ is_approved: false })
@@ -104,9 +94,9 @@ const ReviewsTab = () => {
     }
   };
 
-  const pendingReviews = reviews.filter(r => !r.is_approved && !r.is_archived);
-  const approvedReviews = reviews.filter(r => r.is_approved && !r.is_archived);
-  const archivedReviews = reviews.filter(r => r.is_archived);
+  const pendingReviews = reviews.filter(r => !r.is_approved);
+  const approvedReviews = reviews.filter(r => r.is_approved);
+  const archivedReviews = reviews.filter(r => !r.is_approved);
 
   const renderReviewTable = (data: Review[]) => (
     <div className="overflow-x-auto">
@@ -132,7 +122,7 @@ const ReviewsTab = () => {
             data.map((review) => (
               <TableRow key={review.id}>
                 <TableCell>{review.products?.name || 'N/A'}</TableCell>
-                <TableCell>{review.users?.email || 'N/A'}</TableCell>
+                <TableCell>Customer</TableCell>
                 <TableCell>{review.rating}/5</TableCell>
                 <TableCell>{review.comment}</TableCell>
                 <TableCell>
@@ -144,7 +134,7 @@ const ReviewsTab = () => {
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                    {!review.is_approved && !review.is_archived && (
+                    {!review.is_approved && (
                       <Button
                         size="sm"
                         variant="outline"
@@ -153,15 +143,13 @@ const ReviewsTab = () => {
                         <FaCheck />
                       </Button>
                     )}
-                    {!review.is_archived && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleArchive(review.id)}
-                      >
-                        <FaArchive />
-                      </Button>
-                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleArchive(review.id)}
+                    >
+                      <FaArchive />
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>

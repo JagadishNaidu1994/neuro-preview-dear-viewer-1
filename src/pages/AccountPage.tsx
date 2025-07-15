@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useUser } from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import PageWrapper from "@/components/PageWrapper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,7 +67,7 @@ const PaymentMethodIcon = ({ type }: { type: string }) => {
 };
 
 const AccountPage = () => {
-  const { user, session, isLoading: userLoading } = useUser();
+  const { user, session, loading: userLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -155,11 +155,11 @@ const AccountPage = () => {
       const transformedData = (data || []).map(sub => ({
         id: sub.id,
         user_id: sub.user_id,
-        plan_id: sub.product_id, // Using product_id as plan_id
+        plan_id: sub.product_id,
         start_date: sub.created_at,
         end_date: sub.next_delivery_date,
         status: sub.status,
-        auto_renew: true, // Default value
+        auto_renew: true,
         discount_percentage: sub.discount_percentage,
         plan: {
           name: 'Subscription Plan',
@@ -311,12 +311,12 @@ const AccountPage = () => {
               <Avatar className="w-16 h-16">
                 <AvatarImage src={getAvatarImage(user)} />
                 <AvatarFallback>
-                  {user?.first_name?.[0]}{user?.last_name?.[0]}
+                  {user?.user_metadata?.first_name?.[0]}{user?.user_metadata?.last_name?.[0]}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <h3 className="text-lg font-semibold">
-                  {user?.first_name} {user?.last_name}
+                  {user?.user_metadata?.first_name} {user?.user_metadata?.last_name}
                 </h3>
                 <p className="text-gray-500">{user?.email}</p>
               </div>
@@ -421,13 +421,13 @@ const AccountPage = () => {
                     onClick={() => {
                       setEditingProfile(false);
                       setProfileForm({
-                        first_name: user.user_metadata.first_name || "",
-                        last_name: user.user_metadata.last_name || "",
-                        phone_number: user.user_metadata.phone_number || "",
-                        address: user.user_metadata.address || "",
-                        city: user.user_metadata.city || "",
-                        state: user.user_metadata.state || "",
-                        zip_code: user.user_metadata.zip_code || "",
+                        first_name: user.user_metadata?.first_name || "",
+                        last_name: user.user_metadata?.last_name || "",
+                        phone_number: user.user_metadata?.phone_number || "",
+                        address: user.user_metadata?.address || "",
+                        city: user.user_metadata?.city || "",
+                        state: user.user_metadata?.state || "",
+                        zip_code: user.user_metadata?.zip_code || "",
                       });
                     }}
                   >
@@ -510,7 +510,7 @@ const AccountPage = () => {
                                 "",
                             });
                             handleSubscriptionUpdate(subscription.id, {
-                              auto_renew: e.target.checked,
+                              status: subscription.status,
                             });
                           }}
                         />
