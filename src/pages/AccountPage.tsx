@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
 import { useCart } from "@/context/CartProvider";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -114,6 +115,7 @@ const AccountPage = () => {
   const { user } = useAuth();
   const { addToCart } = useCart();
   const { isAdmin } = useAdmin();
+  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
@@ -1505,7 +1507,7 @@ const AccountPage = () => {
               try {
                 const { error } = await supabase
                   .from("subscriptions")
-                  .update({ discount: 0.20 })
+                  .update({ discount_percentage: 0.20 })
                   .eq("id", selectedSubscription.id);
                 if (error) throw error;
                 fetchAllData();
