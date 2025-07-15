@@ -40,6 +40,8 @@ const ProductPage = () => {
   const imageRef = useRef<HTMLImageElement>(null);
   const [review, setReview] = useState({ rating: 5, comment: "" });
   const [reviews, setReviews] = useState<any[]>([]);
+  const [canReview, setCanReview] = useState(false);
+  const [hasReviewed, setHasReviewed] = useState(false);
 
   const { user } = useAuth();
   const { addToCart } = useCart();
@@ -75,6 +77,7 @@ const ProductPage = () => {
         setIsInWishlist(true);
       }
     };
+    
     const fetchReviews = async () => {
       if (!id) return;
       try {
@@ -91,8 +94,43 @@ const ProductPage = () => {
       }
     };
 
+    const checkReviewEligibility = async () => {
+      if (!user || !id) return;
+      
+      // Check if user has already reviewed this product
+      const { data: existingReview } = await supabase
+        .from("reviews")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("product_id", id)
+        .single();
+      
+      if (existingReview) {
+        setHasReviewed(true);
+        setCanReview(false);
+        return;
+      }
+      
+      // Check if user has purchased this product and it's delivered
+      const { data: deliveredOrder } = await supabase
+        .from("orders")
+        .select(`
+          id,
+          order_items!inner(product_id)
+        `)
+        .eq("user_id", user.id)
+        .eq("status", "delivered")
+        .eq("order_items.product_id", id)
+        .limit(1);
+      
+      setCanReview(deliveredOrder && deliveredOrder.length > 0);
+    };
+
     fetchProduct();
-    checkWishlist();
+    if (user) {
+      checkWishlist();
+      checkReviewEligibility();
+    }
     fetchReviews();
   }, [id, user]);
 
@@ -132,10 +170,11 @@ const ProductPage = () => {
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !product) return;
+    if (!user || !product || !canReview || hasReviewed) return;
 
     try {
-      const { error } = await supabase.from("reviews").insert([
+      // Submit review
+      const { error: reviewError } = await supabase.from("reviews").insert([
         {
           product_id: product.id,
           user_id: user.id,
@@ -143,9 +182,44 @@ const ProductPage = () => {
           comment: review.comment,
         },
       ]);
-      if (error) throw error;
+      if (reviewError) throw reviewError;
+
+      // Add 25 points to user rewards
+      const { data: existingRewards } = await supabase
+        .from("user_rewards")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (existingRewards) {
+        // Update existing rewards
+        const { error: updateError } = await supabase
+          .from("user_rewards")
+          .update({
+            points_balance: existingRewards.points_balance + 25,
+            total_earned: existingRewards.total_earned + 25,
+          })
+          .eq("user_id", user.id);
+        if (updateError) throw updateError;
+      } else {
+        // Create new rewards entry
+        const { error: insertError } = await supabase
+          .from("user_rewards")
+          .insert([
+            {
+              user_id: user.id,
+              points_balance: 25,
+              total_earned: 25,
+              total_redeemed: 0,
+            },
+          ]);
+        if (insertError) throw insertError;
+      }
+
       setReview({ rating: 5, comment: "" });
-      alert("Review submitted for approval!");
+      setHasReviewed(true);
+      setCanReview(false);
+      alert("Review submitted for approval! You earned 25 points!");
     } catch (error) {
       console.error("Error submitting review:", error);
       alert("Failed to submit review.");
@@ -487,32 +561,49 @@ const ProductPage = () => {
             <h2 className="text-2xl font-light text-black mb-8 text-center">
               Write a Review
             </h2>
-            <form onSubmit={handleReviewSubmit} className="max-w-xl mx-auto">
-              <div className="flex items-center mb-4">
-                <span className="mr-4">Your Rating:</span>
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <FaStar
-                      key={i}
-                      className={`cursor-pointer ${
-                        i < review.rating ? "text-yellow-400" : "text-gray-300"
-                      }`}
-                      onClick={() => setReview({ ...review, rating: i + 1 })}
-                    />
-                  ))}
+            <div className="max-w-xl mx-auto">
+              {hasReviewed ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600">You have already reviewed this product.</p>
                 </div>
-              </div>
-              <Textarea
-                placeholder="Write your review here..."
-                value={review.comment}
-                onChange={(e) =>
-                  setReview({ ...review, comment: e.target.value })
-                }
-                rows={5}
-                className="mb-4"
-              />
-              <Button type="submit">Submit Review</Button>
-            </form>
+              ) : !canReview ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600">
+                    You can only review products that you have purchased and received.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleReviewSubmit}>
+                  <div className="flex items-center mb-4">
+                    <span className="mr-4">Your Rating:</span>
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => (
+                        <FaStar
+                          key={i}
+                          className={`cursor-pointer ${
+                            i < review.rating ? "text-yellow-400" : "text-gray-300"
+                          }`}
+                          onClick={() => setReview({ ...review, rating: i + 1 })}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <Textarea
+                    placeholder="Write your review here..."
+                    value={review.comment}
+                    onChange={(e) =>
+                      setReview({ ...review, comment: e.target.value })
+                    }
+                    rows={5}
+                    className="mb-4"
+                    required
+                  />
+                  <Button type="submit" className="w-full">
+                    Submit Review & Earn 25 Points
+                  </Button>
+                </form>
+              )}
+            </div>
           </div>
         )}
 
