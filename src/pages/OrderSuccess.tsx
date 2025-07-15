@@ -130,7 +130,7 @@ const OrderSuccess = () => {
           </p>
 
           <div className="space-x-4">
-            <Link to="/account">
+            <Link to="/account/orders">
               <Button variant="outline">View Orders</Button>
             </Link>
             <Link to="/shop-all">
