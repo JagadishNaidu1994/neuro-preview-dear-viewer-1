@@ -114,7 +114,11 @@ const ExpensesTab = () => {
     if (window.confirm("Are you sure you want to delete this expense?")) {
       setLoading(true);
       try {
-        // Simulate delete - in real implementation this would delete from database
+        const { error } = await supabase
+          .from("expenses")
+          .delete()
+          .eq("id", expenseId);
+        if (error) throw error;
         toast({ title: "Success", description: "Expense deleted." });
         await fetchExpenses();
       } catch (error) {
