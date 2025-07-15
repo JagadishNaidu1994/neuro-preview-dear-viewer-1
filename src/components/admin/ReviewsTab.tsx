@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -22,9 +21,13 @@ interface Review {
   rating: number;
   comment: string;
   is_approved: boolean;
+  is_archived: boolean;
   created_at: string;
-  products?: {
+  products: {
     name: string;
+  };
+  users: {
+    email: string;
   };
 }
 
@@ -42,10 +45,13 @@ const ReviewsTab = () => {
     try {
       const { data, error } = await supabase
         .from("reviews")
-        .select(`
+        .select(
+          `
           *,
-          products(name)
-        `)
+          products(name),
+          users(email)
+        `
+        )
         .order("created_at", { ascending: false });
       if (error) throw error;
       setReviews(data || []);
@@ -79,7 +85,7 @@ const ReviewsTab = () => {
     try {
       const { error } = await supabase
         .from("reviews")
-        .update({ is_approved: false })
+        .update({ is_archived: true })
         .eq("id", id);
       if (error) throw error;
       toast({ title: "Success", description: "Review archived." });
@@ -94,9 +100,9 @@ const ReviewsTab = () => {
     }
   };
 
-  const pendingReviews = reviews.filter(r => !r.is_approved);
-  const approvedReviews = reviews.filter(r => r.is_approved);
-  const archivedReviews = reviews.filter(r => !r.is_approved);
+  const pendingReviews = reviews.filter(r => !r.is_approved && !r.is_archived);
+  const approvedReviews = reviews.filter(r => r.is_approved && !r.is_archived);
+  const archivedReviews = reviews.filter(r => r.is_archived);
 
   const renderReviewTable = (data: Review[]) => (
     <div className="overflow-x-auto">
@@ -117,12 +123,19 @@ const ReviewsTab = () => {
               <TableCell colSpan={6} className="text-center">
                 Loading...
               </TableCell>
+
+              <TableHead>Product</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Rating</TableHead>
+              <TableHead>Comment</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           ) : (
             data.map((review) => (
               <TableRow key={review.id}>
-                <TableCell>{review.products?.name || 'N/A'}</TableCell>
-                <TableCell>Customer</TableCell>
+                <TableCell>{review.products.name}</TableCell>
+                <TableCell>{review.users.email}</TableCell>
                 <TableCell>{review.rating}/5</TableCell>
                 <TableCell>{review.comment}</TableCell>
                 <TableCell>
@@ -134,7 +147,33 @@ const ReviewsTab = () => {
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                    {!review.is_approved && (
+                    {!review.is_approved && !review.is_archived && (
+              </TableRow>
+            ) : (
+              reviews.map((review) => (
+                <TableRow key={review.id}>
+                  <TableCell>{review.products.name}</TableCell>
+                  <TableCell>{review.users.email}</TableCell>
+                  <TableCell>{review.rating}/5</TableCell>
+                  <TableCell>{review.comment}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={review.is_approved ? "default" : "secondary"}
+                    >
+                      {review.is_approved ? "Approved" : "Pending"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      {!review.is_approved && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleApprove(review.id)}
+                        >
+                          <FaCheck />
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="outline"
@@ -143,13 +182,15 @@ const ReviewsTab = () => {
                         <FaCheck />
                       </Button>
                     )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleArchive(review.id)}
-                    >
-                      <FaArchive />
-                    </Button>
+                    {!review.is_archived && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleArchive(review.id)}
+                      >
+                        <FaArchive />
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
