@@ -210,7 +210,7 @@ const Checkout = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-brand-white">
+      <div className="min-h-screen bg-[#F8F8F5]">
         <Header />
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <h1 className="text-2xl font-bold mb-4">Please sign in to checkout</h1>
@@ -222,7 +222,7 @@ const Checkout = () => {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-brand-white">
+      <div className="min-h-screen bg-[#F8F8F5]">
         <Header />
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
@@ -237,18 +237,18 @@ const Checkout = () => {
   const finalTotal = totalPrice + shippingCost;
 
   return (
-    <div className="min-h-screen bg-brand-white">
+    <div className="min-h-screen bg-[#F8F8F5]">
       <Header />
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8 text-brand-blue-700">Checkout</h1>
+        <h1 className="text-3xl font-bold mb-8">Checkout</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Address & Shipping */}
           <div className="space-y-6">
             {/* Delivery Address */}
-            <div className="bg-brand-white rounded-lg p-6 shadow-sm">
+            <div className="bg-white rounded-lg p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold flex items-center gap-2 text-brand-blue-700">
+                <h2 className="text-xl font-semibold flex items-center gap-2">
                   <MapPin className="w-5 h-5" />
                   Delivery Address
                 </h2>
@@ -269,17 +269,17 @@ const Checkout = () => {
                       <RadioGroupItem value={address.id} id={address.id} className="mt-1" />
                       <div className="flex-1">
                         <Label htmlFor={address.id} className="cursor-pointer">
-                          <div className="font-medium text-brand-blue-700">{address.name}</div>
-                          <div className="text-sm text-brand-gray-500">{address.phone}</div>
-                          <div className="text-sm text-brand-gray-500">
+                          <div className="font-medium">{address.name}</div>
+                          <div className="text-sm text-gray-600">{address.phone}</div>
+                          <div className="text-sm text-gray-600">
                             {address.address_line_1}
                             {address.address_line_2 && `, ${address.address_line_2}`}
                           </div>
-                          <div className="text-sm text-brand-gray-500">
+                          <div className="text-sm text-gray-600">
                             {address.city}, {address.state} - {address.pincode}
                           </div>
                           {address.is_default && (
-                            <span className="text-xs bg-brand-blue-700 text-brand-white px-2 py-1 rounded-full mt-1 inline-block">
+                            <span className="text-xs bg-[#514B3D] text-white px-2 py-1 rounded-full mt-1 inline-block">
                               Default
                             </span>
                           )}
@@ -361,7 +361,7 @@ const Checkout = () => {
                   </div>
                   
                   <div className="flex gap-2">
-                    <Button type="submit">
+                    <Button type="submit" className="bg-[#514B3D] hover:bg-[#3f3a2f]">
                       Save Address
                     </Button>
                     <Button
@@ -377,8 +377,8 @@ const Checkout = () => {
             </div>
 
             {/* Shipping Methods */}
-            <div className="bg-brand-white rounded-lg p-6 shadow-sm">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-brand-blue-700">
+            <div className="bg-white rounded-lg p-6 shadow-sm">
+              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                 <Truck className="w-5 h-5" />
                 Shipping Options
               </h2>
@@ -390,11 +390,11 @@ const Checkout = () => {
                       <Label htmlFor={method.id} className="cursor-pointer">
                         <div className="flex justify-between items-start">
                           <div>
-                            <div className="font-medium text-brand-blue-700">{method.name}</div>
-                            <div className="text-sm text-brand-gray-500">{method.description}</div>
-                            <div className="text-sm text-brand-gray-500">{method.estimated_days}</div>
+                            <div className="font-medium">{method.name}</div>
+                            <div className="text-sm text-gray-600">{method.description}</div>
+                            <div className="text-sm text-gray-600">{method.estimated_days}</div>
                           </div>
-                          <div className="font-semibold text-brand-blue-700">
+                          <div className="font-semibold">
                             {method.price === 0 ? "Free" : `₹${method.price}`}
                           </div>
                         </div>
@@ -407,8 +407,8 @@ const Checkout = () => {
           </div>
 
           {/* Right Column - Order Summary */}
-          <div className="bg-brand-white rounded-lg p-6 shadow-sm h-fit">
-            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-brand-blue-700">
+          <div className="bg-white rounded-lg p-6 shadow-sm h-fit">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
               <CreditCard className="w-5 h-5" />
               Order Summary
             </h2>
@@ -422,17 +422,17 @@ const Checkout = () => {
                     className="w-16 h-16 object-cover rounded"
                   />
                   <div className="flex-1">
-                    <h3 className="font-medium text-brand-blue-700">{item.product.name}</h3>
-                    <p className="text-sm text-brand-gray-500">Qty: {item.quantity}</p>
+                    <h3 className="font-medium">{item.product.name}</h3>
+                    <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                   </div>
-                  <div className="font-semibold text-brand-blue-700">
+                  <div className="font-semibold">
                     ₹{(item.product.price * item.quantity).toFixed(2)}
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="space-y-2 border-t border-brand-gray-200 pt-4 text-brand-blue-700">
+            <div className="space-y-2 border-t pt-4">
               <div className="flex justify-between">
                 <span>Subtotal:</span>
                 <span>₹{totalPrice.toFixed(2)}</span>
@@ -443,7 +443,7 @@ const Checkout = () => {
                   {shippingCost === 0 ? "Free" : `₹${shippingCost.toFixed(2)}`}
                 </span>
               </div>
-              <div className="flex justify-between font-semibold text-lg border-t border-brand-gray-200 pt-2">
+              <div className="flex justify-between font-semibold text-lg border-t pt-2">
                 <span>Total:</span>
                 <span>₹{finalTotal.toFixed(2)}</span>
               </div>
@@ -451,7 +451,7 @@ const Checkout = () => {
 
             <Button
               onClick={handlePlaceOrder}
-              className="w-full mt-6"
+              className="w-full bg-[#514B3D] hover:bg-[#3f3a2f] mt-6"
               disabled={loading || !selectedAddress || !selectedShipping}
             >
               {loading ? "Processing..." : "Place Order"}

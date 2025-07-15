@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -10,9 +11,8 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FaCheck, FaArchive } from "react-icons/fa";
+import { FaCheck, FaTrash } from "react-icons/fa";
 import { useToast } from "@/hooks/use-toast";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Review {
   id: string;
@@ -21,14 +21,9 @@ interface Review {
   rating: number;
   comment: string;
   is_approved: boolean;
-  is_archived: boolean;
   created_at: string;
-  products: {
-    name: string;
-  };
-  users: {
-    email: string;
-  };
+  product_name?: string;
+  user_email?: string;
 }
 
 const ReviewsTab = () => {
@@ -43,20 +38,52 @@ const ReviewsTab = () => {
   const fetchReviews = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data: reviewsData, error } = await supabase
         .from("reviews")
-        .select(
-          `
-          *,
-          products(name),
-          users(email)
-        `
-        )
+        .select("*")
         .order("created_at", { ascending: false });
+
       if (error) throw error;
-      setReviews(data || []);
+
+      // Fetch related product and user data separately
+      const reviewsWithDetails: Review[] = [];
+      if (reviewsData) {
+        for (const review of reviewsData) {
+          let productName = "Unknown Product";
+          let userEmail = "Unknown User";
+
+          // Fetch product name
+          if (review.product_id) {
+            const { data: product } = await supabase
+              .from("products")
+              .select("name")
+              .eq("id", review.product_id)
+              .single();
+            if (product) productName = product.name;
+          }
+
+          // Fetch user email
+          if (review.user_id) {
+            const { data: user } = await supabase
+              .from("users")
+              .select("email")
+              .eq("id", review.user_id)
+              .single();
+            if (user) userEmail = user.email;
+          }
+
+          reviewsWithDetails.push({
+            ...review,
+            product_name: productName,
+            user_email: userEmail,
+          });
+        }
+      }
+
+      setReviews(reviewsWithDetails);
     } catch (error) {
       console.error("Error fetching reviews:", error);
+      setReviews([]);
     } finally {
       setLoading(false);
     }
@@ -81,112 +108,104 @@ const ReviewsTab = () => {
     }
   };
 
-  const handleArchive = async (id: string) => {
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this review?")) return;
+
     try {
-      const { error } = await supabase
-        .from("reviews")
-        .update({ is_archived: true })
-        .eq("id", id);
+      const { error } = await supabase.from("reviews").delete().eq("id", id);
       if (error) throw error;
-      toast({ title: "Success", description: "Review archived." });
+      toast({ title: "Success", description: "Review deleted." });
       await fetchReviews();
     } catch (error) {
-      console.error("Error archiving review:", error);
+      console.error("Error deleting review:", error);
       toast({
         title: "Error",
-        description: "Failed to archive review.",
+        description: "Failed to delete review.",
         variant: "destructive",
       });
     }
   };
 
-  const pendingReviews = reviews.filter(r => !r.is_approved && !r.is_archived);
-  const approvedReviews = reviews.filter(r => r.is_approved && !r.is_archived);
-  const archivedReviews = reviews.filter(r => r.is_archived);
-
-  const renderReviewTable = (data: Review[]) => (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Product</TableHead>
-            <TableHead>Customer</TableHead>
-            <TableHead>Rating</TableHead>
-            <TableHead>Comment</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {loading ? (
+  return (
+    <div>
+      <h2 className="text-2xl font-bold mb-4">Customer Reviews</h2>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={6} className="text-center">
+
+              
+          <!--<TableCell colSpan={6} className="text-center">
                 Loading...
-              </TableCell>
+              </TableCell> -->
+
+              
+              <TableHead>Product</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Rating</TableHead>
+              <TableHead>Comment</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
+
             </TableRow>
-          ) : (
-            data.map((review) => (
-              <TableRow key={review.id}>
-                <TableCell>{review.products.name}</TableCell>
-                <TableCell>{review.users.email}</TableCell>
-                <TableCell>{review.rating}/5</TableCell>
-                <TableCell>{review.comment}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant={review.is_approved ? "default" : "secondary"}
-                  >
-                    {review.is_approved ? "Approved" : "Pending"}
-                  </Badge>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : reviews.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center">
+                  No reviews found
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
                     {!review.is_approved && !review.is_archived && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleApprove(review.id)}
-                      >
-                        <FaCheck />
-                      </Button>
-                    )}
-                    {!review.is_archived && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleArchive(review.id)}
-                      >
-                        <FaArchive />
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </div>
-  );
 
-  return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Customer Reviews</h2>
-      <Tabs defaultValue="pending">
-        <TabsList>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="approved">Approved</TabsTrigger>
-          <TabsTrigger value="archived">Archived</TabsTrigger>
-        </TabsList>
-        <TabsContent value="pending">
-          {renderReviewTable(pendingReviews)}
-        </TabsContent>
-        <TabsContent value="approved">
-          {renderReviewTable(approvedReviews)}
-        </TabsContent>
-        <TabsContent value="archived">
-          {renderReviewTable(archivedReviews)}
-        </TabsContent>
-      </Tabs>
+              </TableRow>
+            ) : (
+              reviews.map((review) => (
+                <TableRow key={review.id}>
+                  <TableCell>{review.product_name}</TableCell>
+                  <TableCell>{review.user_email}</TableCell>
+                  <TableCell>{review.rating}/5</TableCell>
+                  <TableCell>{review.comment}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={review.is_approved ? "default" : "secondary"}
+                    >
+                      {review.is_approved ? "Approved" : "Pending"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      {!review.is_approved && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleApprove(review.id)}
+                        >
+                          <FaCheck />
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDelete(review.id)}
+                      >
+                        <FaTrash />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };
