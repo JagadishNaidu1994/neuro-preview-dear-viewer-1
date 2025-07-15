@@ -153,7 +153,7 @@ const OrderSuccess = () => {
             > */}
               <FaCheckCircle className="text-green-500 text-8xl mx-auto drop-shadow-lg" />
             </motion.div>
-          </div>
+          {/* </div> */}
 
           {/* Animated Title */}
           <motion.h1
