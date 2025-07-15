@@ -89,6 +89,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
     { id: "journals", label: "Journals", icon: FileText },
     { id: "messages", label: "Messages", icon: MessageSquare, count: counts.messages },
     { id: "coupons", label: "Coupons", icon: Tag, count: counts.coupons },
+    { id: "user-coupons", label: "User Coupons", icon: Tag },
     { id: "shipping", label: "Shipping", icon: Truck },
     { id: "expenses", label: "Expenses", icon: DollarSign },
     { id: "reviews", label: "Reviews", icon: Star },

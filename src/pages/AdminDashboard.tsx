@@ -6,6 +6,7 @@ import DashboardOverview from "@/components/admin/DashboardOverview";
 import AnalyticsTab from "@/components/admin/AnalyticsTab";
 import UsersTab from "@/components/admin/UsersTab";
 import ExpensesTab from "@/components/admin/ExpensesTab";
+import { UserCouponsTab } from "@/components/admin/UserCouponsTab";
 import ReviewsTab from "@/components/admin/ReviewsTab";
 import ContentTab from "@/components/admin/ContentTab";
 import ContactSubmissionsTab from "@/components/admin/ContactSubmissionsTab";
@@ -922,6 +923,9 @@ const AdminDashboard = () => {
 
           {/* Reviews Tab */}
           {activeTab === "reviews" && <ReviewsTab />}
+
+          {/* User Coupons Tab */}
+          {activeTab === "user-coupons" && <UserCouponsTab />}
 
           {/* Content Tab */}
           {activeTab === "content" && <ContentTab />}
