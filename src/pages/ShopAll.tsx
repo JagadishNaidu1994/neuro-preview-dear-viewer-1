@@ -95,14 +95,27 @@ export default function ShopAll() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#F8F8F5]">
+    return <div className="min-h-screen bg-brand-white">
+        <Header />
         <div className="w-full px-4 md:px-8 py-8 text-center">
-          <div className="text-xl">Loading brain supplements...</div>
+          <div className="text-xl text-brand-blue-700">Loading products...</div>
         </div>
       </div>
     );
   }
+  return <div className="min-h-screen bg-brand-white">
+           <main className="w-full px-4 bg-brand-white py-px md:px-[14px]">
+        <div className="max-w-[1400px] mx-auto">
+          <h1 className="text-3xl font-bold mb-8 text-center text-brand-blue-700">Shop All Products</h1>
+          
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {products.map(product => <div key={product.id} className={`group overflow-hidden rounded-xl bg-brand-white shadow-sm hover:shadow-lg transition-shadow duration-300 border border-brand-gray-200 ${!product.is_active || product.stock_quantity === 0 ? 'opacity-75 bg-brand-gray-100' : ''}`}>
+                <Link to={`/product?id=${product.id}`}>
+                  <div className="relative aspect-square overflow-hidden">
+                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    {(!product.is_active || product.stock_quantity === 0) && <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                        <span className="bg-red-500 text-brand-white px-3 py-1 rounded-lg font-semibold">
+
 
   return (
     <div className="min-h-screen bg-[#F8F8F5]">
@@ -152,32 +165,21 @@ export default function ShopAll() {
                 </Link>
                 <div className="p-4">
                   <Link to={`/product?id=${product.id}`}>
-                    <h3 className="text-gray-900 font-medium mb-2 hover:text-[#514B3D] transition-colors">
+                    <h3 className="text-brand-blue-700 font-medium mb-2 hover:text-brand-blue-600 transition-colors">
                       {product.name}
                     </h3>
                   </Link>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                  <p className="text-sm text-brand-gray-500 mb-3 line-clamp-2">
                     {product.description}
                   </p>
                   <div className="flex items-center justify-between">
-                    <div className="text-lg font-semibold text-gray-900">
-                      ₹{product.price}
+                    <div className="text-lg font-semibold text-brand-blue-700">
+                      ${product.price}
                     </div>
                     <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        min="1"
-                        max={product.stock_quantity}
-                        value={quantities[product.id] || 1}
-                        onChange={(e) => handleQuantityChange(product.id, parseInt(e.target.value))}
-                        className="w-16 h-8 text-center"
-                      />
-                      <Button
-                        size="sm"
-                        onClick={() => handleAddToCart(product.id)}
-                        disabled={!product.is_active || product.stock_quantity === 0}
-                        className="text-white bg-gray-950 hover:bg-gray-800 text-base font-medium"
-                      >
+                      <Input type="number" min="1" max={product.stock_quantity} value={quantities[product.id] || 1} onChange={e => handleQuantityChange(product.id, parseInt(e.target.value))} className="w-16 h-8 text-center" />
+                      <Button size="sm" onClick={() => handleAddToCart(product.id)} disabled={!product.is_active || product.stock_quantity === 0}>
+
                         <FaShoppingCart className="mr-2" />
                         {!product.is_active || product.stock_quantity === 0 
                           ? "Out of Stock" 
@@ -196,13 +198,10 @@ export default function ShopAll() {
             ))}
           </div>
 
-          {products.length === 0 && (
-            <div className="text-center py-16">
-              <FaBrain className="mx-auto text-6xl text-gray-300 mb-4" />
-              <h2 className="text-2xl font-semibold mb-4">No brain supplements available</h2>
-              <p className="text-gray-600">Check back soon for new cognitive enhancement products!</p>
-            </div>
-          )}
+          {products.length === 0 && <div className="text-center py-16">
+              <h2 className="text-2xl font-semibold mb-4 text-brand-blue-700">No products available</h2>
+              <p className="text-brand-gray-500">Check back soon for new products!</p>
+            </div>}
 
           {/* Benefits Section */}
           <div className="mt-16 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8">

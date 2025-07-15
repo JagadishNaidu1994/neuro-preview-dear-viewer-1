@@ -133,12 +133,20 @@ const ReviewsTab = () => {
         <Table>
           <TableHeader>
             <TableRow>
+
+              
+          <!--<TableCell colSpan={6} className="text-center">
+                Loading...
+              </TableCell> -->
+
+              
               <TableHead>Product</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>Rating</TableHead>
               <TableHead>Comment</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
+
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -153,6 +161,10 @@ const ReviewsTab = () => {
                 <TableCell colSpan={6} className="text-center">
                   No reviews found
                 </TableCell>
+                <TableCell>
+                  <div className="flex space-x-2">
+                    {!review.is_approved && !review.is_archived && (
+
               </TableRow>
             ) : (
               reviews.map((review) => (

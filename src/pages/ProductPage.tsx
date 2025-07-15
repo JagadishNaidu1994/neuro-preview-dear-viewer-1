@@ -23,6 +23,7 @@ interface Product {
   category: string;
   stock_quantity: number;
   is_active: boolean;
+  benefits?: string[];
 }
 
 const ProductPage = () => {
@@ -218,7 +219,7 @@ const ProductPage = () => {
             <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden">
               <img
                 ref={imageRef}
-                src={productImages[selectedImage]}
+                src={product.image_url}
                 alt={product.name}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
               />
@@ -260,15 +261,16 @@ const ProductPage = () => {
           {/* Product Details */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl lg:text-4xl font-light text-black mb-2">
+              <h1 className="text-3xl lg:text-4xl font-light text-brand-blue-700 mb-2">
                 {product.name}
               </h1>
-              <p className="text-gray-600 mb-2 flex items-center gap-2">
-                {getCategoryIcon(product.category)}
-                Cognitive enhancement, brain health, mental clarity
+              <p className="text-brand-gray-500 mb-2">{product.description}</p>
+              <p className="text-sm text-brand-gray-500 mb-4">
+                {
+                  product.benefits?.join(', ')
+                }
               </p>
-              <p className="text-sm text-gray-500 mb-4">{product.description}</p>
-              
+
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex">
                   {[...Array(5)].map((_, i) => <FaStar key={i} className="text-yellow-400 text-sm" />)}
@@ -537,8 +539,9 @@ const ProductPage = () => {
                 <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop" alt="Memory Booster" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
               </div>
               <div>
-                <h3 className="font-medium text-black">Memory Booster Complex</h3>
-                <p className="text-gray-600 text-sm">₹1,299.00</p>
+                <h3 className="font-medium text-brand-blue-700">Cognitive Support Supplement</h3>
+                <p className="text-brand-gray-500 text-sm">₹29.99</p>
+
               </div>
             </div>
 
@@ -547,8 +550,9 @@ const ProductPage = () => {
                 <img src="https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=400&h=400&fit=crop" alt="Focus Formula" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
               </div>
               <div>
-                <h3 className="font-medium text-black">Focus Formula</h3>
-                <p className="text-gray-600 text-sm">₹1,599.00</p>
+                <h3 className="font-medium text-brand-blue-700">Sleep Support Supplement</h3>
+                <p className="text-brand-gray-500 text-sm">₹39.99</p>
+
               </div>
             </div>
 
@@ -557,8 +561,9 @@ const ProductPage = () => {
                 <img src="https://images.unsplash.com/photo-1550572017-edd951aa8f72?w=400&h=400&fit=crop" alt="Brain Shield" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
               </div>
               <div>
-                <h3 className="font-medium text-black">Brain Shield Antioxidant</h3>
-                <p className="text-gray-600 text-sm">₹1,799.00</p>
+                <h3 className="font-medium text-brand-blue-700">Anxiety Relief Supplement</h3>
+                <p className="text-brand-gray-500 text-sm">₹24.99</p>
+
               </div>
             </div>
           </div>

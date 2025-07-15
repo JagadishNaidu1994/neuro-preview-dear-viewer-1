@@ -37,6 +37,85 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
+    if (isAdmin) {
+      fetchAllData();
+    }
+  }, [isAdmin]);
+
+  const fetchAllData = async () => {
+    await Promise.all([
+      fetchProducts(),
+      fetchOrders(),
+      fetchJournals(),
+      fetchCoupons(),
+      fetchShippingMethods(),
+    ]);
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      // Fetch orders first
+      const { data: ordersData, error } = await supabase
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch user details for each order
+      const ordersWithUsers: OrderWithUser[] = [];
+      if (ordersData) {
+        for (const order of ordersData) {
+          let userData = null;
+          if (order.user_id) {
+            const { data: user } = await supabase
+              .from("users")
+              .select("email, first_name, last_name")
+              .eq("id", order.user_id)
+              .single();
+            userData = user;
+          }
+
+          ordersWithUsers.push({
+            ...order,
+            users: userData
+          });
+        }
+      }
+
+      setOrders(ordersWithUsers);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
+  };
+
+  const fetchJournals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("journals")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setJournals(data || []);
+    } catch (error) {
+      console.error("Error fetching journals:", error);
+    }
+  };
     fetchCoupons();
   }, []);
 
@@ -261,7 +340,369 @@ export default function AdminDashboard() {
               <CardHeader>
                 <CardTitle>Active Coupons</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Order #</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {orders
+                      .filter(
+                        (order) =>
+                          (order.users?.first_name
+                            ?.toLowerCase()
+                            .includes(orderSearchTerm.toLowerCase()) ||
+                          order.users?.last_name
+                            ?.toLowerCase()
+                            .includes(orderSearchTerm.toLowerCase()) ||
+                          order.users?.email
+                            ?.toLowerCase()
+                            .includes(orderSearchTerm.toLowerCase()) ||
+                          order.id.includes(orderSearchTerm)) &&
+                          (orderStatusFilter === "all" || order.status === orderStatusFilter)
+                      )
+                      .map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-mono text-sm">
+                            #{generateOrderNumber(order.id)}
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">
+                                {order.users?.first_name
+                                  ? `${order.users.first_name} ${
+                                      order.users.last_name || ""
+                                    }`.trim()
+                                  : order.users?.email || "Guest User"}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {order.users?.email || "No email"}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>₹{order.total_amount}</TableCell>
+                          <TableCell>
+                            <select
+                              value={order.status}
+                              onChange={(e) =>
+                                updateOrderStatus(order.id, e.target.value)
+                              }
+                              className="border rounded px-2 py-1 text-sm"
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="processing">Processing</option>
+                              <option value="shipped">Shipped</option>
+                              <option value="delivered">Delivered</option>
+                              <option value="cancelled">Cancelled</option>
+                            </select>
+                          </TableCell>
+                          <TableCell>
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleViewOrder(order)}
+                            >
+                              <FaEye />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Messages Tab */}
+          {activeTab === "messages" && <MessagesSection />}
+
+          {/* Shipping Tab */}
+          {activeTab === "shipping" && <ShippingTab />}
+
+          {/* Expenses Tab */}
+          {activeTab === "expenses" && <ExpensesTab />}
+
+          {/* Reviews Tab */}
+          {activeTab === "reviews" && <ReviewsTab />}
+
+          {/* Content Tab */}
+          {activeTab === "content" && <ContentTab />}
+
+          {/* Journals Tab */}
+          {activeTab === "journals" && (
+            <Card className="bg-white">
+              <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
+                <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Journals Management</CardTitle>
+                <Dialog open={isJournalModalOpen} onOpenChange={setIsJournalModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => {
+                      setEditingJournal(null);
+                      resetJournalForm();
+                    }}>
+                      <FaPlus className="mr-2" />
+                      Add Journal
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingJournal ? "Edit Journal" : "Add New Journal"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleJournalSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="title">Title</Label>
+                        <Input
+                          id="title"
+                          value={journalForm.title}
+                          onChange={(e) =>
+                            setJournalForm({ ...journalForm, title: e.target.value })
+                          }
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="excerpt">Excerpt</Label>
+                        <Textarea
+                          id="excerpt"
+                          value={journalForm.excerpt}
+                          onChange={(e) =>
+                            setJournalForm({ ...journalForm, excerpt: e.target.value })
+                          }
+                          rows={2}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="content">Content</Label>
+                        <Textarea
+                          id="content"
+                          value={journalForm.content}
+                          onChange={(e) =>
+                            setJournalForm({ ...journalForm, content: e.target.value })
+                          }
+                          rows={10}
+                          required
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="author">Author</Label>
+                          <Input
+                            id="author"
+                            value={journalForm.author}
+                            onChange={(e) =>
+                              setJournalForm({ ...journalForm, author: e.target.value })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="journal_image_url">Image URL</Label>
+                          <Input
+                            id="journal_image_url"
+                            value={journalForm.image_url}
+                            onChange={(e) =>
+                              setJournalForm({ ...journalForm, image_url: e.target.value })
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="published"
+                          checked={journalForm.published}
+                          onChange={(e) =>
+                            setJournalForm({ ...journalForm, published: e.target.checked })
+                          }
+                        />
+                        <Label htmlFor="published">Published</Label>
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsJournalModalOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={loading}>
+                          {loading ? "Saving..." : "Save Journal"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Author</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {journals.map((journal) => (
+                      <TableRow key={journal.id}>
+                        <TableCell className="font-medium">{journal.title}</TableCell>
+                        <TableCell>{journal.author}</TableCell>
+                        <TableCell>
+                          <Badge variant={journal.published ? "default" : "secondary"}>
+                            {journal.published ? "Published" : "Draft"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(journal.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditJournal(journal)}
+                            >
+                              <FaEdit />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Coupons Tab */}
+          {activeTab === "coupons" && (
+            <Card className="bg-white">
+              <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
+                <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Coupon Codes Management</CardTitle>
+                <Dialog open={isCouponModalOpen} onOpenChange={setIsCouponModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => {
+                      setEditingCoupon(null);
+                      resetCouponForm();
+                    }}>
+                      <FaPlus className="mr-2" />
+                      Add Coupon
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingCoupon ? "Edit Coupon" : "Add New Coupon"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleCouponSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="code">Coupon Code</Label>
+                        <Input
+                          id="code"
+                          value={couponForm.code}
+                          onChange={(e) =>
+                            setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })
+                          }
+                          required
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="discount_type">Discount Type</Label>
+                          <select
+                            id="discount_type"
+                            value={couponForm.discount_type}
+                            onChange={(e) =>
+                              setCouponForm({ ...couponForm, discount_type: e.target.value })
+                            }
+                            className="w-full border rounded px-3 py-2"
+                          >
+                            <option value="percentage">Percentage</option>
+                            <option value="fixed">Fixed Amount</option>
+                          </select>
+                        </div>
+                        <div>
+                          <Label htmlFor="discount_value">
+                            Discount Value {couponForm.discount_type === "percentage" ? "(%)" : "($)"}
+                          </Label>
+                          <Input
+                            id="discount_value"
+                            type="number"
+                            step="0.01"
+                            value={couponForm.discount_value}
+                            onChange={(e) =>
+                              setCouponForm({ ...couponForm, discount_value: e.target.value })
+                            }
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="minimum_order_amount">Minimum Order Amount ($)</Label>
+                          <Input
+                            id="minimum_order_amount"
+                            type="number"
+                            step="0.01"
+                            value={couponForm.minimum_order_amount}
+                            onChange={(e) =>
+                              setCouponForm({ ...couponForm, minimum_order_amount: e.target.value })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="max_uses">Max Uses (optional)</Label>
+                          <Input
+                            id="max_uses"
+                            type="number"
+                            value={couponForm.max_uses}
+                            onChange={(e) =>
+                              setCouponForm({ ...couponForm, max_uses: e.target.value })
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="expires_at">Expiry Date (optional)</Label>
+                        <Input
+                          id="expires_at"
+                          type="date"
+                          value={couponForm.expires_at}
+                          onChange={(e) =>
+                            setCouponForm({ ...couponForm, expires_at: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsCouponModalOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={loading}>
+                          {loading ? "Saving..." : "Save Coupon"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -291,6 +732,142 @@ export default function AdminDashboard() {
                         <TableCell>
                           {coupon.expires_at
                             ? new Date(coupon.expires_at).toLocaleDateString()
+                            : "Never"
+                          }
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={coupon.is_active ? "default" : "secondary"}>
+                            {coupon.is_active ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditCoupon(coupon)}
+                            >
+                              <FaEdit />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Shipping Tab */}
+          {activeTab === "shipping" && (
+            <Card className="bg-white">
+              <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
+                <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Shipping Methods Management</CardTitle>
+                <Dialog open={isShippingModalOpen} onOpenChange={setIsShippingModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => {
+                      setEditingShipping(null);
+                      resetShippingForm();
+                    }}>
+                      <FaPlus className="mr-2" />
+                      Add Shipping Method
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingShipping ? "Edit Shipping Method" : "Add New Shipping Method"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleShippingSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="shipping_name">Name</Label>
+                        <Input
+                          id="shipping_name"
+                          value={shippingForm.name}
+                          onChange={(e) =>
+                            setShippingForm({ ...shippingForm, name: e.target.value })
+                          }
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="shipping_description">Description</Label>
+                        <Textarea
+                          id="shipping_description"
+                          value={shippingForm.description}
+                          onChange={(e) =>
+                            setShippingForm({ ...shippingForm, description: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="shipping_price">Price ($)</Label>
+                          <Input
+                            id="shipping_price"
+                            type="number"
+                            step="0.01"
+                            value={shippingForm.price}
+                            onChange={(e) =>
+                              setShippingForm({ ...shippingForm, price: e.target.value })
+                            }
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="estimated_days">Estimated Days</Label>
+                          <Input
+                            id="estimated_days"
+                            value={shippingForm.estimated_days}
+                            onChange={(e) =>
+                              setShippingForm({ ...shippingForm, estimated_days: e.target.value })
+                            }
+                            placeholder="e.g., 3-5 days"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsShippingModalOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={loading}>
+                          {loading ? "Saving..." : "Save Shipping Method"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Estimated Days</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {shippingMethods.map((shipping) => (
+                      <TableRow key={shipping.id}>
+                        <TableCell className="font-medium">{shipping.name}</TableCell>
+                        <TableCell>{shipping.description || "N/A"}</TableCell>
+                        <TableCell>${shipping.price}</TableCell>
+                        <TableCell>{shipping.estimated_days}</TableCell>
+                        <TableCell>
+                          <Badge variant={shipping.is_active ? "default" : "secondary"}>
+                            {shipping.is_active ? "Active" : "Inactive"}
+                          </Badge>
                             : "Never"}
                         </TableCell>
                         <TableCell>

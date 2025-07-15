@@ -18,6 +18,7 @@ interface CartItem {
 interface CartContextType {
   items: CartItem[];
   loading: boolean;
+  isCartAnimating: boolean;
   addToCart: (productId: string, quantity?: number, isSubscription?: boolean) => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
   updateQuantity: (productId: string, quantity: number) => Promise<void>;
@@ -29,6 +30,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType>({
   items: [],
   loading: false,
+  isCartAnimating: false,
   addToCart: async () => {},
   removeFromCart: async () => {},
   updateQuantity: async () => {},
@@ -41,6 +43,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isCartAnimating, setIsCartAnimating] = useState(false);
 
   const fetchCartItems = async () => {
     if (!user) {
@@ -97,6 +100,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) throw error;
       await fetchCartItems();
+      setIsCartAnimating(true);
+      setTimeout(() => setIsCartAnimating(false), 500);
     } catch (error) {
       console.error("Error adding to cart:", error);
     }
@@ -169,6 +174,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         items,
         loading,
+        isCartAnimating,
         addToCart,
         removeFromCart,
         updateQuantity,
