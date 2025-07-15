@@ -117,7 +117,7 @@ export default function AdminDashboard() {
     }
   };
     fetchCoupons();
-  } [];
+  };
 
   const fetchCoupons = async () => {
     try {
@@ -867,8 +867,7 @@ export default function AdminDashboard() {
                         <TableCell>
                           <Badge variant={shipping.is_active ? "default" : "secondary"}>
                             {shipping.is_active ? "Active" : "Inactive"}
-                          </Badge>
-                            : "Never"}
+                            </Badge>
                         </TableCell>
                         <TableCell>
                           <Button
