@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -21,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { useToast } from "@/hooks/use-toast";
+import { Combobox } from "@/components/ui/combobox";
 
 interface Expense {
   id: string;
@@ -30,8 +30,14 @@ interface Expense {
   date: string;
 }
 
+interface ExpenseCategory {
+    id: string;
+    name: string;
+}
+
 const ExpensesTab = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
@@ -45,6 +51,7 @@ const ExpensesTab = () => {
 
   useEffect(() => {
     fetchExpenses();
+    fetchCategories();
   }, []);
 
   const fetchExpenses = async () => {
@@ -56,6 +63,18 @@ const ExpensesTab = () => {
       console.error("Error fetching expenses:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+        const { data, error } = await supabase
+            .from("expense_categories")
+            .select("*");
+        if (error) throw error;
+        setCategories(data || []);
+    } catch (error) {
+        console.error("Error fetching categories:", error);
     }
   };
 
@@ -79,6 +98,19 @@ const ExpensesTab = () => {
         category: form.category,
         date: form.date,
       };
+
+      // Create new category if it doesn't exist
+      const categoryExists = categories.some(c => c.name.toLowerCase() === form.category.toLowerCase());
+      if (!categoryExists && form.category.trim() !== "") {
+          const { data: newCategory, error } = await supabase
+              .from("expense_categories")
+              .insert({ name: form.category.trim() })
+              .select()
+              .single();
+
+          if (error) throw error;
+          setCategories(prev => [...prev, newCategory]);
+      }
 
       // Simulate save - in real implementation this would save to database
       toast({ title: "Success", description: editingExpense ? "Expense updated." : "Expense created." });
@@ -152,11 +184,13 @@ const ExpensesTab = () => {
               </div>
               <div>
                 <Label htmlFor="category">Category</Label>
-                <Input
-                  id="category"
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  required
+                <Combobox
+                    options={categories.map(c => ({ value: c.name, label: c.name }))}
+                    value={form.category}
+                    onChange={(value) => setForm({ ...form, category: value })}
+                    placeholder="Select or create a category"
+                    searchPlaceholder="Search categories..."
+                    emptyPlaceholder="No categories found. Type to create a new one."
                 />
               </div>
               <div>
