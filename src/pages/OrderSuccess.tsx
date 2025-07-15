@@ -130,7 +130,7 @@ const OrderSuccess = () => {
 
           {/* Success Icon with Pulsing Ring */}
           <div className="relative mb-8">
-            {/* <motion.div
+             {/*<motion.div
               className="absolute inset-0 border-0 border-white rounded-full"
               initial={{ scale: 0 }}
               animate={{ scale: [1, 1.3, 1] }}
@@ -139,7 +139,7 @@ const OrderSuccess = () => {
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
-            /> 
+            /> */}
             <motion.div
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
@@ -150,9 +150,9 @@ const OrderSuccess = () => {
                 damping: 15 
               }}
               className="relative z-10"
-            >  */}
+            >  
               <FaCheckCircle className="text-green-500 text-8xl mx-auto drop-shadow-lg" />
-            {/* </motion.div> */}
+            </motion.div>
           </div> 
 
           {/* Animated Title */}
