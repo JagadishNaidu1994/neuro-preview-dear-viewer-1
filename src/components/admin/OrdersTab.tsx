@@ -35,19 +35,27 @@ const OrdersTab = () => {
 
   const loadOrders = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: ordersData, error: ordersError } = await supabase
         .from("orders")
-        .select(`
-          *,
-          users!orders_user_id_fkey(email)
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (ordersError) throw ordersError;
 
-      const transformedOrders = (data || []).map(order => ({
+      // Get user emails separately
+      const userIds = ordersData?.map(order => order.user_id).filter(Boolean) || [];
+      const { data: usersData, error: usersError } = await supabase
+        .from("users")
+        .select("id, email")
+        .in("id", userIds);
+
+      if (usersError) throw usersError;
+
+      const userEmailMap = new Map(usersData?.map(user => [user.id, user.email]) || []);
+
+      const transformedOrders = (ordersData || []).map(order => ({
         ...order,
-        user_email: order.users?.email || 'N/A'
+        user_email: userEmailMap.get(order.user_id) || 'N/A'
       }));
 
       setOrders(transformedOrders);
