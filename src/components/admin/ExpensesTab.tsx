@@ -51,7 +51,7 @@ const ExpensesTab = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("expenses" as any)
+        .from("expenses")
         .select("*")
         .order("date", { ascending: false });
       if (error) throw error;
@@ -86,14 +86,14 @@ const ExpensesTab = () => {
 
       if (editingExpense) {
         const { error } = await supabase
-          .from("expenses" as any)
+          .from("expenses")
           .update(expenseData)
           .eq("id", editingExpense.id);
         if (error) throw error;
         toast({ title: "Success", description: "Expense updated." });
       } else {
         const { error } = await supabase
-          .from("expenses" as any)
+          .from("expenses")
           .insert([expenseData]);
         if (error) throw error;
         toast({ title: "Success", description: "Expense created." });

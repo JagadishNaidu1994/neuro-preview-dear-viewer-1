@@ -18,6 +18,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -548,6 +555,28 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleDeleteProduct = async (productId: string) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", productId);
+
+      if (error) throw error;
+      toast({ title: "Success", description: "Product deleted successfully" });
+      await fetchProducts();
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "destructive",
+      });
+    }
+  };
+
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
       const { error } = await supabase
@@ -827,7 +856,7 @@ const AdminDashboard = () => {
                             <Button
                               size="sm"
                               variant="destructive"
-                              onClick={() => handleDeleteCoupon(coupon.id)}
+                              onClick={() => handleDeleteProduct(product.id)}
                             >
                               <FaTrash />
                             </Button>
@@ -1264,7 +1293,6 @@ const AdminDashboard = () => {
                             ? new Date(coupon.expires_at).toLocaleDateString()
                             : "Never"
                           }
-                          {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : "Never"}
                         </TableCell>
                         <TableCell>
                           <Badge variant={coupon.is_active ? "default" : "secondary"}>

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FaMinus, FaPlus, FaStar } from "react-icons/fa";
 import { ChevronDown, Package, Clock, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Product {
   id: string;

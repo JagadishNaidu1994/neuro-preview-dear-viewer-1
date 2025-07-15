@@ -24,10 +24,10 @@ interface Review {
   is_approved: boolean;
   is_archived: boolean;
   created_at: string;
-  products: {
+  products?: {
     name: string;
   };
-  users: {
+  users?: {
     email: string;
   };
 }
@@ -45,14 +45,12 @@ const ReviewsTab = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("reviews" as any)
-        .select(
-          `
+        .from("reviews")
+        .select(`
           *,
           products(name),
           users(email)
-        `
-        )
+        `)
         .order("created_at", { ascending: false });
       if (error) throw error;
       setReviews(data || []);
@@ -66,7 +64,7 @@ const ReviewsTab = () => {
   const handleApprove = async (id: string) => {
     try {
       const { error } = await supabase
-        .from("reviews" as any)
+        .from("reviews")
         .update({ is_approved: true })
         .eq("id", id);
       if (error) throw error;
@@ -85,7 +83,7 @@ const ReviewsTab = () => {
   const handleArchive = async (id: string) => {
     try {
       const { error } = await supabase
-        .from("reviews" as any)
+        .from("reviews")
         .update({ is_archived: true })
         .eq("id", id);
       if (error) throw error;

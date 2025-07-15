@@ -26,7 +26,7 @@ const ContentTab = () => {
 
   const fetchPages = async () => {
     try {
-      const { data, error } = await supabase.from("pages" as any).select("*");
+      const { data, error } = await supabase.from("pages").select("*");
       if (error) throw error;
       setPages(data || []);
     } catch (error) {
@@ -51,7 +51,7 @@ const ContentTab = () => {
     setLoading(true);
     try {
       const { error } = await supabase
-        .from("pages" as any)
+        .from("pages")
         .update({ content })
         .eq("id", selectedPage.id);
       if (error) throw error;
