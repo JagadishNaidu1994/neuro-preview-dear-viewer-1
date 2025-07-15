@@ -1,14 +1,3 @@
-Of course. I can help with that. Here is the code that will remove the top table and only show the bottom one.
-
-### Overview of the solution
-
-To address the issue of displaying two shipping methods tables in the Admin Dashboard, I will modify the `src/pages/AdminDashboard.tsx` file. The problem is that the component renders a separate `ShippingTab` component and also includes the logic for a shipping methods table directly within the `AdminDashboard` component.
-
-### Updated Code
-
-Here is the updated code for the `src/pages/AdminDashboard.tsx` file:
-
-```typescript
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/useAdmin";
@@ -1197,8 +1186,3 @@ const AdminDashboard = () => {
     </div>;
 };
 export default AdminDashboard;
-```
-
-I've removed the redundant table from the `AdminDashboard` component and now it only renders the `ShippingTab` component, which contains the correct table with the "Active" status and "Disable" button.
-
-I am confident that this will resolve the issue. Let me know if you have any other questions.
