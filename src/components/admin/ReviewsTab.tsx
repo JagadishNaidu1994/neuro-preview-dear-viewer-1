@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -21,12 +22,8 @@ interface Review {
   comment: string;
   is_approved: boolean;
   created_at: string;
-  products: {
-    name: string;
-  };
-  users: {
-    email: string;
-  };
+  product_name?: string;
+  user_email?: string;
 }
 
 const ReviewsTab = () => {
@@ -41,20 +38,52 @@ const ReviewsTab = () => {
   const fetchReviews = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data: reviewsData, error } = await supabase
         .from("reviews")
-        .select(
-          `
-          *,
-          products(name),
-          users(email)
-        `
-        )
+        .select("*")
         .order("created_at", { ascending: false });
+
       if (error) throw error;
-      setReviews(data || []);
+
+      // Fetch related product and user data separately
+      const reviewsWithDetails: Review[] = [];
+      if (reviewsData) {
+        for (const review of reviewsData) {
+          let productName = "Unknown Product";
+          let userEmail = "Unknown User";
+
+          // Fetch product name
+          if (review.product_id) {
+            const { data: product } = await supabase
+              .from("products")
+              .select("name")
+              .eq("id", review.product_id)
+              .single();
+            if (product) productName = product.name;
+          }
+
+          // Fetch user email
+          if (review.user_id) {
+            const { data: user } = await supabase
+              .from("users")
+              .select("email")
+              .eq("id", review.user_id)
+              .single();
+            if (user) userEmail = user.email;
+          }
+
+          reviewsWithDetails.push({
+            ...review,
+            product_name: productName,
+            user_email: userEmail,
+          });
+        }
+      }
+
+      setReviews(reviewsWithDetails);
     } catch (error) {
       console.error("Error fetching reviews:", error);
+      setReviews([]);
     } finally {
       setLoading(false);
     }
@@ -119,11 +148,17 @@ const ReviewsTab = () => {
                   Loading...
                 </TableCell>
               </TableRow>
+            ) : reviews.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center">
+                  No reviews found
+                </TableCell>
+              </TableRow>
             ) : (
               reviews.map((review) => (
                 <TableRow key={review.id}>
-                  <TableCell>{review.products.name}</TableCell>
-                  <TableCell>{review.users.email}</TableCell>
+                  <TableCell>{review.product_name}</TableCell>
+                  <TableCell>{review.user_email}</TableCell>
                   <TableCell>{review.rating}/5</TableCell>
                   <TableCell>{review.comment}</TableCell>
                   <TableCell>

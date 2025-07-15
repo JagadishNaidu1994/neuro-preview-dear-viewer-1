@@ -21,8 +21,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FaPlus, FaEdit, FaTrash, FaEye } from "react-icons/fa";
 import { useToast } from "@/hooks/use-toast";
+
 interface Product {
   id: string;
   name: string;
