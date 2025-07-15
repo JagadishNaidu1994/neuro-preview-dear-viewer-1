@@ -251,17 +251,17 @@ const OrderSuccess = () => {
             transition={{ delay: 1.2, duration: 0.5 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Link to="/account/orders">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button 
                   variant="outline" 
                   size="lg"
-                  className="w-full sm:w-auto border-2 border-purple-300 text-purple-700 hover:bg-purple-50"
-                >
+                  className="w-full sm:w-auto border-2 border-purple-300 text-purple-700 hover:bg-purple-50">
+            <Link to="/account/orders">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   📋 View All Orders
-                </Button>
+                
               </motion.div>
             </Link>
+            </Button>
             <Link to="/shop-all">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button 
