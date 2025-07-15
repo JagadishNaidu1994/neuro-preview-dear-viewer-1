@@ -1088,6 +1088,133 @@ const AdminDashboard = () => {
             </Card>}
 
           {/* Shipping Tab */}
+          {activeTab === "shipping" && (
+            <Card className="bg-white">
+              <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
+                <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Shipping Methods Management</CardTitle>
+                <Dialog open={isShippingModalOpen} onOpenChange={setIsShippingModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => {
+                      setEditingShipping(null);
+                      resetShippingForm();
+                    }}>
+                      <FaPlus className="mr-2" />
+                      Add Shipping Method
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingShipping ? "Edit Shipping Method" : "Add New Shipping Method"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleShippingSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="shipping_name">Name</Label>
+                        <Input
+                          id="shipping_name"
+                          value={shippingForm.name}
+                          onChange={(e) =>
+                            setShippingForm({ ...shippingForm, name: e.target.value })
+                          }
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="shipping_description">Description</Label>
+                        <Textarea
+                          id="shipping_description"
+                          value={shippingForm.description}
+                          onChange={(e) =>
+                            setShippingForm({ ...shippingForm, description: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="shipping_price">Price ($)</Label>
+                          <Input
+                            id="shipping_price"
+                            type="number"
+                            step="0.01"
+                            value={shippingForm.price}
+                            onChange={(e) =>
+                              setShippingForm({ ...shippingForm, price: e.target.value })
+                            }
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="estimated_days">Estimated Days</Label>
+                          <Input
+                            id="estimated_days"
+                            value={shippingForm.estimated_days}
+                            onChange={(e) =>
+                              setShippingForm({ ...shippingForm, estimated_days: e.target.value })
+                            }
+                            placeholder="e.g., 3-5 days"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsShippingModalOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={loading}>
+                          {loading ? "Saving..." : "Save Shipping Method"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Estimated Days</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {shippingMethods.map((shipping) => (
+                      <TableRow key={shipping.id}>
+                        <TableCell className="font-medium">{shipping.name}</TableCell>
+                        <TableCell>{shipping.description || "N/A"}</TableCell>
+                        <TableCell>${shipping.price}</TableCell>
+                        <TableCell>{shipping.estimated_days}</TableCell>
+                        <TableCell>
+                          <Badge variant={shipping.is_active ? "default" : "secondary"}>
+                            {shipping.is_active ? "Active" : "Inactive"}
+                          </Badge>
+                            : "Never"}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteCoupon(coupons.id)}
+                          >
+                            Delete
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        )}
           {activeTab === "shipping"}
         </div>
       </div>
