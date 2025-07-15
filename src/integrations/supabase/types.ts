@@ -620,6 +620,47 @@ export type Database = {
         }
         Relationships: []
       }
+      user_coupons: {
+        Row: {
+          assigned_at: string
+          coupon_id: string
+          created_at: string
+          id: string
+          is_used: boolean
+          updated_at: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          coupon_id: string
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          updated_at?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          coupon_id?: string
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          updated_at?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_coupons_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupon_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_payment_methods: {
         Row: {
           card_holder_name: string
