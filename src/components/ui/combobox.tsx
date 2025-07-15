@@ -39,14 +39,21 @@ export function Combobox({
   emptyPlaceholder = "No options found.",
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState("");
+  const [search, setSearch] = React.useState("");
 
   const handleCreate = () => {
-    if (onCreate && inputValue) {
-        onCreate(inputValue);
-        setOpen(false);
+    if (onCreate && search) {
+      onCreate(search);
+      setSearch("");
+      setOpen(false);
     }
-  }
+  };
+  
+  const filteredOptions = search
+    ? options.filter((option) =>
+        option.label.toLowerCase().includes(search.toLowerCase())
+      )
+    : options;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -65,40 +72,38 @@ export function Combobox({
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
-          <CommandInput 
-            placeholder={searchPlaceholder} 
-            value={inputValue}
-            onValueChange={setInputValue}
+          <CommandInput
+            placeholder={searchPlaceholder}
+            value={search}
+            onValueChange={setSearch}
           />
           <CommandList>
-            <CommandEmpty>
-                {onCreate && inputValue ? (
-                    <CommandItem
-                        onSelect={handleCreate}
-                        className="cursor-pointer"
-                    >
-                        Create "{inputValue}"
-                    </CommandItem>
-                ) : (
-                    <div className="p-4 text-sm text-center">
-                        {emptyPlaceholder}
-                    </div>
-                )}
-            </CommandEmpty>
+            {filteredOptions.length === 0 && search && onCreate ? (
+                <CommandItem
+                    onSelect={handleCreate}
+                    className="cursor-pointer"
+                >
+                    Create "{search}"
+                </CommandItem>
+            ) : (
+                <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
+            )}
             <CommandGroup>
-              {options.map((option) => (
+              {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value}
-                  onSelect={(currentValue) => {
-                    onChange(currentValue === value ? "" : currentValue);
+                  value={option.label}
+                  onSelect={() => {
+                    onChange(option.value);
                     setOpen(false);
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value?.toLowerCase() === option.value.toLowerCase() ? "opacity-100" : "opacity-0"
+                      value?.toLowerCase() === option.value.toLowerCase()
+                        ? "opacity-100"
+                        : "opacity-0"
                     )}
                   />
                   {option.label}
