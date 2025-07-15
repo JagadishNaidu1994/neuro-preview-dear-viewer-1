@@ -21,6 +21,7 @@ interface Product {
   category: string;
   stock_quantity: number;
   is_active: boolean;
+  benefits?: string[];
 }
 
 const ProductPage = () => {
@@ -242,10 +243,10 @@ const ProductPage = () => {
 
   // Sample nutrition supplement bottle images
   const productImages = [
-    "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=500&h=500&fit=crop",
+    "https://images.unsplash.com/photo-1593095499889-72b1dc4638d3",
+    "https://images.unsplash.com/photo-1593095499889-72b1dc4638d3",
+    "https://images.unsplash.com/photo-1593095499889-72b1dc4638d3",
+    "https://images.unsplash.com/photo-1593095499889-72b1dc4638d3",
   ];
 
   // Calculate prices based on servings and purchase type
@@ -264,7 +265,7 @@ const ProductPage = () => {
             <div className="aspect-square bg-brand-gray-100 rounded-2xl overflow-hidden">
               <img
                 ref={imageRef}
-                src={productImages[selectedImage]}
+                src={product.image_url}
                 alt={product.name}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
               />
@@ -588,7 +589,7 @@ const ProductPage = () => {
                 <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop" alt="Clay Clean" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
               </div>
               <div>
-                <h3 className="font-medium text-brand-blue-700">Clay Clean</h3>
+                <h3 className="font-medium text-brand-blue-700">Cognitive Support Supplement</h3>
                 <p className="text-brand-gray-500 text-sm">₹29.99</p>
               </div>
             </div>
@@ -598,7 +599,7 @@ const ProductPage = () => {
                 <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop" alt="Deep Clean" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
               </div>
               <div>
-                <h3 className="font-medium text-brand-blue-700">Deep Clean</h3>
+                <h3 className="font-medium text-brand-blue-700">Sleep Support Supplement</h3>
                 <p className="text-brand-gray-500 text-sm">₹39.99</p>
               </div>
             </div>
@@ -608,7 +609,7 @@ const ProductPage = () => {
                 <img src="https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=400&h=400&fit=crop" alt="Gentle Clean" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
               </div>
               <div>
-                <h3 className="font-medium text-brand-blue-700">Gentle Clean</h3>
+                <h3 className="font-medium text-brand-blue-700">Anxiety Relief Supplement</h3>
                 <p className="text-brand-gray-500 text-sm">₹24.99</p>
               </div>
             </div>
