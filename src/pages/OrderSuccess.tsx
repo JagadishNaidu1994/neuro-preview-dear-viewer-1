@@ -68,20 +68,10 @@ const OrderSuccess = () => {
     );
   }
 
-  const [showConfetti, setShowConfetti] = useState(false);
-
-  useEffect(() => {
-    setShowConfetti(true);
-    const timer = setTimeout(() => setShowConfetti(false), 5000);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <div className="min-h-screen bg-[#F8F8F5] overflow-hidden">
       <Header />
-      <AnimatePresence>
-        {showConfetti && <Confetti />}
-      </AnimatePresence>
+      <Confetti />
       <div className="max-w-4xl mx-auto px-4 py-16">
         <motion.div
           initial={{ opacity: 0, y: 50 }}

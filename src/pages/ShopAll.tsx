@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +23,6 @@ export default function ShopAll() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
-  const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetchProducts();
@@ -43,6 +43,8 @@ export default function ShopAll() {
       setLoading(false);
     }
   };
+
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   const handleQuantityChange = (productId: string, quantity: number) => {
     setQuantities(prev => ({
@@ -94,10 +96,9 @@ export default function ShopAll() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-brand-white">
-        <Header />
+      <div className="min-h-screen bg-[#F8F8F5]">
         <div className="w-full px-4 md:px-8 py-8 text-center">
-          <div className="text-xl text-brand-blue-700">Loading products...</div>
+          <div className="text-xl">Loading brain supplements...</div>
         </div>
       </div>
     );
@@ -151,15 +152,15 @@ export default function ShopAll() {
                 </Link>
                 <div className="p-4">
                   <Link to={`/product?id=${product.id}`}>
-                    <h3 className="text-brand-blue-700 font-medium mb-2 hover:text-brand-blue-600 transition-colors">
+                    <h3 className="text-gray-900 font-medium mb-2 hover:text-[#514B3D] transition-colors">
                       {product.name}
                     </h3>
                   </Link>
-                  <p className="text-sm text-brand-gray-500 mb-3 line-clamp-2">
+                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                     {product.description}
                   </p>
                   <div className="flex items-center justify-between">
-                    <div className="text-lg font-semibold text-brand-blue-700">
+                    <div className="text-lg font-semibold text-gray-900">
                       ₹{product.price}
                     </div>
                     <div className="flex items-center gap-2">
@@ -168,19 +169,18 @@ export default function ShopAll() {
                         min="1"
                         max={product.stock_quantity}
                         value={quantities[product.id] || 1}
-                        onChange={e =>
-                          handleQuantityChange(product.id, parseInt(e.target.value))
-                        }
+                        onChange={(e) => handleQuantityChange(product.id, parseInt(e.target.value))}
                         className="w-16 h-8 text-center"
                       />
                       <Button
                         size="sm"
                         onClick={() => handleAddToCart(product.id)}
                         disabled={!product.is_active || product.stock_quantity === 0}
+                        className="text-white bg-gray-950 hover:bg-gray-800 text-base font-medium"
                       >
                         <FaShoppingCart className="mr-2" />
-                        {!product.is_active || product.stock_quantity === 0
-                          ? "Out of Stock"
+                        {!product.is_active || product.stock_quantity === 0 
+                          ? "Out of Stock" 
                           : "Add to Cart"}
                       </Button>
                     </div>
@@ -198,8 +198,9 @@ export default function ShopAll() {
 
           {products.length === 0 && (
             <div className="text-center py-16">
-              <h2 className="text-2xl font-semibold mb-4 text-brand-blue-700">No products available</h2>
-              <p className="text-brand-gray-500">Check back soon for new products!</p>
+              <FaBrain className="mx-auto text-6xl text-gray-300 mb-4" />
+              <h2 className="text-2xl font-semibold mb-4">No brain supplements available</h2>
+              <p className="text-gray-600">Check back soon for new cognitive enhancement products!</p>
             </div>
           )}
 
@@ -214,29 +215,23 @@ export default function ShopAll() {
                   <FaBrain className="text-blue-600 text-2xl" />
                 </div>
                 <h3 className="font-semibold mb-2">Scientifically Proven</h3>
-                <p className="text-gray-600 text-sm">
-                  Research-backed ingredients for optimal cognitive function
-                </p>
+                <p className="text-gray-600 text-sm">Research-backed ingredients for optimal cognitive function</p>
               </div>
-
+              
               <div className="text-center">
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaMemory className="text-purple-600 text-2xl" />
                 </div>
                 <h3 className="font-semibold mb-2">Memory Enhancement</h3>
-                <p className="text-gray-600 text-sm">
-                  Support memory formation and recall with premium nootropics
-                </p>
+                <p className="text-gray-600 text-sm">Support memory formation and recall with premium nootropics</p>
               </div>
-
+              
               <div className="text-center">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaLightbulb className="text-green-600 text-2xl" />
                 </div>
                 <h3 className="font-semibold mb-2">Focus & Clarity</h3>
-                <p className="text-gray-600 text-sm">
-                  Enhance mental clarity and sustained focus throughout the day
-                </p>
+                <p className="text-gray-600 text-sm">Enhance mental clarity and sustained focus throughout the day</p>
               </div>
             </div>
           </div>

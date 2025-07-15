@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
 import { useCart } from "@/context/CartProvider";
 import { useAdmin } from "@/hooks/useAdmin";
-import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -115,7 +114,6 @@ const AccountPage = () => {
   const { user } = useAuth();
   const { addToCart } = useCart();
   const { isAdmin } = useAdmin();
-  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
@@ -719,6 +717,7 @@ const AccountPage = () => {
                     <span className="font-medium">{item.label}</span>
                   </button>
                 ))}
+                
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-4 p-4 rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200 mt-6"
@@ -980,7 +979,7 @@ const AccountPage = () => {
                                   </Button>
                                 )}
                               </div>
-
+                            </div>
                           </div>
 
                           {order.order_items && order.order_items.length > 0 && (
@@ -1004,35 +1003,34 @@ const AccountPage = () => {
                                   <div className="text-right">
                                     <p className="font-semibold text-[#192a3a]">₹{(item.price * item.quantity).toFixed(2)}</p>
                                     <Button
-  size="sm"
-  variant="ghost"
-  onClick={() => handleViewProduct(item.products.id)}
-  className="text-[#192a3a] hover:text-[#0f1a26] p-0 h-auto"
->
-  View Product
-</Button>
-</div>
-</div>
-))}
-</div>
-)}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-16">
-          <FaBox className="mx-auto text-6xl text-gray-400 mb-6" />
-          <h3 className="text-2xl font-semibold text-[#192a3a] mb-4">No orders yet</h3>
-          <p className="text-gray-600 mb-8">Start shopping to see your orders here</p>
-          <Button
-            onClick={() => navigate("/shop-all")}
-            className="bg-[#192a3a] hover:bg-[#0f1a26] text-white"
-          >
-            Start Shopping
-          </Button>
-        </div>
-      )}
-
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleViewProduct(item.products.id)}
+                                      className="text-[#192a3a] hover:text-[#0f1a26] p-0 h-auto"
+                                    >
+                                      View Product
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-16">
+                      <FaBox className="mx-auto text-6xl text-gray-400 mb-6" />
+                      <h3 className="text-2xl font-semibold text-[#192a3a] mb-4">No orders yet</h3>
+                      <p className="text-gray-600 mb-8">Start shopping to see your orders here</p>
+                      <Button onClick={() => navigate("/shop-all")} className="bg-[#192a3a] hover:bg-[#0f1a26] text-white">
+                        Start Shopping
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Wishlist */}
             {activeTab === "wishlist" && (
@@ -1507,7 +1505,7 @@ const AccountPage = () => {
               try {
                 const { error } = await supabase
                   .from("subscriptions")
-                  .update({ discount_percentage: 0.20 })
+                  .update({ discount: 0.20 })
                   .eq("id", selectedSubscription.id);
                 if (error) throw error;
                 fetchAllData();
