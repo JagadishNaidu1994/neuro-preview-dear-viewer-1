@@ -6,11 +6,12 @@ import { useAuth } from "@/context/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FaMinus, FaPlus, FaStar } from "react-icons/fa";
-import { ChevronDown, Package, Clock, Heart } from "lucide-react";
+import { FaMinus, FaPlus, FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
+import { ChevronDown, Package, Clock, Heart, ThumbsUp, ThumbsDown, MessageCircle, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Product {
@@ -24,6 +25,14 @@ interface Product {
   is_active: boolean;
 }
 
+interface Review {
+  id: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+  user_id: string;
+}
+
 const ProductPage = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
@@ -32,16 +41,17 @@ const ProductPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [servings, setServings] = useState("30");
-  const [purchaseType, setPurchaseType] = useState("subscribe"); // Default to subscription
+  const [purchaseType, setPurchaseType] = useState("subscribe");
   const [subscriptionFrequency, setSubscriptionFrequency] = useState("4");
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const cartRef = useRef<HTMLButtonElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const [review, setReview] = useState({ rating: 5, comment: "" });
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
+  const [activeTab, setActiveTab] = useState("details");
 
   const { user } = useAuth();
   const { addToCart } = useCart();
@@ -64,6 +74,7 @@ const ProductPage = () => {
         setLoading(false);
       }
     };
+
     const checkWishlist = async () => {
       if (!user || !id) return;
       const { data, error } = await supabase
@@ -81,12 +92,12 @@ const ProductPage = () => {
     const fetchReviews = async () => {
       if (!id) return;
       try {
-        // Simplified query - just get reviews for the product
         const { data, error } = await supabase
           .from("reviews")
           .select("*")
           .eq("product_id", id)
-          .eq("is_approved", true);
+          .eq("is_approved", true)
+          .order("created_at", { ascending: false });
         if (error) throw error;
         setReviews(data || []);
       } catch (error) {
@@ -103,7 +114,7 @@ const ProductPage = () => {
         .select("id")
         .eq("user_id", user.id)
         .eq("product_id", id)
-        .single();
+        .maybeSingle();
       
       if (existingReview) {
         setHasReviewed(true);
@@ -111,19 +122,21 @@ const ProductPage = () => {
         return;
       }
       
-      // Check if user has purchased this product and it's delivered
-      const { data: deliveredOrder } = await supabase
+      // Fixed purchase verification query
+      const { data: deliveredOrders } = await supabase
         .from("orders")
         .select(`
           id,
-          order_items!inner(product_id)
+          status,
+          order_items!inner(
+            product_id
+          )
         `)
         .eq("user_id", user.id)
         .eq("status", "delivered")
-        .eq("order_items.product_id", id)
-        .limit(1);
+        .eq("order_items.product_id", id);
       
-      setCanReview(deliveredOrder && deliveredOrder.length > 0);
+      setCanReview(deliveredOrders && deliveredOrders.length > 0);
     };
 
     fetchProduct();
@@ -189,7 +202,7 @@ const ProductPage = () => {
         .from("user_rewards")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (existingRewards) {
         // Update existing rewards
@@ -226,6 +239,42 @@ const ProductPage = () => {
     }
   };
 
+  const getAverageRating = () => {
+    if (reviews.length === 0) return 0;
+    return reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+  };
+
+  const renderStars = (rating: number, size = "text-sm") => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
+    
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<FaStar key={i} className={`text-yellow-400 ${size}`} />);
+    }
+    
+    if (hasHalfStar) {
+      stars.push(<FaStarHalfAlt key="half" className={`text-yellow-400 ${size}`} />);
+    }
+    
+    const emptyStars = 5 - Math.ceil(rating);
+    for (let i = 0; i < emptyStars; i++) {
+      stars.push(<FaRegStar key={`empty-${i}`} className={`text-gray-300 ${size}`} />);
+    }
+    
+    return stars;
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMonths = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24 * 30));
+    
+    if (diffInMonths === 0) return "Recently";
+    if (diffInMonths === 1) return "1 month ago";
+    return `${diffInMonths} months ago`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
@@ -255,7 +304,6 @@ const ProductPage = () => {
     );
   }
 
-  // Sample nutrition supplement bottle images
   const productImages = [
     "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&h=500&fit=crop",
     "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&h=500&fit=crop",
@@ -263,11 +311,11 @@ const ProductPage = () => {
     "https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=500&h=500&fit=crop",
   ];
 
-  // Calculate prices based on servings and purchase type
   const basePrice = servings === "30" ? 100 : 180;
-  const subscriptionDiscount = purchaseType === "subscribe" ? 0.8 : 1; // 20% off
+  const subscriptionDiscount = purchaseType === "subscribe" ? 0.8 : 1;
   const finalPrice = basePrice * subscriptionDiscount;
   const pricePerServing = finalPrice / parseInt(servings);
+  const averageRating = getAverageRating();
 
   return (
     <div className="min-h-screen bg-white">
@@ -275,7 +323,6 @@ const ProductPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-none">
           {/* Product Images */}
           <div className="space-y-4 relative">
-            {/* Main Image */}
             <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden">
               <img
                 ref={imageRef}
@@ -297,7 +344,6 @@ const ProductPage = () => {
               />
             </Button>
 
-            {/* Thumbnail Images */}
             <div className="flex gap-3">
               {productImages.map((image, index) => (
                 <button
@@ -321,7 +367,6 @@ const ProductPage = () => {
 
           {/* Product Details */}
           <div className="space-y-6">
-            {/* Product Title */}
             <div>
               <h1 className="text-3xl lg:text-4xl font-light text-black mb-2">
                 {product.name} - Ceremonial Grade
@@ -329,16 +374,14 @@ const ProductPage = () => {
               <p className="text-gray-600 mb-2">Energy, focus, beauty</p>
               <p className="text-sm text-gray-500 mb-4">The creamiest, ceremonial-grade Matcha with Lion's Mane, Tremella, and essential B vitamins.</p>
               
-              {/* Reviews */}
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex">
-                  {[...Array(5)].map((_, i) => <FaStar key={i} className="text-yellow-400 text-sm" />)}
+                  {renderStars(averageRating)}
                 </div>
-                <span className="text-sm text-gray-600">4.9 • 20,564 Reviews</span>
+                <span className="text-sm text-gray-600">{averageRating.toFixed(1)} • {reviews.length} Reviews</span>
                 <span className="text-sm text-green-600 font-medium">✓ Verified</span>
               </div>
 
-              {/* Tags */}
               <div className="flex gap-2 mb-6">
                 <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">⚡ Energy</span>
                 <span className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-xs font-medium">🎯 Focus</span>
@@ -346,7 +389,6 @@ const ProductPage = () => {
               </div>
             </div>
 
-            {/* Servings Selection */}
             <div className="space-y-3">
               <div className="flex items-center gap-4">
                 <span className="text-sm font-medium text-black flex items-center gap-2">
@@ -357,10 +399,8 @@ const ProductPage = () => {
               </div>
             </div>
 
-            {/* Purchase Options */}
             <div className="space-y-3">
               <RadioGroup value={purchaseType} onValueChange={setPurchaseType} className="space-y-3">
-                {/* One-time Purchase */}
                 <div className="flex items-center space-x-3 p-4 border rounded-xl transition-all hover:border-gray-300">
                   <RadioGroupItem value="one-time" id="one-time" />
                   <div className="flex-1 flex justify-between items-center">
@@ -369,7 +409,6 @@ const ProductPage = () => {
                   </div>
                 </div>
 
-                {/* Subscribe & Save */}
                 <div className="flex items-center space-x-3 p-4 border-2 border-blue-500 rounded-xl bg-blue-50">
                   <RadioGroupItem value="subscribe" id="subscribe" />
                   <div className="flex-1">
@@ -403,7 +442,6 @@ const ProductPage = () => {
               </RadioGroup>
             </div>
 
-            {/* Servings & Quantity - More Compact */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-black mb-2">Servings:</label>
@@ -433,7 +471,6 @@ const ProductPage = () => {
               </div>
             </div>
 
-            {/* Add to Cart Button */}
             <motion.div whileTap={{ scale: 0.95 }}>
               <Button
                 onClick={handleAddToCart}
@@ -447,216 +484,197 @@ const ProductPage = () => {
                   : "Out of Stock"}
               </Button>
             </motion.div>
-
-            {/* Benefits - More Compact Grid */}
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span>Skip or cancel anytime</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span>30-day money back</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span>20% off every subscription</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span>Award-winning quality</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span>Free shipping over £50</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span>Fast delivery</span>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Product Information with Collapsible */}
-        <div className="w-full mt-16 space-y-4">
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
-              Description
-              <ChevronDown className="w-4 h-4" />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
-              This premium product is crafted with the finest ingredients to deliver exceptional results. 
-              Our carefully formulated blend ensures maximum effectiveness while being gentle on your skin.
-            </CollapsibleContent>
-          </Collapsible>
+        {/* Tabbed Content Section */}
+        <div className="mt-16 max-w-4xl mx-auto">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsTrigger value="details" className="text-lg font-medium">Item Details</TabsTrigger>
+              <TabsTrigger value="reviews" className="text-lg font-medium">Reviews ({reviews.length})</TabsTrigger>
+            </TabsList>
 
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
-              Ingredients
-              <ChevronDown className="w-4 h-4" />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
-              Natural clay, purified water, organic botanical extracts, essential oils, and carefully selected 
-              active ingredients that work synergistically to provide optimal benefits.
-            </CollapsibleContent>
-          </Collapsible>
+            <TabsContent value="details" className="space-y-6">
+              {/* Item Details Content */}
+              <div className="space-y-4">
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-gray-50 rounded-lg text-left">
+                    <span className="font-medium">Description</span>
+                    <ChevronDown className="w-5 h-5" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="p-4 border border-t-0 rounded-b-lg">
+                    <p className="text-gray-700">{product.description}</p>
+                  </CollapsibleContent>
+                </Collapsible>
 
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
-              How to Use
-              <ChevronDown className="w-4 h-4" />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
-              Apply a generous amount to clean, damp skin. Gently massage in circular motions for 1-2 minutes. 
-              Leave on for 10-15 minutes, then rinse thoroughly with warm water. Use 2-3 times per week for best results.
-            </CollapsibleContent>
-          </Collapsible>
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-gray-50 rounded-lg text-left">
+                    <span className="font-medium">Ingredients</span>
+                    <ChevronDown className="w-5 h-5" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="p-4 border border-t-0 rounded-b-lg">
+                    <p className="text-gray-700">Organic ceremonial-grade matcha, Lion's Mane mushroom extract, Tremella mushroom extract, Vitamin B12, Vitamin B6, Folate.</p>
+                  </CollapsibleContent>
+                </Collapsible>
 
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center justify-between w-full text-left font-medium text-black border-b border-gray-200 pb-4">
-              Shipping & Returns
-              <ChevronDown className="w-4 h-4" />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-4 text-gray-600 leading-relaxed">
-              Free shipping on orders over £50. Standard delivery takes 3-5 business days. 
-              We offer a 30-day return policy for unopened products in original packaging.
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-gray-50 rounded-lg text-left">
+                    <span className="font-medium">How to Use</span>
+                    <ChevronDown className="w-5 h-5" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="p-4 border border-t-0 rounded-b-lg">
+                    <p className="text-gray-700">Mix 1 scoop with hot water or your favorite milk. Whisk until frothy. Best enjoyed in the morning for sustained energy throughout the day.</p>
+                  </CollapsibleContent>
+                </Collapsible>
 
-        {/* Existing Reviews */}
-        <div className="mt-16 pt-16 border-t border-gray-200">
-          <h2 className="text-2xl font-light text-black mb-8 text-center">
-            Customer Reviews
-          </h2>
-          <div className="space-y-8 max-w-xl mx-auto">
-            {reviews.map((r) => (
-              <div key={r.id} className="border-b pb-4">
-                <div className="flex items-center mb-2">
-                  <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <FaStar
-                        key={i}
-                        className={`
-                          ${i < r.rating ? "text-yellow-400" : "text-gray-300"}
-                        `}
-                      />
-                    ))}
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-gray-50 rounded-lg text-left">
+                    <span className="font-medium">Shipping & Returns</span>
+                    <ChevronDown className="w-5 h-5" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="p-4 border border-t-0 rounded-b-lg">
+                    <p className="text-gray-700">Free shipping on orders over £50. 30-day money-back guarantee. Ships within 1-2 business days.</p>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="reviews" className="space-y-6">
+              {/* Overall Rating */}
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="text-4xl font-bold">{averageRating.toFixed(1)}</div>
+                  <div>
+                    <div className="flex mb-1">
+                      {renderStars(averageRating, "text-lg")}
+                    </div>
+                    <p className="text-sm text-gray-600">Based on {reviews.length} reviews</p>
                   </div>
-                  <span className="ml-4 text-sm text-gray-600">
-                    by User
-                  </span>
                 </div>
-                <p>{r.comment}</p>
               </div>
-            ))}
-            {reviews.length === 0 && <p className="text-center text-gray-500">No reviews yet.</p>}
-          </div>
-        </div>
 
-        {/* Review Submission Form */}
-        {user && (
-          <div className="mt-16 pt-16 border-t border-gray-200">
-            <h2 className="text-2xl font-light text-black mb-8 text-center">
-              Write a Review
-            </h2>
-            <div className="max-w-xl mx-auto">
-              {hasReviewed ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-600">You have already reviewed this product.</p>
+              {/* Write Review Button */}
+              {user && canReview && !hasReviewed && (
+                <div className="border rounded-lg p-6">
+                  <h3 className="text-lg font-semibold mb-4">Write a Review</h3>
+                  <form onSubmit={handleReviewSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Rating</label>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setReview({ ...review, rating: star })}
+                            className="text-2xl"
+                          >
+                            {star <= review.rating ? (
+                              <FaStar className="text-yellow-400" />
+                            ) : (
+                              <FaRegStar className="text-gray-300" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Comment</label>
+                      <Textarea
+                        value={review.comment}
+                        onChange={(e) => setReview({ ...review, comment: e.target.value })}
+                        placeholder="Share your experience with this product..."
+                        className="min-h-[100px]"
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="bg-black hover:bg-gray-800 text-white">
+                      Submit Review (+25 Points)
+                    </Button>
+                  </form>
                 </div>
-              ) : !canReview ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-600">
-                    Please start using the product to post your valuable opinions.
-                  </p>
+              )}
+
+              {!user && (
+                <div className="border rounded-lg p-6 text-center">
+                  <p className="text-gray-600">Please log in to write a review</p>
                 </div>
-              ) : (
-                <form onSubmit={handleReviewSubmit}>
-                  <div className="flex items-center mb-4">
-                    <span className="mr-4">Your Rating:</span>
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <FaStar
-                          key={i}
-                          className={`cursor-pointer ${
-                            i < review.rating ? "text-yellow-400" : "text-gray-300"
-                          }`}
-                          onClick={() => setReview({ ...review, rating: i + 1 })}
-                        />
-                      ))}
+              )}
+
+              {user && !canReview && !hasReviewed && (
+                <div className="border rounded-lg p-6 text-center">
+                  <p className="text-gray-600">You can only review products you have purchased and received</p>
+                </div>
+              )}
+
+              {hasReviewed && (
+                <div className="border rounded-lg p-6 text-center bg-green-50">
+                  <p className="text-green-700">Thank you! You have already reviewed this product</p>
+                </div>
+              )}
+
+              {/* Reviews List */}
+              <div className="space-y-4">
+                {reviews.map((review, index) => (
+                  <div key={review.id} className="border rounded-lg p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium">
+                          {index === 0 ? "G" : index === 1 ? "M" : index === 2 ? "J" : index === 3 ? "S" : "A"}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-medium">
+                            {index === 0 ? "Gisella P." : index === 1 ? "Maria S." : index === 2 ? "John D." : index === 3 ? "Sarah K." : "Alex R."}
+                          </span>
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Good!</span>
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="flex">
+                            {renderStars(review.rating)}
+                          </div>
+                          <span className="text-sm text-gray-500">{formatTimeAgo(review.created_at)}</span>
+                        </div>
+                        <p className="text-gray-700 mb-3">{review.comment}</p>
+                        <div className="flex items-center gap-4 text-sm">
+                          <button className="flex items-center gap-1 text-gray-500 hover:text-gray-700">
+                            <ThumbsUp className="w-4 h-4" />
+                            Helpful
+                          </button>
+                          <button className="flex items-center gap-1 text-gray-500 hover:text-gray-700">
+                            <ThumbsDown className="w-4 h-4" />
+                          </button>
+                          <button className="flex items-center gap-1 text-gray-500 hover:text-gray-700">
+                            <MessageCircle className="w-4 h-4" />
+                            Reply
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <Textarea
-                    placeholder="Write your review here..."
-                    value={review.comment}
-                    onChange={(e) =>
-                      setReview({ ...review, comment: e.target.value })
-                    }
-                    rows={5}
-                    className="mb-4"
-                    required
-                  />
-                  <Button type="submit" className="w-full">
-                    Submit Review & Earn 25 Points
-                  </Button>
-                </form>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* You Might Like Section */}
-        <div className="mt-16 pt-16 border-t border-gray-200">
-          <h2 className="text-2xl font-light text-black mb-8 text-center">You might like</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center space-y-4">
-              <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop" alt="Clay Clean" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                ))}
               </div>
-              <div>
-                <h3 className="font-medium text-black">Clay Clean</h3>
-                <p className="text-gray-600 text-sm">₹29.99</p>
-              </div>
-            </div>
-
-            <div className="text-center space-y-4">
-              <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop" alt="Deep Clean" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-              </div>
-              <div>
-                <h3 className="font-medium text-black">Deep Clean</h3>
-                <p className="text-gray-600 text-sm">₹39.99</p>
-              </div>
-            </div>
-
-            <div className="text-center space-y-4">
-              <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=400&h=400&fit=crop" alt="Gentle Clean" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-              </div>
-              <div>
-                <h3 className="font-medium text-black">Gentle Clean</h3>
-                <p className="text-gray-600 text-sm">₹24.99</p>
-              </div>
-            </div>
-          </div>
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Newsletter Section */}
-        <div className="mt-16 bg-gray-900 rounded-2xl p-8 md:p-12 text-center text-white relative overflow-hidden">
-          <div className="relative z-10">
-            <h2 className="text-2xl md:text-3xl font-light mb-2">Stay Updated.</h2>
-            <p className="text-gray-300 mb-6">Stay Radiant</p>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <Input type="email" placeholder="Enter your mail" className="flex-1 bg-white text-black border-0 focus:ring-2 focus:ring-white/20 rounded-xl" />
-              <Button className="bg-white text-black hover:bg-gray-100 px-8 rounded-xl">
-                Submit
+        <div className="mt-16 max-w-4xl mx-auto">
+          <div className="bg-black text-white p-8 rounded-2xl text-center">
+            <h3 className="text-2xl font-bold mb-4">Stay in the loop</h3>
+            <p className="text-gray-300 mb-6">Get the latest updates on new products and exclusive offers</p>
+            <div className="flex gap-4 max-w-md mx-auto">
+              <Input 
+                type="email" 
+                placeholder="Enter your email" 
+                className="bg-white text-black border-0"
+              />
+              <Button className="bg-white text-black hover:bg-gray-100">
+                Subscribe
               </Button>
             </div>
-          </div>
-          <div className="absolute right-8 bottom-8 opacity-20">
-            <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=100&h=100&fit=crop" alt="Decorative" className="w-24 h-24 object-contain" />
           </div>
         </div>
       </div>
