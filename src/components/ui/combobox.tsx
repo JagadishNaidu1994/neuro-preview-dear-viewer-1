@@ -1,4 +1,5 @@
 "use client";
+
 import * as React from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 
@@ -36,6 +37,18 @@ export function Combobox({
   emptyPlaceholder = "No options found.",
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
+  const [inputValue, setInputValue] = React.useState(value || "");
+
+  const handleSelect = (currentValue: string) => {
+    const newValue = currentValue === value ? "" : currentValue;
+    onChange(newValue);
+    setInputValue(newValue);
+    setOpen(false);
+  };
+
+  const filteredOptions = options.filter(option => 
+    option.label.toLowerCase().includes(inputValue.toLowerCase())
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -54,18 +67,23 @@ export function Combobox({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0">
         <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+          <CommandInput 
+            placeholder={searchPlaceholder} 
+            value={inputValue}
+            onValueChange={setInputValue}
+          />
           <CommandList>
-            <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
+            <CommandEmpty>
+                <CommandItem onSelect={() => handleSelect(inputValue)}>
+                    Create "{inputValue}"
+                </CommandItem>
+            </CommandEmpty>
             <CommandGroup>
-              {options.map((option) => (
+              {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}
                   value={option.value}
-                  onSelect={(currentValue) => {
-                    onChange(currentValue === value ? "" : currentValue);
-                    setOpen(false);
-                  }}
+                  onSelect={handleSelect}
                 >
                   <Check
                     className={cn(
