@@ -39,6 +39,7 @@ import {
 } from "react-icons/fa";
 import jsPDF from 'jspdf';
 import SubscriptionCancellationModal from "@/components/SubscriptionCancellationModal";
+import { useToast } from "@/hooks/use-toast";
 
 interface Order {
   id: string;
@@ -114,6 +115,7 @@ const AccountPage = () => {
   const { user } = useAuth();
   const { addToCart } = useCart();
   const { isAdmin } = useAdmin();
+  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);

@@ -29,11 +29,20 @@ interface Expense {
   date: string;
 }
 
+interface Category {
+  id: string;
+  name: string;
+  created_at: string | null;
+}
+
 const ExpensesTab = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [form, setForm] = useState({
     description: "",
     amount: "",
@@ -44,17 +53,39 @@ const ExpensesTab = () => {
 
   useEffect(() => {
     fetchExpenses();
+    fetchCategories();
   }, []);
 
   const fetchExpenses = async () => {
     setLoading(true);
     try {
-      // For now, show empty state since expenses table may not be properly configured
-      setExpenses([]);
+      const { data, error } = await supabase
+        .from("expenses")
+        .select("*")
+        .order("date", { ascending: false });
+      
+      if (error) throw error;
+      setExpenses(data || []);
     } catch (error) {
       console.error("Error fetching expenses:", error);
+      setExpenses([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("expense_categories")
+        .select("*")
+        .order("name", { ascending: true });
+      
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      setCategories([]);
     }
   };
 
@@ -79,8 +110,20 @@ const ExpensesTab = () => {
         date: form.date,
       };
 
-      // Simulate save - in real implementation this would save to database
-      toast({ title: "Success", description: editingExpense ? "Expense updated." : "Expense created." });
+      if (editingExpense) {
+        const { error } = await supabase
+          .from("expenses")
+          .update(expenseData)
+          .eq("id", editingExpense.id);
+        if (error) throw error;
+        toast({ title: "Success", description: "Expense updated." });
+      } else {
+        const { error } = await supabase
+          .from("expenses")
+          .insert([expenseData]);
+        if (error) throw error;
+        toast({ title: "Success", description: "Expense created." });
+      }
 
       setIsModalOpen(false);
       setEditingExpense(null);
@@ -95,6 +138,54 @@ const ExpensesTab = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCategorySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from("expense_categories")
+        .insert([{ name: newCategoryName.trim() }]);
+      
+      if (error) throw error;
+      
+      toast({ title: "Success", description: "Category created successfully." });
+      setNewCategoryName("");
+      setIsCategoryModalOpen(false);
+      await fetchCategories();
+    } catch (error) {
+      console.error("Error creating category:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create category.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    if (!window.confirm("Are you sure you want to delete this category?")) return;
+    
+    try {
+      const { error } = await supabase
+        .from("expense_categories")
+        .delete()
+        .eq("id", categoryId);
+      
+      if (error) throw error;
+      
+      toast({ title: "Success", description: "Category deleted successfully." });
+      await fetchCategories();
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete category.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -264,6 +355,95 @@ const ExpensesTab = () => {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Manage Categories Section */}
+      <div className="mt-16">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Manage Categories</h2>
+          <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <FaPlus className="mr-2" />
+                Add Category
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Category</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCategorySubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="categoryName">Category Name</Label>
+                  <Input
+                    id="categoryName"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsCategoryModalOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    Save
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Category Name</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {categories.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={2} className="text-center">
+                    No categories found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                categories.map((category) => (
+                  <TableRow key={category.id}>
+                    <TableCell>{category.name}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            // Edit functionality can be added later
+                            toast({ title: "Info", description: "Edit functionality coming soon." });
+                          }}
+                        >
+                          <FaEdit />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteCategory(category.id)}
+                        >
+                          <FaTrash />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );
