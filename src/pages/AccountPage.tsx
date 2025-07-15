@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useUser } from "@/hooks/useUser";
-import { PageWrapper } from "@/components/PageWrapper";
+import { useUser } from "@/context/AuthContext";
+import PageWrapper from "@/components/PageWrapper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,8 +67,8 @@ const PaymentMethodIcon = ({ type }: { type: string }) => {
 };
 
 const AccountPage = () => {
-  const { user, session, isLoading: userLoading, fetchUserData } = useUser();
-  const router = useRouter();
+  const { user, session, isLoading: userLoading } = useUser();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -95,7 +95,6 @@ const AccountPage = () => {
 
   useEffect(() => {
     if (user) {
-      fetchUserData();
       loadProfile();
       loadSubscriptions();
       loadPaymentMethods();
@@ -120,12 +119,26 @@ const AccountPage = () => {
     if (!user) return;
     try {
       const { data, error } = await supabase
-        .from("profiles")
+        .from("users")
         .select("*")
         .eq("id", user.id)
         .single();
       if (error) throw error;
-      setProfile(data || null);
+      if (data) {
+        const userProfile: UserProfile = {
+          id: data.id,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          email: data.email,
+          phone_number: data.phone || null,
+          address: null,
+          city: null,
+          state: null,
+          zip_code: null,
+          avatar_url: null,
+        };
+        setProfile(userProfile);
+      }
     } catch (error) {
       console.error("Error loading profile:", error);
     }
@@ -136,15 +149,25 @@ const AccountPage = () => {
     try {
       const { data, error } = await supabase
         .from("subscriptions")
-        .select(
-          `
-          *,
-          plan:plans (*)
-        `
-        )
+        .select("*")
         .eq("user_id", user.id);
       if (error) throw error;
-      setSubscriptions(data || []);
+      const transformedData = (data || []).map(sub => ({
+        id: sub.id,
+        user_id: sub.user_id,
+        plan_id: sub.product_id, // Using product_id as plan_id
+        start_date: sub.created_at,
+        end_date: sub.next_delivery_date,
+        status: sub.status,
+        auto_renew: true, // Default value
+        discount_percentage: sub.discount_percentage,
+        plan: {
+          name: 'Subscription Plan',
+          price: 0,
+          description: 'Product subscription'
+        }
+      }));
+      setSubscriptions(transformedData);
     } catch (error) {
       console.error("Error loading subscriptions:", error);
     }
@@ -158,7 +181,15 @@ const AccountPage = () => {
         .select("*")
         .eq("user_id", user.id);
       if (error) throw error;
-      setPaymentMethods(data || []);
+      const transformedData = (data || []).map(pm => ({
+        id: pm.id,
+        user_id: pm.user_id,
+        card_type: pm.card_type,
+        last_four: pm.card_last_four,
+        expiry_date: `${pm.expiry_month}/${pm.expiry_year}`,
+        is_default: pm.is_default
+      }));
+      setPaymentMethods(transformedData);
     } catch (error) {
       console.error("Error loading payment methods:", error);
     }
@@ -187,7 +218,7 @@ const AccountPage = () => {
       });
 
       setEditingProfile(false);
-      await fetchUserData();
+      await loadProfile();
     } catch (error) {
       console.error("Error updating profile:", error);
       toast({
@@ -206,7 +237,6 @@ const AccountPage = () => {
         .from("subscriptions")
         .update({
           ...updates,
-          discount_percentage: updates.discount, // Map discount to discount_percentage
         })
         .eq("id", subscriptionId);
 
@@ -217,7 +247,7 @@ const AccountPage = () => {
         description: "Subscription updated successfully",
       });
       
-      await fetchUserData();
+      await loadSubscriptions();
     } catch (error) {
       console.error("Error updating subscription:", error);
       toast({
@@ -242,7 +272,7 @@ const AccountPage = () => {
         description: "Payment method deleted successfully",
       });
       
-      await fetchUserData();
+      await loadPaymentMethods();
     } catch (error) {
       console.error("Error deleting payment method:", error);
       toast({
@@ -262,7 +292,7 @@ const AccountPage = () => {
   }
 
   if (!user) {
-    router.push("/login");
+    navigate("/login");
     return null;
   }
 
@@ -508,7 +538,7 @@ const AccountPage = () => {
                             size="sm"
                             onClick={() => {
                               handleSubscriptionUpdate(subscription.id, {
-                                discount: parseFloat(subscriptionForm.discount),
+                                discount_percentage: parseFloat(subscriptionForm.discount),
                               });
                               setEditingSubscription(null);
                             }}

@@ -28,7 +28,11 @@ const ContentTab = () => {
     try {
       const { data, error } = await supabase.from("pages").select("*");
       if (error) throw error;
-      setPages(data || []);
+      const transformedData = (data || []).map(page => ({
+        ...page,
+        content: typeof page.content === 'object' && page.content ? page.content as { [key: string]: string } : {}
+      }));
+      setPages(transformedData);
     } catch (error) {
       console.error("Error fetching pages:", error);
     }
