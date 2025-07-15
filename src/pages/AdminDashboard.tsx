@@ -1,3 +1,14 @@
+Of course. I can help with that. Here is the code that will remove the top table and only show the bottom one.
+
+### Overview of the solution
+
+To address the issue of displaying two shipping methods tables in the Admin Dashboard, I will modify the `src/pages/AdminDashboard.tsx` file. The problem is that the component renders a separate `ShippingTab` component and also includes the logic for a shipping methods table directly within the `AdminDashboard` component.
+
+### Updated Code
+
+Here is the updated code for the `src/pages/AdminDashboard.tsx` file:
+
+```typescript
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/useAdmin";
@@ -1178,148 +1189,6 @@ const AdminDashboard = () => {
                 </Table>
               </CardContent>
             </Card>}
-
-          {/* Shipping Methods Tab (Previously Shipping Tab) */}
-          {activeTab === "shipping" && (
-            <Card className="bg-white">
-              <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-gray-900 mb-4 md:mb-0">Shipping Methods Management</CardTitle>
-                <Dialog open={isShippingModalOpen} onOpenChange={setIsShippingModalOpen}>
-                  <DialogTrigger asChild>
-                    <Button onClick={() => {
-                      setEditingShipping(null);
-                      resetShippingForm();
-                    }}>
-                      <FaPlus className="mr-2" />
-                      Add Shipping Method
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>
-                        {editingShipping ? "Edit Shipping Method" : "Add New Shipping Method"}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleShippingSubmit} className="space-y-4">
-                      <div>
-                        <Label htmlFor="shipping_name">Name</Label>
-                        <Input
-                          id="shipping_name"
-                          value={shippingForm.name}
-                          onChange={(e) =>
-                            setShippingForm({ ...shippingForm, name: e.target.value })
-                          }
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="shipping_description">Description</Label>
-                        <Textarea
-                          id="shipping_description"
-                          value={shippingForm.description}
-                          onChange={(e) =>
-                            setShippingForm({ ...shippingForm, description: e.target.value })
-                          }
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="shipping_price">Price ($)</Label>
-                          <Input
-                            id="shipping_price"
-                            type="number"
-                            step="0.01"
-                            value={shippingForm.price}
-                            onChange={(e) =>
-                              setShippingForm({ ...shippingForm, price: e.target.value })
-                            }
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="estimated_days">Estimated Days</Label>
-                          <Input
-                            id="estimated_days"
-                            value={shippingForm.estimated_days}
-                            onChange={(e) =>
-                              setShippingForm({ ...shippingForm, estimated_days: e.target.value })
-                            }
-                            placeholder="e.g., 3-5 days"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="flex justify-end space-x-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setIsShippingModalOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button type="submit" disabled={loading}>
-                          {loading ? "Saving..." : "Save Shipping Method"}
-                        </Button>
-                      </div>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </CardHeader>
-              <CardContent className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Estimated Days</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {shippingMethods.map((shipping) => (
-                      <TableRow key={shipping.id}>
-                        <TableCell className="font-medium">{shipping.name}</TableCell>
-                        <TableCell>{shipping.description || "N/A"}</TableCell>
-                        <TableCell>${shipping.price}</TableCell>
-                        <TableCell>{shipping.estimated_days}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <Badge variant={shipping.is_active ? "default" : "secondary"}>
-                              {shipping.is_active ? "Active" : "Inactive"}
-                            </Badge>
-                            <Button size="sm" variant="outline" onClick={() => toggleShippingStatus(shipping.id, shipping.is_active)}>
-                              <span className="hidden md:inline">{shipping.is_active ? "Disable" : "Enable"}</span>
-                              <FaEdit className="md:hidden" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditShipping(shipping)}
-                            >
-                              <FaEdit />
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeleteShipping(shipping.id)}
-                            >
-                              <FaTrash />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
 
@@ -1328,3 +1197,8 @@ const AdminDashboard = () => {
     </div>;
 };
 export default AdminDashboard;
+```
+
+I've removed the redundant table from the `AdminDashboard` component and now it only renders the `ShippingTab` component, which contains the correct table with the "Active" status and "Disable" button.
+
+I am confident that this will resolve the issue. Let me know if you have any other questions.
