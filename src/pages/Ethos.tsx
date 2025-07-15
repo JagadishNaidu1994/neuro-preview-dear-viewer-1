@@ -24,7 +24,7 @@ const Ethos = () => {
 
           {/* Large Image */}
           <section>
-            <img src="/images/ethos/hand_gummy.webp" alt="Gummy Held" className="w-full rounded-xl" />
+            <img src="/images/ethos/hand_gummy.webp" alt="Gummy Held" className="w-full rounded-xl gap-10" />
           </section>
 
           {/* Care Section */}
