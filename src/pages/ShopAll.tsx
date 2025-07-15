@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +22,7 @@ export default function ShopAll() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetchProducts();
@@ -43,8 +43,6 @@ export default function ShopAll() {
       setLoading(false);
     }
   };
-
-  const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   const handleQuantityChange = (productId: string, quantity: number) => {
     setQuantities(prev => ({
@@ -95,27 +93,15 @@ export default function ShopAll() {
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-brand-white">
+    return (
+      <div className="min-h-screen bg-brand-white">
         <Header />
         <div className="w-full px-4 md:px-8 py-8 text-center">
           <div className="text-xl text-brand-blue-700">Loading products...</div>
         </div>
       </div>
-    // );
+    );
   }
-  return <div className="min-h-screen bg-brand-white">
-           <main className="w-full px-4 bg-brand-white py-px md:px-[14px]">
-        <div className="max-w-[1400px] mx-auto">
-          <h1 className="text-3xl font-bold mb-8 text-center text-brand-blue-700">Shop All Products</h1>
-          
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {products.map(product => <div key={product.id} className={`group overflow-hidden rounded-xl bg-brand-white shadow-sm hover:shadow-lg transition-shadow duration-300 border border-brand-gray-200 ${!product.is_active || product.stock_quantity === 0 ? 'opacity-75 bg-brand-gray-100' : ''}`}>
-                <Link to={`/product?id=${product.id}`}>
-                  <div className="relative aspect-square overflow-hidden">
-                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    {(!product.is_active || product.stock_quantity === 0) && <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                        <span className="bg-red-500 text-brand-white px-3 py-1 rounded-lg font-semibold">
-
 
   return (
     <div className="min-h-screen bg-[#F8F8F5]">
@@ -174,15 +160,27 @@ export default function ShopAll() {
                   </p>
                   <div className="flex items-center justify-between">
                     <div className="text-lg font-semibold text-brand-blue-700">
-                      ${product.price}
+                      ₹{product.price}
                     </div>
                     <div className="flex items-center gap-2">
-                      <Input type="number" min="1" max={product.stock_quantity} value={quantities[product.id] || 1} onChange={e => handleQuantityChange(product.id, parseInt(e.target.value))} className="w-16 h-8 text-center" />
-                      <Button size="sm" onClick={() => handleAddToCart(product.id)} disabled={!product.is_active || product.stock_quantity === 0}>
-
+                      <Input
+                        type="number"
+                        min="1"
+                        max={product.stock_quantity}
+                        value={quantities[product.id] || 1}
+                        onChange={e =>
+                          handleQuantityChange(product.id, parseInt(e.target.value))
+                        }
+                        className="w-16 h-8 text-center"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={() => handleAddToCart(product.id)}
+                        disabled={!product.is_active || product.stock_quantity === 0}
+                      >
                         <FaShoppingCart className="mr-2" />
-                        {!product.is_active || product.stock_quantity === 0 
-                          ? "Out of Stock" 
+                        {!product.is_active || product.stock_quantity === 0
+                          ? "Out of Stock"
                           : "Add to Cart"}
                       </Button>
                     </div>
@@ -198,10 +196,12 @@ export default function ShopAll() {
             ))}
           </div>
 
-          {products.length === 0 && <div className="text-center py-16">
+          {products.length === 0 && (
+            <div className="text-center py-16">
               <h2 className="text-2xl font-semibold mb-4 text-brand-blue-700">No products available</h2>
               <p className="text-brand-gray-500">Check back soon for new products!</p>
-            </div>}
+            </div>
+          )}
 
           {/* Benefits Section */}
           <div className="mt-16 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8">
@@ -214,23 +214,29 @@ export default function ShopAll() {
                   <FaBrain className="text-blue-600 text-2xl" />
                 </div>
                 <h3 className="font-semibold mb-2">Scientifically Proven</h3>
-                <p className="text-gray-600 text-sm">Research-backed ingredients for optimal cognitive function</p>
+                <p className="text-gray-600 text-sm">
+                  Research-backed ingredients for optimal cognitive function
+                </p>
               </div>
-              
+
               <div className="text-center">
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaMemory className="text-purple-600 text-2xl" />
                 </div>
                 <h3 className="font-semibold mb-2">Memory Enhancement</h3>
-                <p className="text-gray-600 text-sm">Support memory formation and recall with premium nootropics</p>
+                <p className="text-gray-600 text-sm">
+                  Support memory formation and recall with premium nootropics
+                </p>
               </div>
-              
+
               <div className="text-center">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaLightbulb className="text-green-600 text-2xl" />
                 </div>
                 <h3 className="font-semibold mb-2">Focus & Clarity</h3>
-                <p className="text-gray-600 text-sm">Enhance mental clarity and sustained focus throughout the day</p>
+                <p className="text-gray-600 text-sm">
+                  Enhance mental clarity and sustained focus throughout the day
+                </p>
               </div>
             </div>
           </div>
