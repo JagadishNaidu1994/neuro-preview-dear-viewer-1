@@ -50,7 +50,8 @@ const Header = forwardRef<HTMLButtonElement>((_, ref) => {
   return (
     <>
       <header className="bg-brand-white shadow-sm sticky top-0 z-30">
-  const navItems = [{
+  const navItems = [
+     {
     label: "Shop All",
     href: "/shop-all"
   }, {
