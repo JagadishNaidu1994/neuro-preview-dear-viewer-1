@@ -37,18 +37,9 @@ export function Combobox({
   emptyPlaceholder = "No options found.",
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState(value || "");
-
-  const handleSelect = (currentValue: string) => {
-    const newValue = currentValue === value ? "" : currentValue;
-    onChange(newValue);
-    setInputValue(newValue);
-    setOpen(false);
-  };
-
-  const filteredOptions = options.filter(option => 
-    option.label.toLowerCase().includes(inputValue.toLowerCase())
-  );
+  
+  // Find the label for the currently selected value
+  const selectedLabel = options.find((option) => option.value.toLowerCase() === value?.toLowerCase())?.label;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -59,36 +50,46 @@ export function Combobox({
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {value
-            ? options.find((option) => option.value === value)?.label
-            : placeholder}
+          {value ? selectedLabel : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
           <CommandInput 
             placeholder={searchPlaceholder} 
-            value={inputValue}
-            onValueChange={setInputValue}
           />
           <CommandList>
             <CommandEmpty>
-                <CommandItem onSelect={() => handleSelect(inputValue)}>
-                    Create "{inputValue}"
-                </CommandItem>
+                <div className="p-1">
+                    <Button
+                        className="w-full"
+                        onClick={() => {
+                            const input = document.querySelector(`[cmdk-input]`) as HTMLInputElement;
+                            if (input.value) {
+                                onChange(input.value);
+                                setOpen(false);
+                            }
+                        }}
+                    >
+                        Create "{document.querySelector<HTMLInputElement>(`[cmdk-input]`)?.value}"
+                    </Button>
+                </div>
             </CommandEmpty>
             <CommandGroup>
-              {filteredOptions.map((option) => (
+              {options.map((option) => (
                 <CommandItem
                   key={option.value}
                   value={option.value}
-                  onSelect={handleSelect}
+                  onSelect={(currentValue) => {
+                    onChange(currentValue === value ? "" : currentValue);
+                    setOpen(false);
+                  }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === option.value ? "opacity-100" : "opacity-0"
+                      value?.toLowerCase() === option.value.toLowerCase() ? "opacity-100" : "opacity-0"
                     )}
                   />
                   {option.label}
