@@ -98,7 +98,7 @@ const OrderSuccess = () => {
               delay: index * 0.5
             }}
           >
-            <Icon className="text-purple-400" />
+            <Icon className="text-blue-400" />
           </motion.div>
         ))}
       </div>
@@ -151,7 +151,7 @@ const OrderSuccess = () => {
               }}
               className="relative z-10"
             >  
-              <FaCheckCircle className="text-green-500 text-8xl mx-auto drop-shadow-lg" />
+              <FaCheckCircle className="text-blue-500 text-8xl mx-auto drop-shadow-lg" />
             </motion.div>
           </div> 
 
@@ -160,7 +160,7 @@ const OrderSuccess = () => {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.6, type: "spring" }}
-            className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent"
+            className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-red-600 to-yellow-600 bg-clip-text text-transparent"
           >
              Order Confirmed! 
           </motion.h1>
