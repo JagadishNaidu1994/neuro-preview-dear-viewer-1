@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FaMinus, FaPlus, FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 import { ChevronDown, Package, Clock, Heart, ThumbsUp, ThumbsDown, MessageCircle, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ReviewCard from "@/components/ReviewCard";
+import { useToast } from "@/hooks/use-toast";
 
 interface Product {
   id: string;
@@ -31,6 +33,9 @@ interface Review {
   comment: string;
   created_at: string;
   user_id: string;
+  admin_reply?: string;
+  admin_reply_date?: string;
+  users?: { email: string } | null;
 }
 
 const ProductPage = () => {
@@ -55,6 +60,7 @@ const ProductPage = () => {
 
   const { user } = useAuth();
   const { addToCart } = useCart();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -94,12 +100,16 @@ const ProductPage = () => {
       try {
         const { data, error } = await supabase
           .from("reviews")
-          .select("*")
+          .select(`
+            *,
+            users:user_id(email)
+          `)
           .eq("product_id", id)
           .eq("is_approved", true)
+          .eq("archived", false)
           .order("created_at", { ascending: false });
         if (error) throw error;
-        setReviews(data || []);
+        setReviews((data as any) || []);
       } catch (error) {
         console.error("Error fetching reviews:", error);
       }
@@ -232,10 +242,17 @@ const ProductPage = () => {
       setReview({ rating: 5, comment: "" });
       setHasReviewed(true);
       setCanReview(false);
-      alert("Review submitted for approval! You earned 25 points!");
+      toast({
+        title: "Success",
+        description: "Review submitted for approval! You earned 25 points!",
+      });
     } catch (error) {
       console.error("Error submitting review:", error);
-      alert("Failed to submit review.");
+      toast({
+        title: "Error",
+        description: "Failed to submit review.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -615,46 +632,42 @@ const ProductPage = () => {
 
               {/* Reviews List */}
               <div className="space-y-4">
-                {reviews.map((review, index) => (
-                  <div key={review.id} className="border rounded-lg p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium">
-                          {index === 0 ? "G" : index === 1 ? "M" : index === 2 ? "J" : index === 3 ? "S" : "A"}
-                        </span>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="font-medium">
-                            {index === 0 ? "Gisella P." : index === 1 ? "Maria S." : index === 2 ? "John D." : index === 3 ? "Sarah K." : "Alex R."}
-                          </span>
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Good!</span>
-                        </div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="flex">
-                            {renderStars(review.rating)}
-                          </div>
-                          <span className="text-sm text-gray-500">{formatTimeAgo(review.created_at)}</span>
-                        </div>
-                        <p className="text-gray-700 mb-3">{review.comment}</p>
-                        <div className="flex items-center gap-4 text-sm">
-                          <button className="flex items-center gap-1 text-gray-500 hover:text-gray-700">
-                            <ThumbsUp className="w-4 h-4" />
-                            Helpful
-                          </button>
-                          <button className="flex items-center gap-1 text-gray-500 hover:text-gray-700">
-                            <ThumbsDown className="w-4 h-4" />
-                          </button>
-                          <button className="flex items-center gap-1 text-gray-500 hover:text-gray-700">
-                            <MessageCircle className="w-4 h-4" />
-                            Reply
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                {reviews.length > 0 ? (
+                  reviews.map((review) => (
+                    <ReviewCard 
+                      key={review.id}
+                      review={review}
+                      userEmail={review.users?.email}
+                      onReplySubmitted={() => {
+                        // Re-fetch reviews after reply is submitted
+                        const fetchReviews = async () => {
+                          if (!id) return;
+                          try {
+                            const { data, error } = await supabase
+                              .from("reviews")
+                              .select(`
+                                *,
+                                users:user_id(email)
+                              `)
+                              .eq("product_id", id)
+                              .eq("is_approved", true)
+                              .eq("archived", false)
+                              .order("created_at", { ascending: false });
+                            if (error) throw error;
+                            setReviews((data as any) || []);
+                          } catch (error) {
+                            console.error("Error fetching reviews:", error);
+                          }
+                        };
+                        fetchReviews();
+                      }}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No reviews yet. Be the first to review this product!</p>
                   </div>
-                ))}
+                )}
               </div>
             </TabsContent>
           </Tabs>

@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { FaCheck, FaArchive, FaStar, FaReply, FaHeart, FaRegStar, FaRegHeart } from "react-icons/fa";
+import ReviewCard from "@/components/ReviewCard";
 import { useToast } from "@/hooks/use-toast";
 
 interface Review {
@@ -48,46 +49,27 @@ const ReviewsTab = () => {
   const fetchReviews = async () => {
     setLoading(true);
     try {
+      // Use JOIN to fetch all data in a single query for better performance
       const { data: reviewsData, error } = await supabase
         .from("reviews")
-        .select("*")
+        .select(`
+          *,
+          products:product_id(name),
+          users:user_id(email)
+        `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      // Fetch related product and user data separately
       const reviewsWithDetails: Review[] = [];
       const archivedWithDetails: Review[] = [];
       
       if (reviewsData) {
-        for (const review of reviewsData) {
-          let productName = "Unknown Product";
-          let userEmail = "Unknown User";
-
-          // Fetch product name
-          if (review.product_id) {
-            const { data: product } = await supabase
-              .from("products")
-              .select("name")
-              .eq("id", review.product_id)
-              .single();
-            if (product) productName = product.name;
-          }
-
-          // Fetch user email
-          if (review.user_id) {
-            const { data: user } = await supabase
-              .from("users")
-              .select("email")
-              .eq("id", review.user_id)
-              .single();
-            if (user) userEmail = user.email;
-          }
-
+        reviewsData.forEach((review: any) => {
           const reviewWithDetails = {
             ...review,
-            product_name: productName,
-            user_email: userEmail,
+            product_name: review.products?.name || "Unknown Product",
+            user_email: review.users?.email || "Unknown User",
           };
 
           if (review.archived) {
@@ -95,7 +77,7 @@ const ReviewsTab = () => {
           } else {
             reviewsWithDetails.push(reviewWithDetails);
           }
-        }
+        });
       }
 
       setReviews(reviewsWithDetails);
@@ -333,12 +315,84 @@ const ReviewsTab = () => {
           <TabsTrigger value="archived">Archived ({archivedReviews.length})</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="active" className="overflow-x-auto">
-          <ReviewTable reviewList={reviews} />
+        <TabsContent value="active" className="space-y-4">
+          {reviews.length > 0 ? (
+            reviews.map((review) => (
+              <div key={review.id} className="relative">
+                <ReviewCard 
+                  review={review}
+                  userEmail={review.user_email}
+                  onReplySubmitted={fetchReviews}
+                  showAdminActions={true}
+                />
+                <div className="absolute top-4 right-4 flex space-x-2">
+                  {!review.is_approved && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleApprove(review.id)}
+                      className="bg-green-50 hover:bg-green-100"
+                    >
+                      <FaCheck className="w-4 h-4" />
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleToggleImportant(review.id, review.is_important)}
+                    className={review.is_important ? "bg-red-50 hover:bg-red-100" : ""}
+                  >
+                    {review.is_important ? (
+                      <FaHeart className="w-4 h-4 text-red-500" />
+                    ) : (
+                      <FaRegHeart className="w-4 h-4" />
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleArchive(review.id)}
+                    className="bg-gray-50 hover:bg-gray-100"
+                  >
+                    <FaArchive className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No active reviews found</p>
+            </div>
+          )}
         </TabsContent>
         
-        <TabsContent value="archived" className="overflow-x-auto">
-          <ReviewTable reviewList={archivedReviews} isArchived />
+        <TabsContent value="archived" className="space-y-4">
+          {archivedReviews.length > 0 ? (
+            archivedReviews.map((review) => (
+              <div key={review.id} className="relative">
+                <ReviewCard 
+                  review={review}
+                  userEmail={review.user_email}
+                  onReplySubmitted={fetchReviews}
+                  showAdminActions={true}
+                />
+                <div className="absolute top-4 right-4">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleUnarchive(review.id)}
+                    className="bg-blue-50 hover:bg-blue-100"
+                  >
+                    Restore
+                  </Button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No archived reviews found</p>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 
