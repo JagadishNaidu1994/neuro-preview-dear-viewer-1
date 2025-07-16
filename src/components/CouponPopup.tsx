@@ -60,32 +60,82 @@ export const CouponPopup: React.FC<CouponPopupProps> = ({
     
     setLoading(true);
     try {
-      // Fetch general active coupons
+      // Fetch general active coupons (not expired and not assigned to specific users)
       const { data: generalData, error: generalError } = await supabase
         .from("coupon_codes")
         .select("*")
         .eq("is_active", true)
+        .is("assigned_users", null)
         .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
 
       if (generalError) throw generalError;
 
-      // Fetch user-specific coupons
-      const { data: userCouponData, error: userError } = await supabase
-        .from("user_coupons")
-        .select(`
-          id,
-          coupon_id,
-          is_used,
-          assigned_at,
-          coupon:coupon_codes(*)
-        `)
-        .eq("user_id", user.id)
-        .eq("is_used", false);
+      // Filter out coupons that have reached usage limit for this user
+      const filteredGeneralCoupons = [];
+      if (generalData) {
+        for (const coupon of generalData) {
+          if (coupon.max_uses) {
+            const { data: usage } = await supabase
+              .from('coupon_usage')
+              .select('used_count')
+              .eq('user_id', user.id)
+              .eq('coupon_id', coupon.id)
+              .single();
+            
+            if (usage && usage.used_count >= coupon.max_uses) {
+              continue; // Skip this coupon
+            }
+          }
+          filteredGeneralCoupons.push(coupon);
+        }
+      }
 
-      if (userError) throw userError;
+      // Fetch user-specific coupons (active, not expired, assigned to this user)
+      const { data: userSpecificData, error: userSpecificError } = await supabase
+        .from("coupon_codes")
+        .select("*")
+        .eq("is_active", true)
+        .not("assigned_users", "is", null)
+        .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
 
-      setGeneralCoupons(generalData || []);
-      setUserCoupons(userCouponData || []);
+      if (userSpecificError) throw userSpecificError;
+
+      // Filter user-specific coupons for this user
+      const filteredUserSpecificCoupons = [];
+      if (userSpecificData && user?.email) {
+        for (const coupon of userSpecificData) {
+          // Check if user's email is in assigned_users
+          if (coupon.assigned_users && 
+              coupon.assigned_users.split(',').map(email => email.trim().toLowerCase()).includes(user.email.toLowerCase())) {
+            
+            // Check if user has reached usage limit
+            if (coupon.max_uses) {
+              const { data: usage } = await supabase
+                .from('coupon_usage')
+                .select('used_count')
+                .eq('user_id', user.id)
+                .eq('coupon_id', coupon.id)
+                .single();
+              
+              if (usage && usage.used_count >= coupon.max_uses) {
+                continue; // Skip this coupon
+              }
+            }
+            filteredUserSpecificCoupons.push(coupon);
+          }
+        }
+      }
+
+      setGeneralCoupons(filteredGeneralCoupons);
+      // Convert user-specific coupons to UserCoupon format for compatibility
+      const userCouponsFormatted = filteredUserSpecificCoupons.map(coupon => ({
+        id: `user-${coupon.id}`,
+        coupon_id: coupon.id,
+        is_used: false,
+        assigned_at: new Date().toISOString(),
+        coupon: coupon
+      }));
+      setUserCoupons(userCouponsFormatted);
     } catch (error) {
       console.error("Error fetching coupons:", error);
       toast({

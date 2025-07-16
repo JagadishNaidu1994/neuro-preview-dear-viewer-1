@@ -182,12 +182,19 @@ const Checkout = () => {
           .eq('id', appliedCoupon.id);
 
         // Update user coupon usage tracking
+        const { data: existingUsage } = await supabase
+          .from('coupon_usage')
+          .select('used_count')
+          .eq('user_id', user.id)
+          .eq('coupon_id', appliedCoupon.id)
+          .single();
+
         await supabase
           .from('coupon_usage')
           .upsert({
             user_id: user.id,
             coupon_id: appliedCoupon.id,
-            used_count: 1
+            used_count: (existingUsage?.used_count || 0) + 1
           }, {
             onConflict: 'user_id,coupon_id',
             ignoreDuplicates: false

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Breadcrumb from "@/components/Breadcrumb";
 import { FaGift, FaStar, FaUsers, FaShoppingCart } from "react-icons/fa";
@@ -7,12 +8,47 @@ import { FaGift, FaStar, FaUsers, FaShoppingCart } from "react-icons/fa";
 const Rewards = () => {
   const { user } = useAuth();
   const [rewardData, setRewardData] = useState({
-    totalPoints: 750,
-    availableRewards: 650,
-    pendingPoints: 100,
-    referralPoints: 300,
-    purchasePoints: 450
+    totalPoints: 0,
+    availableRewards: 0,
+    redeemedPoints: 0,
+    referralPoints: 0,
+    purchasePoints: 0
   });
+
+  useEffect(() => {
+    if (user) {
+      fetchUserRewards();
+    }
+  }, [user]);
+
+  const fetchUserRewards = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from("user_rewards")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error("Error fetching rewards:", error);
+        return;
+      }
+
+      if (data) {
+        setRewardData({
+          totalPoints: data.total_earned || 0,
+          availableRewards: data.points_balance || 0,
+          redeemedPoints: data.utilized_points || 0,
+          referralPoints: 0, // You can calculate this separately if needed
+          purchasePoints: data.total_earned || 0
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching rewards:", error);
+    }
+  };
 
   const rewardTiers = [
     { name: "Bronze", minPoints: 0, benefits: ["5% off orders", "Early access to sales"] },
@@ -96,8 +132,8 @@ const Rewards = () => {
             <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <FaShoppingCart className="text-orange-600 text-2xl" />
             </div>
-            <h3 className="text-3xl font-bold mb-2 text-orange-600">{rewardData.pendingPoints}</h3>
-            <p className="text-gray-600">Pending Points</p>
+            <h3 className="text-3xl font-bold mb-2 text-orange-600">{rewardData.redeemedPoints}</h3>
+            <p className="text-gray-600">Redeemed Points</p>
           </div>
         </div>
 

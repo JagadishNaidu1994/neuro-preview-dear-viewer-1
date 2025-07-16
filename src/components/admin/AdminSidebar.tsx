@@ -88,12 +88,11 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
     { id: "users", label: "Users", icon: Users, count: counts.users },
     { id: "journals", label: "Journals", icon: FileText },
     { id: "messages", label: "Messages", icon: MessageSquare, count: counts.messages },
-    { id: "coupons", label: "Coupons", icon: Tag, count: counts.coupons },
-    { id: "user-coupons", label: "User Coupons", icon: Tag },
+    { id: "content", label: "Coupon Management", icon: Tag, count: counts.coupons },
     { id: "shipping", label: "Shipping", icon: Truck },
     { id: "expenses", label: "Expenses", icon: DollarSign },
     { id: "reviews", label: "Reviews", icon: Star },
-    { id: "content", label: "Content", icon: FileEdit },
+    
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
