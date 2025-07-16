@@ -862,6 +862,7 @@ const ProductPage = () => {
                     <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-xl font-semibold text-gray-600 mb-2">No reviews yet</h3>
                     <p className="text-gray-500">Be the first to review this product and help others make informed decisions!</p>
+                  </div>
                 )}
               </div>
             </TabsContent>
