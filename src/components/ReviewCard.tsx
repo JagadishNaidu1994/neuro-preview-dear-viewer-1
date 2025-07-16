@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Eye } from "lucide-react";
 import { FaStar, FaThumbsUp, FaThumbsDown, FaReply } from "react-icons/fa";
 import { useAuth } from "@/context/AuthProvider";
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +31,7 @@ const ReviewCard = ({ review, userEmail, onReplySubmitted, showAdminActions = fa
   const [dislikeCount, setDislikeCount] = useState(0);
   const [userReaction, setUserReaction] = useState<'like' | 'dislike' | null>(null);
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [adminReply, setAdminReply] = useState(review.admin_reply || "");
 
   const getRatingBadge = (rating: number) => {
@@ -165,13 +167,14 @@ const ReviewCard = ({ review, userEmail, onReplySubmitted, showAdminActions = fa
   const ratingBadge = getRatingBadge(review.rating);
 
   return (
-    <div className="bg-white p-6 rounded-lg border border-gray-200">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center space-x-3">
+    <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="flex">
             {renderStars(review.rating)}
           </div>
-          <Badge className={ratingBadge.color}>
+          <Badge className={`${ratingBadge.color} text-xs font-medium`}>
             {ratingBadge.text}
           </Badge>
           <span className="text-sm text-gray-500">
@@ -179,44 +182,59 @@ const ReviewCard = ({ review, userEmail, onReplySubmitted, showAdminActions = fa
           </span>
         </div>
         {userEmail && (
-          <span className="text-sm text-gray-600">{userEmail}</span>
+          <span className="text-sm text-gray-600 truncate">{userEmail}</span>
         )}
       </div>
 
-      <p className="text-gray-700 mb-4">{review.comment}</p>
+      {/* Review Content */}
+      <div className="mb-4">
+        <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+      </div>
 
       {/* Admin Reply */}
       {review.admin_reply && (
-        <div className="bg-blue-50 p-4 rounded-lg mb-4">
-          <div className="flex items-center mb-2">
+        <div className="bg-blue-50 p-3 md:p-4 rounded-lg mb-4">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
             <span className="text-sm font-medium text-blue-800">Admin Reply</span>
-            <span className="text-xs text-blue-600 ml-2">
-              {review.admin_reply_date && formatTimeAgo(review.admin_reply_date)}
-            </span>
+            {review.admin_reply_date && (
+              <span className="text-xs text-blue-600">
+                {formatTimeAgo(review.admin_reply_date)}
+              </span>
+            )}
           </div>
-          <p className="text-blue-700">{review.admin_reply}</p>
+          <p className="text-blue-700 text-sm leading-relaxed">{review.admin_reply}</p>
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <div className="flex space-x-4">
+      {/* Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
           <Button
             size="sm"
             variant={userReaction === 'like' ? "default" : "outline"}
             onClick={() => handleReaction(true)}
-            className="flex items-center space-x-2"
+            className="flex items-center gap-2 text-xs"
           >
-            <FaThumbsUp className="w-4 h-4" />
+            <FaThumbsUp className="w-3 h-3" />
             <span>{likeCount}</span>
           </Button>
           <Button
             size="sm"
             variant={userReaction === 'dislike' ? "destructive" : "outline"}
             onClick={() => handleReaction(false)}
-            className="flex items-center space-x-2"
+            className="flex items-center gap-2 text-xs"
           >
-            <FaThumbsDown className="w-4 h-4" />
+            <FaThumbsDown className="w-3 h-3" />
             <span>{dislikeCount}</span>
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setDetailDialogOpen(true)}
+            className="flex items-center gap-2 text-xs"
+          >
+            <Eye className="w-3 h-3" />
+            <span>View Details</span>
           </Button>
         </div>
 
@@ -225,13 +243,76 @@ const ReviewCard = ({ review, userEmail, onReplySubmitted, showAdminActions = fa
             size="sm"
             variant="outline"
             onClick={() => setReplyDialogOpen(true)}
-            className="flex items-center space-x-2"
+            className="flex items-center gap-2 text-xs"
           >
-            <FaReply className="w-4 h-4" />
+            <FaReply className="w-3 h-3" />
             <span>Reply</span>
           </Button>
         )}
       </div>
+
+      {/* Review Detail Dialog */}
+      <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Review Details</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="flex">
+                  {renderStars(review.rating)}
+                </div>
+                <Badge className={ratingBadge.color}>
+                  {ratingBadge.text}
+                </Badge>
+              </div>
+              <span className="text-sm text-muted-foreground">
+                {formatTimeAgo(review.created_at)}
+              </span>
+            </div>
+            
+            {userEmail && (
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Reviewer: {userEmail}</span>
+              </div>
+            )}
+            
+            <div className="p-4 border rounded-lg">
+              <h4 className="font-medium mb-2">Review:</h4>
+              <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+            </div>
+            
+            {review.admin_reply && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-blue-800">Admin Reply</span>
+                  {review.admin_reply_date && (
+                    <span className="text-sm text-blue-600">
+                      {formatTimeAgo(review.admin_reply_date)}
+                    </span>
+                  )}
+                </div>
+                <p className="text-blue-700 leading-relaxed">{review.admin_reply}</p>
+              </div>
+            )}
+            
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span className="text-sm font-medium">Community Feedback:</span>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <FaThumbsUp className="w-4 h-4 text-green-600" />
+                  <span className="text-sm">{likeCount} likes</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FaThumbsDown className="w-4 h-4 text-red-600" />
+                  <span className="text-sm">{dislikeCount} dislikes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Admin Reply Dialog */}
       <Dialog open={replyDialogOpen} onOpenChange={setReplyDialogOpen}>

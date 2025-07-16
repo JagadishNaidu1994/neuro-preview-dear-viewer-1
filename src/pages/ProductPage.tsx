@@ -98,20 +98,47 @@ const ProductPage = () => {
     const fetchReviews = async () => {
       if (!id) return;
       try {
-        const { data, error } = await supabase
+        console.log("Fetching reviews for product ID:", id);
+        
+        // Use separate queries for better reliability
+        const { data: reviewsData, error: reviewsError } = await supabase
           .from("reviews")
-          .select(`
-            *,
-            users:user_id(email)
-          `)
+          .select("*")
           .eq("product_id", id)
           .eq("is_approved", true)
           .eq("archived", false)
           .order("created_at", { ascending: false });
-        if (error) throw error;
-        setReviews((data as any) || []);
+          
+        if (reviewsError) {
+          console.error("Reviews fetch error:", reviewsError);
+          throw reviewsError;
+        }
+        
+        console.log("Reviews found:", reviewsData?.length || 0);
+        
+        if (reviewsData && reviewsData.length > 0) {
+          // Fetch user details separately
+          const userIds = [...new Set(reviewsData.map(r => r.user_id).filter(Boolean))];
+          const { data: users } = await supabase
+            .from("users")
+            .select("id, email")
+            .in("id", userIds);
+            
+          const userMap = new Map(users?.map(u => [u.id, u.email]) || []);
+          
+          // Combine data
+          const reviewsWithUsers = reviewsData.map(review => ({
+            ...review,
+            users: review.user_id ? { email: userMap.get(review.user_id) || "Anonymous" } : null
+          }));
+          
+          setReviews(reviewsWithUsers);
+        } else {
+          setReviews([]);
+        }
       } catch (error) {
         console.error("Error fetching reviews:", error);
+        setReviews([]);
       }
     };
 

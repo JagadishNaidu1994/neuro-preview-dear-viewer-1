@@ -320,6 +320,7 @@ const ReviewsTab = () => {
       <Tabs defaultValue="active" className="w-full">
         <TabsList>
           <TabsTrigger value="active">Active Reviews ({reviews.length})</TabsTrigger>
+          <TabsTrigger value="favorites">Favorites ({reviews.filter(r => r.is_important).length})</TabsTrigger>
           <TabsTrigger value="archived">Archived ({archivedReviews.length})</TabsTrigger>
         </TabsList>
         
@@ -374,6 +375,53 @@ const ReviewsTab = () => {
           )}
         </TabsContent>
         
+        <TabsContent value="favorites" className="space-y-4">
+          {reviews.filter(r => r.is_important).length > 0 ? (
+            reviews.filter(r => r.is_important).map((review) => (
+              <div key={review.id} className="relative">
+                <ReviewCard 
+                  review={review}
+                  userEmail={review.user_email}
+                  onReplySubmitted={fetchReviews}
+                  showAdminActions={true}
+                />
+                <div className="absolute top-4 right-4 flex space-x-2">
+                  {!review.is_approved && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleApprove(review.id)}
+                      className="bg-green-50 hover:bg-green-100"
+                    >
+                      <FaCheck className="w-4 h-4" />
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleToggleImportant(review.id, review.is_important)}
+                    className="bg-red-50 hover:bg-red-100"
+                  >
+                    <FaHeart className="w-4 h-4 text-red-500" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleArchive(review.id)}
+                    className="bg-gray-50 hover:bg-gray-100"
+                  >
+                    <FaArchive className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No favorite reviews found</p>
+            </div>
+          )}
+        </TabsContent>
+
         <TabsContent value="archived" className="space-y-4">
           {archivedReviews.length > 0 ? (
             archivedReviews.map((review) => (
