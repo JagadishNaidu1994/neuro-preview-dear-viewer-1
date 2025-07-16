@@ -49,17 +49,25 @@ const ReviewsTab = () => {
   const fetchReviews = async () => {
     setLoading(true);
     try {
-      // Use JOIN to fetch all data in a single query for better performance
+      // Fetch reviews without problematic joins first
       const { data: reviewsData, error } = await supabase
         .from("reviews")
-        .select(`
-          *,
-          products:product_id(name),
-          users:user_id(email)
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+
+      // Fetch product and user details separately for better reliability
+      const productIds = [...new Set(reviewsData?.map(r => r.product_id).filter(Boolean))];
+      const userIds = [...new Set(reviewsData?.map(r => r.user_id).filter(Boolean))];
+
+      const [{ data: products }, { data: users }] = await Promise.all([
+        supabase.from("products").select("id, name").in("id", productIds),
+        supabase.from("users").select("id, email").in("id", userIds)
+      ]);
+
+      const productMap = new Map(products?.map(p => [p.id, p.name]) || []);
+      const userMap = new Map(users?.map(u => [u.id, u.email]) || []);
 
       const reviewsWithDetails: Review[] = [];
       const archivedWithDetails: Review[] = [];
@@ -68,8 +76,8 @@ const ReviewsTab = () => {
         reviewsData.forEach((review: any) => {
           const reviewWithDetails = {
             ...review,
-            product_name: review.products?.name || "Unknown Product",
-            user_email: review.users?.email || "Unknown User",
+            product_name: productMap.get(review.product_id) || "Unknown Product",
+            user_email: userMap.get(review.user_id) || "Unknown User",
           };
 
           if (review.archived) {
