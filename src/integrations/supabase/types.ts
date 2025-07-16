@@ -237,6 +237,67 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          content: string | null
+          created_at: string
+          email_type: string
+          id: string
+          order_id: string | null
+          recipient_email: string
+          sent_at: string
+          status: string
+          subject: string
+          user_id: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          email_type: string
+          id?: string
+          order_id?: string | null
+          recipient_email: string
+          sent_at?: string
+          status?: string
+          subject: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          email_type?: string
+          id?: string
+          order_id?: string | null
+          recipient_email?: string
+          sent_at?: string
+          status?: string
+          subject?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "customer_lifetime_value"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "email_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expense_categories: {
         Row: {
           created_at: string | null
@@ -494,28 +555,40 @@ export type Database = {
       }
       reviews: {
         Row: {
+          admin_reply: string | null
+          admin_reply_date: string | null
+          archived: boolean
           comment: string | null
           created_at: string | null
           id: string
           is_approved: boolean | null
+          is_important: boolean
           product_id: string | null
           rating: number
           user_id: string | null
         }
         Insert: {
+          admin_reply?: string | null
+          admin_reply_date?: string | null
+          archived?: boolean
           comment?: string | null
           created_at?: string | null
           id?: string
           is_approved?: boolean | null
+          is_important?: boolean
           product_id?: string | null
           rating: number
           user_id?: string | null
         }
         Update: {
+          admin_reply?: string | null
+          admin_reply_date?: string | null
+          archived?: boolean
           comment?: string | null
           created_at?: string | null
           id?: string
           is_approved?: boolean | null
+          is_important?: boolean
           product_id?: string | null
           rating?: number
           user_id?: string | null
@@ -571,8 +644,10 @@ export type Database = {
           frequency_weeks: number
           id: string
           next_delivery_date: string | null
+          payment_method_id: string | null
           product_id: string
           quantity: number
+          skipped_deliveries: Json | null
           status: string
           updated_at: string
           user_id: string
@@ -584,8 +659,10 @@ export type Database = {
           frequency_weeks?: number
           id?: string
           next_delivery_date?: string | null
+          payment_method_id?: string | null
           product_id: string
           quantity?: number
+          skipped_deliveries?: Json | null
           status?: string
           updated_at?: string
           user_id: string
@@ -597,13 +674,22 @@ export type Database = {
           frequency_weeks?: number
           id?: string
           next_delivery_date?: string | null
+          payment_method_id?: string | null
           product_id?: string
           quantity?: number
+          skipped_deliveries?: Json | null
           status?: string
           updated_at?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "subscriptions_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "user_payment_methods"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "subscriptions_product_id_fkey"
             columns: ["product_id"]
@@ -910,7 +996,21 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      customer_lifetime_value: {
+        Row: {
+          avg_order_value: number | null
+          customer_lifetime_days: number | null
+          email: string | null
+          first_name: string | null
+          first_order_date: string | null
+          last_name: string | null
+          last_order_date: string | null
+          total_orders: number | null
+          total_spent: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_admin_by_email: {

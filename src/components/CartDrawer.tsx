@@ -34,17 +34,58 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     if (!user) return;
     
     try {
-      // Fetch a few general coupons for quick access
-      const { data: generalCoupons } = await supabase
-        .from("coupon_codes")
-        .select("*")
-        .eq("is_active", true)
-        .order("discount_value", { ascending: false })
-        .limit(2);
+      const { data: coupons, error } = await supabase
+        .from('coupon_codes')
+        .select('*')
+        .eq('is_active', true)
+        .order('discount_value', { ascending: false })
+        .limit(5);
 
-      setAvailableCoupons(generalCoupons || []);
+      if (error) throw error;
+
+      // Filter out expired and max-usage coupons
+      const now = new Date().toISOString();
+      const validCoupons = [];
+
+      for (const coupon of coupons || []) {
+        // Check if expired
+        if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+          continue;
+        }
+
+        // Check if max uses reached globally
+        if (coupon.max_uses && coupon.used_count >= coupon.max_uses) {
+          continue;
+        }
+
+        // Check user-specific assignment
+        if (coupon.assigned_users) {
+          const assignedEmails = coupon.assigned_users.split(',').map(email => email.trim());
+          if (!assignedEmails.includes(user.email)) {
+            continue;
+          }
+        }
+
+        // Check user-specific usage limit (if max_uses exists)
+        if (coupon.max_uses) {
+          const { data: userUsage } = await supabase
+            .from('coupon_usage')
+            .select('used_count')
+            .eq('coupon_id', coupon.id)
+            .eq('user_id', user.id)
+            .single();
+
+          if (userUsage && userUsage.used_count >= coupon.max_uses) {
+            continue;
+          }
+        }
+
+        validCoupons.push(coupon);
+      }
+
+      setAvailableCoupons(validCoupons.slice(0, 2));
     } catch (error) {
-      console.error("Error fetching quick coupons:", error);
+      console.error('Error fetching coupons:', error);
     }
   };
 
