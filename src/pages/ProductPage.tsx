@@ -98,9 +98,6 @@ const ProductPage = () => {
     const fetchReviews = async () => {
       if (!id) return;
       try {
-        console.log("Fetching reviews for product ID:", id);
-        
-        // Use separate queries for better reliability
         const { data: reviewsData, error: reviewsError } = await supabase
           .from("reviews")
           .select("*")
@@ -114,10 +111,7 @@ const ProductPage = () => {
           throw reviewsError;
         }
         
-        console.log("Reviews found:", reviewsData?.length || 0);
-        
         if (reviewsData && reviewsData.length > 0) {
-          // Fetch user details separately
           const userIds = [...new Set(reviewsData.map(r => r.user_id).filter(Boolean))];
           const { data: users } = await supabase
             .from("users")
@@ -126,7 +120,6 @@ const ProductPage = () => {
             
           const userMap = new Map(users?.map(u => [u.id, u.email]) || []);
           
-          // Combine data
           const reviewsWithUsers = reviewsData.map(review => ({
             ...review,
             users: review.user_id ? { email: userMap.get(review.user_id) || "Anonymous" } : null
@@ -145,7 +138,6 @@ const ProductPage = () => {
     const checkReviewEligibility = async () => {
       if (!user || !id) return;
       
-      // Check if user has already reviewed this product
       const { data: existingReview } = await supabase
         .from("reviews")
         .select("id")
@@ -159,7 +151,6 @@ const ProductPage = () => {
         return;
       }
       
-      // Fixed purchase verification query
       const { data: deliveredOrders } = await supabase
         .from("orders")
         .select(`
@@ -223,7 +214,6 @@ const ProductPage = () => {
     if (!user || !product || !canReview || hasReviewed) return;
 
     try {
-      // Submit review
       const { error: reviewError } = await supabase.from("reviews").insert([
         {
           product_id: product.id,
@@ -234,7 +224,6 @@ const ProductPage = () => {
       ]);
       if (reviewError) throw reviewError;
 
-      // Add 25 points to user rewards
       const { data: existingRewards } = await supabase
         .from("user_rewards")
         .select("*")
@@ -242,7 +231,6 @@ const ProductPage = () => {
         .maybeSingle();
 
       if (existingRewards) {
-        // Update existing rewards
         const { error: updateError } = await supabase
           .from("user_rewards")
           .update({
@@ -252,7 +240,6 @@ const ProductPage = () => {
           .eq("user_id", user.id);
         if (updateError) throw updateError;
       } else {
-        // Create new rewards entry
         const { error: insertError } = await supabase
           .from("user_rewards")
           .insert([
@@ -309,16 +296,6 @@ const ProductPage = () => {
     return stars;
   };
 
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMonths = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24 * 30));
-    
-    if (diffInMonths === 0) return "Recently";
-    if (diffInMonths === 1) return "1 month ago";
-    return `${diffInMonths} months ago`;
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
@@ -358,61 +335,37 @@ const ProductPage = () => {
   const basePrice = servings === "30" ? 100 : 180;
   const subscriptionDiscount = purchaseType === "subscribe" ? 0.8 : 1;
   const finalPrice = basePrice * subscriptionDiscount;
-  const pricePerServing = finalPrice / parseInt(servings);
   const averageRating = getAverageRating();
 
   return (
     <div className="min-h-screen bg-white">
       {/* Main Product Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
           {/* Product Images - Left Side */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Main Product Image */}
             <div className="relative">
-              <div className="aspect-square bg-gray-50 rounded-3xl overflow-hidden shadow-lg">
+              <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
                 <img
                   ref={imageRef}
                   src={productImages[selectedImage]}
                   alt={product.name}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover"
                 />
-              </div>
-              
-              {/* Action Buttons Overlay */}
-              <div className="absolute top-6 right-6 flex flex-col gap-3">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="bg-white/90 backdrop-blur-sm rounded-full hover:bg-white shadow-lg"
-                  onClick={handleToggleWishlist}
-                >
-                  <Heart
-                    className={`w-5 h-5 ${
-                      isInWishlist ? "text-red-500 fill-current" : "text-gray-600"
-                    }`}
-                  />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="bg-white/90 backdrop-blur-sm rounded-full hover:bg-white shadow-lg"
-                >
-                  <FaShare className="w-4 h-4 text-gray-600" />
-                </Button>
               </div>
             </div>
 
             {/* Thumbnail Images */}
-            <div className="flex gap-4 justify-center">
+            <div className="flex gap-2">
               {productImages.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
-                  className={`w-20 h-20 rounded-2xl overflow-hidden border-3 transition-all duration-300 ${
+                  className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
                     selectedImage === index
-                      ? "border-black shadow-lg scale-105"
-                      : "border-gray-200 hover:border-gray-400 hover:scale-102"
+                      ? "border-black"
+                      : "border-gray-200 hover:border-gray-400"
                   }`}
                 >
                   <img
@@ -426,470 +379,420 @@ const ProductPage = () => {
           </div>
 
           {/* Product Details - Right Side */}
-          <div className="space-y-8">
-            {/* Product Header */}
+          <div className="space-y-6">
+            {/* Header Text */}
+            <div className="text-sm text-gray-500 uppercase tracking-wide">
+              MADE FROM 100% NATURAL INGREDIENTS
+            </div>
+            
+            {/* Product Title */}
+            <h1 className="text-4xl lg:text-5xl font-bold text-black">
+              {product.name}
+            </h1>
+            
+            {/* Product Tags */}
+            <div className="flex flex-wrap gap-2">
+              <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                25 mg CBD
+              </span>
+              <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                FULL SPEC
+              </span>
+              <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
+                ONE TIME
+              </span>
+              <span className="px-3 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
+                GLUTEN FREE
+              </span>
+            </div>
+
+            {/* Price */}
+            <div className="text-3xl font-bold text-black">
+              ${finalPrice.toFixed(0)}
+            </div>
+            
+            {/* Description */}
+            <p className="text-gray-700 leading-relaxed">
+              {product.description || "Crafted for optimal focus. Contains ashwagandha and bacopa to help you tackle work with calm, focused energy. Clinically-tested ingredients at effective dosages. L-theanine provides a layer of L-chill energy...plus L.A. lifestyle."}
+            </p>
+            
+            {/* Additional Info */}
+            <div className="text-sm text-gray-600 space-y-1">
+              <div>✓ THC-FREE INCLUDES CAFFEINE & L-THEANINE · FORMULATED BY NEUROSCIENTISTS, AND TESTED FOR PURITY</div>
+              <div>✓ ETHANOL-EXTRACTED CBG, PROVIDES MILD JOLT-FREE ENERGY BOOSTS, AND TASTES DELICIOUS</div>
+            </div>
+
+            {/* Quantity Selector */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
-                <span>DearNeuro</span>
-                <span>•</span>
-                <span>Premium Collection</span>
-              </div>
-              
-              <h1 className="text-4xl lg:text-5xl font-light text-black leading-tight">
-                {product.name}
-              </h1>
-              
-              <p className="text-xl text-gray-600 font-light">
-                Ceremonial Grade • Energy, Focus, Beauty
-              </p>
-              
-              <p className="text-gray-700 leading-relaxed">
-                The creamiest, ceremonial-grade Matcha with Lion's Mane, Tremella, and essential B vitamins for sustained energy and cognitive enhancement.
-              </p>
-              
-              {/* Rating and Reviews */}
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="flex">
-                    {renderStars(averageRating, "text-lg")}
-                  </div>
-                  <span className="text-lg font-medium text-gray-900">{averageRating.toFixed(1)}</span>
-                </div>
-                <span className="text-gray-500">•</span>
-                <span className="text-gray-600">{reviews.length} Reviews</span>
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-green-600 font-medium">Verified</span>
-                </div>
-              </div>
-
-              {/* Benefits Tags */}
-              <div className="flex flex-wrap gap-3">
-                <span className="px-4 py-2 bg-amber-100 text-amber-800 rounded-full text-sm font-medium flex items-center gap-2">
-                  ⚡ Energy Boost
-                </span>
-                <span className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium flex items-center gap-2">
-                  🧠 Mental Focus
-                </span>
-                <span className="px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium flex items-center gap-2">
-                  ✨ Skin Health
-                </span>
-              </div>
-            </div>
-
-            {/* Pricing and Servings Info */}
-            <div className="bg-gray-50 rounded-2xl p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Package className="w-5 h-5 text-gray-600" />
-                  <span className="text-lg font-medium text-black">{servings} servings</span>
-                </div>
-                <span className="text-lg text-gray-600">£{pricePerServing.toFixed(2)} per serving</span>
-              </div>
-              
-              {/* Trust Indicators */}
-              <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Shield className="w-4 h-4" />
-                  <span>Lab Tested</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Truck className="w-4 h-4" />
-                  <span>Free Shipping</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <RotateCcw className="w-4 h-4" />
-                  <span>30-Day Return</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Purchase Options */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-black">Choose Your Plan</h3>
-              <RadioGroup value={purchaseType} onValueChange={setPurchaseType} className="space-y-4">
-                {/* One-time Purchase */}
-                <div className="relative">
-                  <div className="flex items-center space-x-4 p-6 border-2 rounded-2xl transition-all hover:border-gray-300 cursor-pointer">
-                    <RadioGroupItem value="one-time" id="one-time" />
-                    <div className="flex-1 flex justify-between items-center">
-                      <div>
-                        <label htmlFor="one-time" className="text-lg font-medium cursor-pointer">One-time Purchase</label>
-                        <p className="text-sm text-gray-500">No commitment, cancel anytime</p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-2xl font-bold text-black">£{basePrice.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Subscription */}
-                <div className="relative">
-                  <div className="flex items-center space-x-4 p-6 border-2 border-blue-500 rounded-2xl bg-blue-50/50">
-                    <RadioGroupItem value="subscribe" id="subscribe" />
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex items-center gap-3">
-                          <label htmlFor="subscribe" className="text-lg font-medium cursor-pointer">Subscribe & Save</label>
-                          <span className="bg-black text-white px-3 py-1 rounded-full text-sm font-bold">20% OFF</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-2xl font-bold text-black">£{finalPrice.toFixed(2)}</span>
-                          <p className="text-sm text-gray-600">£{pricePerServing.toFixed(2)} per serving</p>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-4">Delivered automatically, modify or cancel anytime</p>
-                      
-                      {purchaseType === "subscribe" && (
-                        <div className="mt-4">
-                          <Select value={subscriptionFrequency} onValueChange={setSubscriptionFrequency}>
-                            <SelectTrigger className="w-full rounded-xl bg-white">
-                              <Clock className="w-4 h-4 mr-2" />
-                              <SelectValue placeholder="Select delivery frequency" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="4">Every 4 weeks (Most Popular)</SelectItem>
-                              <SelectItem value="6">Every 6 weeks</SelectItem>
-                              <SelectItem value="8">Every 8 weeks</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </RadioGroup>
-            </div>
-
-            {/* Product Options */}
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-black mb-3">Servings</label>
-                <Select value={servings} onValueChange={setServings}>
-                  <SelectTrigger className="rounded-xl h-12">
-                    <Package className="w-4 h-4 mr-2" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="30">30 servings</SelectItem>
-                    <SelectItem value="60">60 servings</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-semibold text-black mb-3">Quantity</label>
-                <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden h-12">
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))} 
-                    className="px-4 py-3 hover:bg-gray-100 rounded-none border-0 h-full"
+              <div className="text-sm font-medium text-black">Quantity</div>
+              <div className="flex gap-3">
+                <div className="flex items-center border border-gray-300 rounded-lg">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="p-2"
                   >
                     <FaMinus className="w-3 h-3" />
                   </Button>
-                  <Input 
-                    type="number" 
-                    value={quantity} 
-                    onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} 
-                    className="w-16 text-center border-0 focus:ring-0 bg-transparent h-full text-lg font-medium" 
-                    min="1" 
-                    max={product.stock_quantity} 
-                  />
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))} 
-                    className="px-4 py-3 hover:bg-gray-100 rounded-none border-0 h-full"
+                  <span className="px-4 py-2 font-medium">{quantity}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="p-2"
                   >
                     <FaPlus className="w-3 h-3" />
                   </Button>
                 </div>
+                
+                <Select value={servings} onValueChange={setServings}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">Bottle - 10</SelectItem>
+                    <SelectItem value="30">Bottle - 30</SelectItem>
+                    <SelectItem value="60">Bottle - 60</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
+            {/* Subscribe and Save */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  type="checkbox"
+                  id="subscribe"
+                  checked={purchaseType === "subscribe"}
+                  onChange={(e) => setPurchaseType(e.target.checked ? "subscribe" : "one-time")}
+                  className="rounded border-gray-300"
+                />
+                <label htmlFor="subscribe" className="text-sm font-medium text-green-800">
+                  Subscribe and save 30%
+                </label>
+              </div>
+              {purchaseType === "subscribe" && (
+                <div className="text-xs text-green-700">
+                  Delivery every {subscriptionFrequency} weeks
+                </div>
+              )}
+            </div>
+
+            {/* Delivery Info */}
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Truck className="w-4 h-4" />
+              <span>Delivery and Returns</span>
+            </div>
+
             {/* Add to Cart Button */}
-            <motion.div whileTap={{ scale: 0.98 }} className="pt-4">
+            <div className="space-y-3">
               <Button
+                ref={cartRef}
                 onClick={handleAddToCart}
-                className="w-full bg-black hover:bg-gray-800 text-white py-6 px-8 rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transition-all duration-300"
-                disabled={product.stock_quantity === 0}
+                className="w-full bg-black text-white hover:bg-gray-800 py-4 text-lg font-medium rounded-lg"
+                disabled={isAnimating}
               >
-                <FaShoppingCart className="w-5 h-5" />
-                {product.stock_quantity > 0
-                  ? purchaseType === "subscribe"
-                    ? `Subscribe Now - £${finalPrice.toFixed(2)}`
-                    : `Add to Cart - £${finalPrice.toFixed(2)}`
-                  : "Out of Stock"}
+                {isAnimating ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Adding to Bag...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <FaShoppingCart />
+                    Add to Bag
+                  </div>
+                )}
               </Button>
-            </motion.div>
+              
+              <div className="text-right text-lg font-medium">
+                ${(finalPrice * quantity).toFixed(2)}
+              </div>
+            </div>
+
+            {/* Wishlist Button */}
+            <Button
+              variant="outline"
+              onClick={handleToggleWishlist}
+              className="w-full border-gray-300 hover:bg-gray-50"
+              disabled={!user}
+            >
+              <Heart
+                className={`w-4 h-4 mr-2 ${
+                  isInWishlist ? "text-red-500 fill-current" : "text-gray-600"
+                }`}
+              />
+              {isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
+            </Button>
           </div>
         </div>
-
       </div>
 
-      {/* Product Information Tabs */}
-      <div className="bg-gray-50 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Lower Content Section */}
+      <div className="bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          {/* Statistics Section */}
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-black mb-4">
+              93% Experienced increased focus and productivity within<br />
+              the first 45 minutes of taking 2 gummies*
+            </h2>
+            <p className="text-gray-600">
+              *Based on independent 30-day user study of 29 people
+            </p>
+          </div>
+
+          {/* Feature Icons */}
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 mb-16">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="font-medium text-black mb-2">Fast acting without the crash</h3>
+              <p className="text-sm text-gray-600">
+                Fast acting, lasting up to 45 minutes, lasting up to 4 hours
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="font-medium text-black mb-2">Clinically studied ingredients for cognitive performance</h3>
+              <p className="text-sm text-gray-600">Clinical research</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="font-medium text-black mb-2">Next-level gummies with fast and sustained release</h3>
+              <p className="text-sm text-gray-600">Sustained release</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="font-medium text-black mb-2">Balanced energy without jitters or crash</h3>
+              <p className="text-sm text-gray-600">Balanced energy without jitters or crash</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="font-medium text-black mb-2">Natural flavors and colors, zero added sugar</h3>
+              <p className="text-sm text-gray-600">Natural flavors and colors, zero added sugar</p>
+            </div>
+          </div>
+
+          {/* Tabs Section */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-12 bg-white rounded-2xl p-2 shadow-sm">
-              <TabsTrigger value="details" className="text-lg font-semibold py-4 rounded-xl data-[state=active]:bg-black data-[state=active]:text-white">
-                Product Details
-              </TabsTrigger>
-              <TabsTrigger value="reviews" className="text-lg font-semibold py-4 rounded-xl data-[state=active]:bg-black data-[state=active]:text-white">
-                Reviews ({reviews.length})
-              </TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
+              <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
+              <TabsTrigger value="faq">FAQ</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="details" className="space-y-8">
-              {/* Product Information Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <Collapsible>
-                    <CollapsibleTrigger className="flex items-center justify-between w-full p-6 bg-white rounded-2xl text-left shadow-sm hover:shadow-md transition-shadow">
-                      <span className="text-lg font-semibold text-black">Description</span>
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-4 p-6 bg-white rounded-2xl shadow-sm">
-                      <p className="text-gray-700 leading-relaxed">{product.description}</p>
-                    </CollapsibleContent>
-                  </Collapsible>
+            <TabsContent value="details" className="mt-8">
+              <div className="prose max-w-none">
+                <h3 className="text-xl font-semibold mb-4">Product Details</h3>
+                <p className="text-gray-700 mb-4">
+                  Our premium focus gummies are crafted with clinically-studied ingredients to help enhance cognitive performance
+                  and provide sustained energy without the crash.
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                  <li>Fast-acting formula with effects felt within 45 minutes</li>
+                  <li>Sustained release for up to 4 hours of focus</li>
+                  <li>Natural flavors and colors with zero added sugar</li>
+                  <li>Clinically-tested ingredients at effective dosages</li>
+                  <li>No artificial preservatives or fillers</li>
+                </ul>
+              </div>
+            </TabsContent>
 
-                  <Collapsible>
-                    <CollapsibleTrigger className="flex items-center justify-between w-full p-6 bg-white rounded-2xl text-left shadow-sm hover:shadow-md transition-shadow">
-                      <span className="text-lg font-semibold text-black">Ingredients</span>
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-4 p-6 bg-white rounded-2xl shadow-sm">
-                      <div className="space-y-3">
-                        <p className="text-gray-700 leading-relaxed">
-                          Premium organic ceremonial-grade matcha powder, Lion's Mane mushroom extract (Hericium erinaceus), 
-                          Tremella mushroom extract (Tremella fuciformis), Vitamin B12 (Methylcobalamin), 
-                          Vitamin B6 (Pyridoxal-5-Phosphate), Folate (5-MTHF).
-                        </p>
-                        <div className="bg-amber-50 p-4 rounded-xl">
-                          <p className="text-sm text-amber-800">
-                            <strong>Note:</strong> All ingredients are third-party tested for purity and potency.
-                          </p>
-                        </div>
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </div>
-
-                <div className="space-y-6">
-                  <Collapsible>
-                    <CollapsibleTrigger className="flex items-center justify-between w-full p-6 bg-white rounded-2xl text-left shadow-sm hover:shadow-md transition-shadow">
-                      <span className="text-lg font-semibold text-black">How to Use</span>
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-4 p-6 bg-white rounded-2xl shadow-sm">
-                      <div className="space-y-4">
-                        <div className="flex items-start gap-3">
-                          <span className="flex-shrink-0 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
-                          <p className="text-gray-700">Mix 1 scoop (1 tsp) with 2-4 oz of hot water (160-175°F)</p>
-                        </div>
-                        <div className="flex items-start gap-3">
-                          <span className="flex-shrink-0 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
-                          <p className="text-gray-700">Whisk vigorously until frothy and well combined</p>
-                        </div>
-                        <div className="flex items-start gap-3">
-                          <span className="flex-shrink-0 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
-                          <p className="text-gray-700">Enjoy immediately, preferably in the morning for sustained energy</p>
-                        </div>
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-
-                  <Collapsible>
-                    <CollapsibleTrigger className="flex items-center justify-between w-full p-6 bg-white rounded-2xl text-left shadow-sm hover:shadow-md transition-shadow">
-                      <span className="text-lg font-semibold text-black">Shipping & Returns</span>
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-4 p-6 bg-white rounded-2xl shadow-sm">
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <Truck className="w-5 h-5 text-green-600" />
-                          <span className="text-gray-700">Free shipping on orders over £50</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <RotateCcw className="w-5 h-5 text-blue-600" />
-                          <span className="text-gray-700">30-day money-back guarantee</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Package className="w-5 h-5 text-purple-600" />
-                          <span className="text-gray-700">Ships within 1-2 business days</span>
-                        </div>
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
+            <TabsContent value="ingredients" className="mt-8">
+              <div className="prose max-w-none">
+                <h3 className="text-xl font-semibold mb-4">Ingredients</h3>
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div>
+                    <h4 className="font-medium mb-2">Active Ingredients</h4>
+                    <ul className="space-y-1 text-gray-700">
+                      <li>• CBD (25mg per serving)</li>
+                      <li>• L-Theanine (100mg)</li>
+                      <li>• Caffeine (50mg)</li>
+                      <li>• Ashwagandha Extract (300mg)</li>
+                      <li>• Bacopa Monnieri (250mg)</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2">Other Ingredients</h4>
+                    <ul className="space-y-1 text-gray-700">
+                      <li>• Organic Cane Sugar</li>
+                      <li>• Organic Tapioca Syrup</li>
+                      <li>• Natural Flavors</li>
+                      <li>• Pectin</li>
+                      <li>• Citric Acid</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </TabsContent>
 
-            <TabsContent value="reviews" className="space-y-8">
-              {/* Overall Rating Summary */}
-              <div className="bg-white p-8 rounded-2xl shadow-sm">
-                <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                  <div className="text-center">
-                    <div className="text-5xl font-bold text-black mb-2">{averageRating.toFixed(1)}</div>
-                    <div className="flex justify-center mb-2">
-                      {renderStars(averageRating, "text-xl")}
+            <TabsContent value="reviews" className="mt-8">
+              <div className="space-y-8">
+                {/* Review Form */}
+                {canReview && !hasReviewed && user && (
+                  <form onSubmit={handleReviewSubmit} className="bg-white p-6 rounded-lg border">
+                    <h3 className="text-lg font-semibold mb-4">Write a Review</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Rating</label>
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              onClick={() => setReview({ ...review, rating: star })}
+                              className="text-2xl"
+                            >
+                              {star <= review.rating ? (
+                                <FaStar className="text-yellow-400" />
+                              ) : (
+                                <FaRegStar className="text-gray-300" />
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Comment</label>
+                        <Textarea
+                          value={review.comment}
+                          onChange={(e) => setReview({ ...review, comment: e.target.value })}
+                          placeholder="Share your experience with this product..."
+                          rows={4}
+                        />
+                      </div>
+                      <Button type="submit" className="bg-black text-white hover:bg-gray-800">
+                        Submit Review
+                      </Button>
                     </div>
-                    <p className="text-gray-600">Based on {reviews.length} reviews</p>
-                  </div>
-                  <div className="flex-1">
-                    <div className="space-y-2">
-                      {[5, 4, 3, 2, 1].map((rating) => {
-                        const count = reviews.filter(r => r.rating === rating).length;
-                        const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
-                        return (
-                          <div key={rating} className="flex items-center gap-3">
-                            <span className="text-sm text-gray-600 w-8">{rating} ★</span>
-                            <div className="flex-1 bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-yellow-400 h-2 rounded-full transition-all duration-300" 
-                                style={{ width: `${percentage}%` }}
-                              />
-                            </div>
-                            <span className="text-sm text-gray-600 w-8">{count}</span>
-                          </div>
-                        );
-                      })}
+                  </form>
+                )}
+
+                {/* Reviews List */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-semibold">Customer Reviews</h3>
+                  {reviews.length > 0 ? (
+                    <div className="space-y-6">
+                      {reviews.map((review) => (
+                        <ReviewCard
+                          key={review.id}
+                          review={review}
+                        />
+                      ))}
                     </div>
-                  </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-600 mb-2">No reviews yet</h3>
+                      <p className="text-gray-500">Be the first to review this product and help others make informed decisions!</p>
+                    </div>
+                  )}
                 </div>
               </div>
+            </TabsContent>
 
-              {/* Write Review Section */}
-              {user && canReview && !hasReviewed && (
-                <div className="bg-white p-8 rounded-2xl shadow-sm">
-                  <h3 className="text-2xl font-semibold mb-6 text-black">Write a Review</h3>
-                  <form onSubmit={handleReviewSubmit} className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-semibold mb-3 text-black">Your Rating</label>
-                      <div className="flex gap-2">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            type="button"
-                            onClick={() => setReview({ ...review, rating: star })}
-                            className="text-3xl hover:scale-110 transition-transform"
-                          >
-                            {star <= review.rating ? (
-                              <FaStar className="text-yellow-400" />
-                            ) : (
-                              <FaRegStar className="text-gray-300 hover:text-yellow-200" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold mb-3 text-black">Your Review</label>
-                      <Textarea
-                        value={review.comment}
-                        onChange={(e) => setReview({ ...review, comment: e.target.value })}
-                        placeholder="Share your experience with this product..."
-                        className="min-h-[120px] rounded-xl border-2 border-gray-200 focus:border-black"
-                        required
-                      />
-                    </div>
-                    <Button type="submit" className="bg-black hover:bg-gray-800 text-white px-8 py-3 rounded-xl font-semibold">
-                      Submit Review (+25 Reward Points)
-                    </Button>
-                  </form>
-                </div>
-              )}
+            <TabsContent value="faq" className="mt-8">
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold mb-6">Frequently Asked Questions</h3>
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white rounded-lg border hover:bg-gray-50">
+                    <span className="font-medium text-left">How do NOON FOCUS gummy delights work?</span>
+                    <ChevronDown className="h-5 w-5" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="p-4 border-l border-r border-b rounded-b-lg bg-white">
+                    <p className="text-gray-700">
+                      Our FOCUS gummies contain a carefully crafted blend of CBD, L-theanine, caffeine, and adaptogenic herbs
+                      that work synergistically to enhance cognitive function, promote focus, and provide sustained energy.
+                    </p>
+                  </CollapsibleContent>
+                </Collapsible>
 
-              {!user && (
-                <div className="bg-white p-8 rounded-2xl shadow-sm text-center">
-                  <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 text-lg">Please log in to write a review</p>
-                </div>
-              )}
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white rounded-lg border hover:bg-gray-50">
+                    <span className="font-medium text-left">How do NOON gummy delights provide energy without added caffeine?</span>
+                    <ChevronDown className="h-5 w-5" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="p-4 border-l border-r border-b rounded-b-lg bg-white">
+                    <p className="text-gray-700">
+                      While our FOCUS gummies do contain natural caffeine (50mg per serving), our formulation includes L-theanine
+                      which helps promote calm alertness and reduces jitters often associated with caffeine consumption.
+                    </p>
+                  </CollapsibleContent>
+                </Collapsible>
 
-              {user && !canReview && !hasReviewed && (
-                <div className="bg-white p-8 rounded-2xl shadow-sm text-center">
-                  <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 text-lg">You can only review products you have purchased and received</p>
-                </div>
-              )}
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white rounded-lg border hover:bg-gray-50">
+                    <span className="font-medium text-left">How quickly will I start feeling the benefits? How long do they last?</span>
+                    <ChevronDown className="h-5 w-5" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="p-4 border-l border-r border-b rounded-b-lg bg-white">
+                    <p className="text-gray-700">
+                      Most users report feeling effects within 45 minutes of consumption. The benefits typically last 4-6 hours,
+                      providing sustained focus and energy throughout your day.
+                    </p>
+                  </CollapsibleContent>
+                </Collapsible>
 
-              {hasReviewed && (
-                <div className="bg-green-50 p-8 rounded-2xl text-center border border-green-200">
-                  <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
-                  <p className="text-green-700 text-lg font-medium">Thank you! You have already reviewed this product</p>
-                </div>
-              )}
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white rounded-lg border hover:bg-gray-50">
+                    <span className="font-medium text-left">Can I take them daily? How many can I have?</span>
+                    <ChevronDown className="h-5 w-5" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="p-4 border-l border-r border-b rounded-b-lg bg-white">
+                    <p className="text-gray-700">
+                      Yes, our gummies are designed for daily use. We recommend starting with 1-2 gummies per day and adjusting
+                      based on your individual needs. Do not exceed 4 gummies in a 24-hour period.
+                    </p>
+                  </CollapsibleContent>
+                </Collapsible>
 
-              {/* Reviews List */}
-              <div className="space-y-6">
-                {reviews.length > 0 ? (
-                  reviews.map((review) => (
-                    <ReviewCard 
-                      key={review.id}
-                      review={review}
-                      userEmail={review.users?.email}
-                      onReplySubmitted={() => {
-                        // Re-fetch reviews after reply is submitted
-                        const fetchReviews = async () => {
-                          if (!id) return;
-                          try {
-                            const { data, error } = await supabase
-                              .from("reviews")
-                              .select(`
-                                *,
-                                users:user_id(email)
-                              `)
-                              .eq("product_id", id)
-                              .eq("is_approved", true)
-                              .eq("archived", false)
-                              .order("created_at", { ascending: false });
-                            if (error) throw error;
-                            setReviews((data as any) || []);
-                          } catch (error) {
-                            console.error("Error fetching reviews:", error);
-                          }
-                        };
-                        fetchReviews();
-                      }}
-                    />
-                  ))
-                ) : (
-                  <div className="bg-white p-12 rounded-2xl shadow-sm text-center">
-                    <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-600 mb-2">No reviews yet</h3>
-                    <p className="text-gray-500">Be the first to review this product and help others make informed decisions!</p>
-                  </div>
-                )}
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white rounded-lg border hover:bg-gray-50">
+                    <span className="font-medium text-left">Can I take them with other supplements?</span>
+                    <ChevronDown className="h-5 w-5" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="p-4 border-l border-r border-b rounded-b-lg bg-white">
+                    <p className="text-gray-700">
+                      While our gummies are made with natural ingredients, we recommend consulting with your healthcare provider
+                      before combining with other supplements, especially if you're taking medication or have any health conditions.
+                    </p>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
             </TabsContent>
           </Tabs>
-        </div>
-      </div>
 
-      {/* Newsletter Section */}
-      <div className="bg-black py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h3 className="text-3xl lg:text-4xl font-light text-white mb-4">Stay in the loop</h3>
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Get the latest updates on new products, exclusive offers, and wellness tips delivered to your inbox
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <Input 
-              type="email" 
-              placeholder="Enter your email address" 
-              className="bg-white text-black border-0 rounded-xl h-12 px-4 flex-1"
-            />
-            <Button className="bg-white text-black hover:bg-gray-100 rounded-xl px-8 h-12 font-semibold">
-              Subscribe
-            </Button>
+          {/* Related Products */}
+          <div className="mt-16">
+            <h3 className="text-2xl font-bold text-center mb-8">Goes well with</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-white rounded-lg p-6 text-center">
+                <div className="w-32 h-32 bg-green-100 rounded-lg mx-auto mb-4"></div>
+                <h4 className="font-semibold text-lg mb-2">CHILL</h4>
+                <p className="text-gray-600 text-sm mb-4">Magnesium & Botanical For Easier Rest</p>
+                <Button variant="outline" className="w-full">View Product</Button>
+              </div>
+              <div className="bg-white rounded-lg p-6 text-center">
+                <div className="w-32 h-32 bg-blue-100 rounded-lg mx-auto mb-4"></div>
+                <h4 className="font-semibold text-lg mb-2">SLEEP</h4>
+                <p className="text-gray-600 text-sm mb-4">Melatonin For Deep Sleep And Recovery</p>
+                <Button variant="outline" className="w-full">View Product</Button>
+              </div>
+            </div>
           </div>
-          <p className="text-sm text-gray-400 mt-4">
-            No spam, unsubscribe at any time
-          </p>
         </div>
       </div>
     </div>
