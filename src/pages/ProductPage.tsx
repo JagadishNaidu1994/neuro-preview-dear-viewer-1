@@ -389,7 +389,7 @@ const ProductPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-20 gap-y-8">
           {/* Product Images - Left Side */}
           <div className=\"w-full max-w-lg mx-auto lg:mx-0\">
-            {/* Main Product Image */}
+ <div className="w-full max-w-lg mx-auto lg:mx-0">
             <div className="relative">
               <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
                 <img
