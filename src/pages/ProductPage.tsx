@@ -386,9 +386,9 @@ const ProductPage = () => {
     <div className="min-h-screen bg-white">
       {/* Main Product Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-20 gap-y-8">
           {/* Product Images - Left Side */}
-          <div className="space-y-4">
+          <div className=\"w-full max-w-lg mx-auto lg:mx-0\">
             {/* Main Product Image */}
             <div className="relative">
               <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
