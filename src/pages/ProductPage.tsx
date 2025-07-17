@@ -1,826 +1,444 @@
-import { useEffect, useState, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useCart } from "@/context/CartProvider";
-import { useAuth } from "@/context/AuthProvider";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FaMinus, FaPlus, FaStar, FaStarHalfAlt, FaRegStar, FaShoppingCart, FaHeart, FaShare } from "react-icons/fa";
-import { ChevronDown, Package, Clock, Heart, ThumbsUp, ThumbsDown, MessageCircle, CheckCircle, Star, Shield, Truck, RotateCcw } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import ReviewCard from "@/components/ReviewCard";
-import { useToast } from "@/hooks/use-toast";
+"use client"
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image_url: string;
-  category: string;
-  stock_quantity: number;
-  is_active: boolean;
-}
+import { useState } from "react"
+import Image from "next/image"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Card } from "@/components/ui/card"
+import { Star, Clock, StarIcon, Brain, Zap, Leaf } from "lucide-react"
 
-interface Review {
-  id: string;
-  rating: number;
-  comment: string;
-  created_at: string;
-  user_id: string;
-  admin_reply?: string;
-  admin_reply_date?: string;
-  users?: { email: string } | null;
-}
-
-const ProductPage = () => {
-  const [searchParams] = useSearchParams();
-  const id = searchParams.get("id");
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [quantity, setQuantity] = useState(1);
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [servings, setServings] = useState("30");
-  const [purchaseType, setPurchaseType] = useState("subscribe");
-  const [subscriptionFrequency, setSubscriptionFrequency] = useState("4");
-  const [isInWishlist, setIsInWishlist] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const cartRef = useRef<HTMLButtonElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
-  const [review, setReview] = useState({ rating: 5, comment: "" });
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [canReview, setCanReview] = useState(false);
-  const [hasReviewed, setHasReviewed] = useState(false);
-  const [activeTab, setActiveTab] = useState("details");
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-
-  const { user } = useAuth();
-  const { addToCart } = useCart();
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const fetchProduct = async () => {
-      if (!id) return;
-      try {
-        const { data, error } = await supabase
-          .from("products")
-          .select("*")
-          .eq("id", id)
-          .eq("is_active", true)
-          .single();
-        if (error) throw error;
-        setProduct(data);
-      } catch (error) {
-        console.error("Error fetching product:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const checkWishlist = async () => {
-      if (!user || !id) return;
-      const { data, error } = await supabase
-        .from("wishlist_items")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("product_id", id);
-      if (error) {
-        console.error("Error checking wishlist:", error);
-      } else if (data && data.length > 0) {
-        setIsInWishlist(true);
-      }
-    };
-
-    const fetchReviews = async () => {
-      if (!id) return;
-      try {
-        const { data: reviewsData, error: reviewsError } = await supabase
-          .from("reviews")
-          .select("*")
-          .eq("product_id", id)
-          .eq("is_approved", true)
-          .eq("archived", false)
-          .order("created_at", { ascending: false });
-          
-        if (reviewsError) {
-          console.error("Reviews fetch error:", reviewsError);
-          throw reviewsError;
-        }
-        
-        if (reviewsData && reviewsData.length > 0) {
-          const userIds = [...new Set(reviewsData.map(r => r.user_id).filter(Boolean))];
-          const { data: users } = await supabase
-            .from("users")
-            .select("id, email")
-            .in("id", userIds);
-            
-          const userMap = new Map(users?.map(u => [u.id, u.email]) || []);
-          
-          const reviewsWithUsers = reviewsData.map(review => ({
-            ...review,
-            users: review.user_id ? { email: userMap.get(review.user_id) || "Anonymous" } : null
-          }));
-          
-          setReviews(reviewsWithUsers);
-        } else {
-          setReviews([]);
-        }
-      } catch (error) {
-        console.error("Error fetching reviews:", error);
-        setReviews([]);
-      }
-    };
-
-    const checkReviewEligibility = async () => {
-      if (!user || !id) return;
-      const { data: existingReview } = await supabase
-        .from("reviews")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("product_id", id)
-        .maybeSingle();
-
-      if (existingReview) {
-        setHasReviewed(true);
-        setCanReview(false);
-        return;
-      }
-
-      const { data: deliveredOrders } = await supabase
-        .from("orders")
-        .select(
-          `
-          id,
-          status,
-          order_items!inner(
-            product_id
-          )
-        `
-        )
-        .eq("user_id", user.id)
-        .eq("status", "delivered")
-        .eq("order_items.product_id", id);
-
-      setCanReview(deliveredOrders && deliveredOrders.length > 0);
-    };
-
-    fetchProduct();
-    if (user) {
-      checkWishlist();
-      checkReviewEligibility();
-    }
-    fetchReviews();
-  }, [id, user]);
-
-  const handleAddToCart = async () => {
-    if (!product) return;
-    setIsAnimating(true);
-    await addToCart(product.id, quantity, purchaseType === "subscribe");
-  };
-
-  const handleToggleWishlist = async () => {
-    if (!user || !product) return;
-    if (isInWishlist) {
-      const { error } = await supabase
-        .from("wishlist_items")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("product_id", product.id);
-      if (error) {
-        console.error("Error removing from wishlist:", error);
-      } else {
-        setIsInWishlist(false);
-      }
-    } else {
-      const { error } = await supabase.from("wishlist_items").insert([
-        {
-          user_id: user.id,
-          product_id: product.id,
-        },
-      ]);
-      if (error) {
-        console.error("Error adding to wishlist:", error);
-      } else {
-        setIsInWishlist(true);
-      }
-    }
-  };
-
-  const handleReviewSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !product || !canReview || hasReviewed) return;
-
-    try {
-      const { error: reviewError } = await supabase.from("reviews").insert([
-        {
-          product_id: product.id,
-          user_id: user.id,
-          rating: review.rating,
-          comment: review.comment,
-        },
-      ]);
-      if (reviewError) throw reviewError;
-
-      const { data: existingRewards } = await supabase
-        .from("user_rewards")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (existingRewards) {
-        const { error: updateError } = await supabase
-          .from("user_rewards")
-          .update({
-            points_balance: existingRewards.points_balance + 25,
-            total_earned: existingRewards.total_earned + 25,
-          })
-          .eq("user_id", user.id);
-        if (updateError) throw updateError;
-      } else {
-        const { error: insertError } = await supabase
-          .from("user_rewards")
-          .insert([
-            {
-              user_id: user.id,
-              points_balance: 25,
-              total_earned: 25,
-              total_redeemed: 0,
-            },
-          ]);
-        if (insertError) throw insertError;
-      }
-
-      setReview({ rating: 5, comment: "" });
-      setHasReviewed(true);
-      setCanReview(false);
-      toast({
-        title: "Success",
-        description: "Review submitted for approval! You earned 25 points!",
-      });
-    } catch (error) {
-      console.error("Error submitting review:", error);
-      toast({
-        title: "Error",
-        description: "Failed to submit review.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getAverageRating = () => {
-    if (reviews.length === 0) return 0;
-    return (
-      reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
-    );
-  };
-
-  const renderStars = (rating: number, size = "text-sm") => {
-    const stars = [];
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
-
-    for (let i = 0; i < fullStars; i++) {
-      stars.push(<FaStar key={i} className={`text-yellow-400 ${size}`} />);
-    }
-
-    if (hasHalfStar) {
-      stars.push(
-        <FaStarHalfAlt key="half" className={`text-yellow-400 ${size}`} />
-      );
-    }
-
-    const emptyStars = 5 - Math.ceil(rating);
-    for (let i = 0; i < emptyStars; i++) {
-      stars.push(
-        <FaRegStar key={`empty-${i}`} className={`text-gray-300 ${size}`} />
-      );
-    }
-
-    return stars;
-  };
-
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMonths = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24 * 30)
-    );
-
-    if (diffInMonths === 0) return "Recently";
-    if (diffInMonths === 1) return "1 month ago";
-    return `${diffInMonths} months ago`;
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="flex items-center justify-center min-h-[80vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!product) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="text-center py-24">
-          <h2 className="text-3xl font-bold text-black mb-4">
-            Product not found
-          </h2>
-          <p className="text-gray-600 mb-8">
-            The product you're looking for doesn't exist or has been removed.
-          </p>
-          <Button
-            onClick={() => window.history.back()}
-            className="bg-black hover:bg-gray-800 text-white"
-          >
-            Go Back
-          </Button>
-        </div>
-      </div>
-    );
-  }
+export default function Component() {
+  const [mainImage, setMainImage] = useState("/images/main-gummy.png")
 
   const productImages = [
-    product.image_url,
-    "https://framerusercontent.com/images/7PrGzN5G7FNOl4aIONdYwfdZEjI.jpg",
-    "https://framerusercontent.com/images/fC1GN0dWOebGJtoNP7yCPwHf654.png",
-    "https://framerusercontent.com/images/7PrGzN5G7FNOl4aIONdYwfdZEjI.jpg",
-  ];
-
-  const basePrice = servings === "30" ? 100 : 180;
-  const subscriptionDiscount = purchaseType === "subscribe" ? 0.8 : 1;
-  const finalPrice = basePrice * subscriptionDiscount;
-  const averageRating = getAverageRating();
+    { src: "/images/thumb-gummy-stick.png", alt: "Gummy on a stick" },
+    { src: "/images/thumb-yellow-cells.png", alt: "Yellow cells" },
+    { src: "/images/thumb-gummy-jar.png", alt: "Gummy jar" },
+    { src: "/images/thumb-woman-gummies.png", alt: "Woman holding gummies" },
+  ]
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Main Product Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
-          {/* Product Images - Left Side */}
-          <div className="space-y-4">
-            {/* Main Product Image */}
-            <div className="relative">
-              <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
-                <img
-                  ref={imageRef}
-                  src={productImages[selectedImage]}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
+    <div className="min-h-screen bg-[#F8F7F2] text-[#333333]">
+      {/* Header */}
+      <header className="flex items-center justify-center py-4 text-sm font-medium">
+        
+        <div className="flex">
+          {[...Array(5)].map((_, i) => (
+            <Star key={i} className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+          ))}
+        </div>
+      </header>
+
+      {/* Product Hero Section */}
+      <section className="container mx-auto grid md:grid-cols-2 gap-8 py-12 px-4 md:px-6 lg:px-8">
+        <div className="flex flex-col items-center justify-center bg-[#3F4A5C] rounded-lg p-8">
+          <Image
+            src={mainImage || "/placeholder.svg"}
+            alt="Focus Gummy"
+            width={500}
+            height={500}
+            className="object-contain rounded-lg"
+          />
+          <div className="flex gap-4 mt-6">
+            {productImages.map((img, index) => (
+              <button key={index} onClick={() => setMainImage(img.src)} className="focus:outline-none">
+                <Image
+                  src={img.src || "/placeholder.svg"}
+                  alt={img.alt}
+                  width={80}
+                  height={80}
+                  className={`object-cover rounded-lg border-2 ${mainImage === img.src ? "border-white" : "border-transparent"}`}
                 />
-              </div>
-            </div>
-            {/* Thumbnail Images */}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-6 p-4">
+          <h1 className="text-4xl font-bold">FOCUS</h1>
+          <div className="flex gap-2">
+            <span className="px-3 py-1 text-sm font-medium rounded-full bg-[#B5B090] text-white">VEGETARIAN</span>
+            <span className="px-3 py-1 text-sm font-medium rounded-full bg-[#B5B090] text-white">VEGAN</span>
+            <span className="px-3 py-1 text-sm font-medium rounded-full bg-[#B5B090] text-white">NON-GMO</span>
+            <span className="px-3 py-1 text-sm font-medium rounded-full bg-[#B5B090] text-white">GLUTEN FREE</span>
+          </div>
+          <div className="text-3xl font-semibold">$32</div>
+          <p className="text-base leading-relaxed">
+            Dual-layer gummies made to feel better, better. Designed by neuroscience and backed by clinical research,
+            these gummies combine natural nootropics and botanicals to support focus, clarity, and calm. The outer layer
+            is a fast-acting energy booster, while the inner layer provides sustained focus and calm.
+          </p>
+          <p className="text-sm font-medium">
+            OUTER LAYER INCLUDES CAFFEINE & L-THEANINE, INNER LAYER INCLUDES BACOPA, GINKGO, AND PANAX GINSENG.
+          </p>
+
+          <div>
+            <h3 className="mb-2 text-lg font-semibold">Quantity</h3>
             <div className="flex gap-2">
-              {productImages.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
-                    selectedImage === index
-                      ? "border-black"
-                      : "border-gray-200 hover:border-gray-400"
-                  }`}
-                >
-                  <img
-                    src={image}
-                    alt={`${product.name} ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Product Details - Right Side */}
-          <div className="space-y-6">
-            {/* Header Text */}
-            <div className="text-sm text-gray-500 uppercase tracking-wide">
-              MADE FROM 100% NATURAL INGREDIENTS
-            </div>
-            
-            {/* Product Title */}
-            <h1 className="text-4xl lg:text-5xl font-bold text-black">
-              {product.name}
-            </h1>
-            
-            {/* Product Tags */}
-            <div className="flex flex-wrap gap-2">
-              <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                25 mg CBD
-              </span>
-              <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                FULL SPEC
-              </span>
-              <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
-                ONE TIME
-              </span>
-              <span className="px-3 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
-                GLUTEN FREE
-              </span>
-            </div>
-
-            {/* Price */}
-            <div className="text-3xl font-bold text-black">
-              ${finalPrice.toFixed(0)}
-            </div>
-            
-            {/* Description */}
-            <p className="text-gray-700 leading-relaxed">
-              {product.description || "Crafted for optimal focus. Contains ashwagandha and bacopa to help you tackle work with calm, focused energy. Clinically-tested ingredients at effective dosages. L-theanine provides a layer of L-chill energy...plus L.A. lifestyle."}
-            </p>
-            
-            {/* Additional Info */}
-            <div className="text-sm text-gray-600 space-y-1">
-              <div>✓ THC-FREE INCLUDES CAFFEINE & L-THEANINE · FORMULATED BY NEUROSCIENTISTS, AND TESTED FOR PURITY</div>
-              <div>✓ ETHANOL-EXTRACTED CBG, PROVIDES MILD JOLT-FREE ENERGY BOOSTS, AND TASTES DELICIOUS</div>
-            </div>
-
-            {/* Quantity Selector */}
-            <div className="space-y-4">
-              <div className="text-sm font-medium text-black">Quantity</div>
-              <div className="flex gap-3">
-                <div className="flex items-center border border-gray-300 rounded-lg">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="p-2"
-                  >
-                    <FaMinus className="w-3 h-3" />
-                  </Button>
-                  <span className="px-4 py-2 font-medium">{quantity}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="p-2"
-                  >
-                    <FaPlus className="w-3 h-3" />
-                  </Button>
-                </div>
-                
-                <Select value={servings} onValueChange={setServings}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="30">Bottle - 30</SelectItem>
-                    <SelectItem value="60">Bottle - 60</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Subscribe and Save */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <input
-                  type="checkbox"
-                  id="subscribe"
-                  checked={purchaseType === "subscribe"}
-                  onChange={(e) => setPurchaseType(e.target.checked ? "subscribe" : "one-time")}
-                  className="rounded border-gray-300"
-                />
-                <label htmlFor="subscribe" className="text-sm font-medium text-green-800">
-                  Subscribe and save 30%
-                </label>
-              </div>
-              {purchaseType === "subscribe" && (
-                <div className="text-xs text-green-700">
-                  Delivery every {subscriptionFrequency} weeks
-                </div>
-              )}
-            </div>
-
-            {/* Delivery Info */}
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Truck className="w-4 h-4" />
-              <span>Delivery and Returns</span>
-            </div>
-
-            {/* Add to Cart Button */}
-            <div className="space-y-3">
               <Button
-                ref={cartRef}
-                onClick={handleAddToCart}
-                className="w-full bg-black text-white hover:bg-gray-800 py-4 text-lg font-medium rounded-lg"
-                disabled={isAnimating}
+                variant="outline"
+                className="px-6 py-2 rounded-full border-[#B5B090] text-[#B5B090] hover:bg-[#B5B090] hover:text-white bg-transparent"
               >
-                {isAnimating ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Adding to Bag...
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <FaShoppingCart />
-                    Add to Bag
-                  </div>
-                )}
+                Single - 30
               </Button>
-              
-              <div className="text-right text-lg font-medium">
-                ${(finalPrice * quantity).toFixed(2)}
-              </div>
+              <Button
+                variant="outline"
+                className="px-6 py-2 rounded-full border-[#B5B090] text-[#B5B090] hover:bg-[#B5B090] hover:text-white bg-transparent"
+              >
+                Double - 60
+              </Button>
+              <Button
+                variant="outline"
+                className="px-6 py-2 rounded-full border-[#B5B090] text-[#B5B090] hover:bg-[#B5B090] hover:text-white bg-transparent"
+              >
+                Triple - 90
+              </Button>
             </div>
+          </div>
 
-            {/* Wishlist Button */}
-            <Button
-              variant="outline"
-              onClick={handleToggleWishlist}
-              className="w-full border-gray-300 hover:bg-gray-50"
-              disabled={!user}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="subscribe"
+              className="border-[#B5B090] data-[state=checked]:bg-[#B5B090] data-[state=checked]:text-white"
+            />
+            <label
+              htmlFor="subscribe"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              <Heart
-                className={`w-4 h-4 mr-2 ${
-                  isInWishlist ? "text-red-500 fill-current" : "text-gray-600"
-                }`}
-              />
-              {isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
-            </Button>
+              Subscribe and save 10%
+            </label>
           </div>
-        </div>
-      </div>
 
-      {/* Lower Content Section */}
-      <div className="bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          {/* Statistics Section */}
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-black mb-4">
-              93% Experienced increased focus and productivity within<br />
-              the first 45 minutes of taking 2 gummies*
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1" className="border-b border-gray-300">
+              <AccordionTrigger className="text-base font-medium">Delivery and Returns</AccordionTrigger>
+              <AccordionContent className="text-sm text-gray-600">
+                <p>Free shipping on all orders over $50. Returns accepted within 30 days of purchase.</p>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+
+          <Button className="w-full py-6 text-lg font-semibold text-white rounded-full bg-[#333333] hover:bg-[#555555]">
+            Add to Bag
+          </Button>
+          <div className="text-right text-lg font-semibold">$32.00</div>
+        </div>
+      </section>
+
+      {/* Introductory Text */}
+      <section className="container mx-auto py-12 px-4 md:px-6 lg:px-8 text-center max-w-3xl">
+        <p className="text-lg leading-relaxed">
+          Made to be a dual-layered functional gummy to help you feel. For those who take their supplements seriously,
+          these gummies combine natural nootropics and botanicals to support focus, clarity, and calm.
+        </p>
+      </section>
+
+      {/* Image Grid */}
+      <section className="container mx-auto grid md:grid-cols-3 gap-8 py-12 px-4 md:px-6 lg:px-8">
+        <Image
+          src="/images/grid-gummy-jar.png"
+          alt="Gummy jar with falling gummies"
+          width={400}
+          height={400}
+          className="object-cover w-full h-full rounded-lg"
+        />
+        <Image
+          src="/images/grid-yellow-cells.png"
+          alt="Close up of yellow cells"
+          width={400}
+          height={400}
+          className="object-cover w-full h-full rounded-lg"
+        />
+        <Image
+          src="/images/grid-woman-holding.png"
+          alt="Woman holding gummies"
+          width={400}
+          height={400}
+          className="object-cover w-full h-full rounded-lg"
+        />
+      </section>
+
+      {/* Key Benefits Section */}
+      <section className="container mx-auto py-12 px-4 md:px-6 lg:px-8">
+        <div className="grid md:grid-cols-2 gap-12">
+          <div>
+            <h2 className="text-3xl font-bold mb-4">
+              93% Experienced increased focus and productivity within the first 45 minutes of taking 2 gummies*
             </h2>
-            <p className="text-gray-600">
-              *Based on independent 30-day user study of 29 people
+            <p className="text-sm text-gray-600 mb-8">*Based on an independent blinded study of 25 people</p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 text-center mb-8">
+              <div className="flex flex-col items-center gap-2">
+                <Clock className="w-8 h-8 text-[#B5B090]" />
+                <p className="text-sm">Fast-acting energy and focus in 20-40 minutes, lasting up to 6 hours</p>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <StarIcon className="w-8 h-8 text-[#B5B090]" />
+                <p className="text-sm">Clinically studied ingredients for cognitive performance</p>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <Brain className="w-8 h-8 text-[#B5B090]" />
+                <p className="text-sm">Dual-layered gummies with fast and sustained release</p>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <Zap className="w-8 h-8 text-[#B5B090]" />
+                <p className="text-sm">Balanced energy without jitters or crash</p>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <Leaf className="w-8 h-8 text-[#B5B090]" />
+                <p className="text-sm">Natural flavors and colors, vegan and gluten-free</p>
+              </div>
+            </div>
+
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="best-for" className="border-b border-gray-300">
+                <AccordionTrigger className="text-base font-medium">Best For</AccordionTrigger>
+                <AccordionContent className="text-sm text-gray-600">
+                  <ul className="list-disc pl-5">
+                    <li>Students and professionals seeking enhanced focus.</li>
+                    <li>Individuals looking for sustained energy without the jitters.</li>
+                    <li>Anyone wanting to improve cognitive clarity and calm.</li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="whats-inside" className="border-b border-gray-300">
+                <AccordionTrigger className="text-base font-medium">What&apos;s Inside</AccordionTrigger>
+                <AccordionContent className="text-sm text-gray-600">
+                  <ul className="list-disc pl-5">
+                    <li>Caffeine & L-Theanine for fast-acting energy.</li>
+                    <li>Bacopa, Ginkgo, and Panax Ginseng for sustained focus.</li>
+                    <li>Natural flavors and colors.</li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="how-to-take" className="border-b border-gray-300">
+                <AccordionTrigger className="text-base font-medium">How to Take</AccordionTrigger>
+                <AccordionContent className="text-sm text-gray-600">
+                  <p>Take 2 gummies daily, or as directed by your healthcare professional.</p>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+          <div className="flex flex-col items-center justify-center">
+            <p className="text-center text-lg leading-relaxed mb-8">
+              An innovative dual layered gummy that works better, faster – with total benefits better than anything else
+              on shelf
             </p>
-          </div>
-
-          {/* Feature Icons */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 mb-16">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="font-medium text-black mb-2">Fast acting without the crash</h3>
-              <p className="text-sm text-gray-600">
-                Fast acting, lasting up to 45 minutes, lasting up to 4 hours
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="font-medium text-black mb-2">Clinically studied ingredients for cognitive performance</h3>
-              <p className="text-sm text-gray-600">Clinical research</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="font-medium text-black mb-2">Next-level gummies with fast and sustained release</h3>
-              <p className="text-sm text-gray-600">Sustained release</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="font-medium text-black mb-2">Balanced energy without jitters or crash</h3>
-              <p className="text-sm text-gray-600">Balanced energy without jitters or crash</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="font-medium text-black mb-2">Natural flavors and colors, zero added sugar</h3>
-              <p className="text-sm text-gray-600">Natural flavors and colors, zero added sugar</p>
-            </div>
-          </div>
-
-          {/* Tabs Section */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
-              <TabsTrigger value="faq">FAQ</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="details" className="mt-8">
-              <div className="prose max-w-none">
-                <h3 className="text-xl font-semibold mb-4">Product Details</h3>
-                <p className="text-gray-700 mb-4">
-                  Our premium focus gummies are crafted with clinically-studied ingredients to help enhance cognitive performance
-                  and provide sustained energy without the crash.
-                </p>
-                <ul className="list-disc pl-6 space-y-2 text-gray-700">
-                  <li>Fast-acting formula with effects felt within 45 minutes</li>
-                  <li>Sustained release for up to 4 hours of focus</li>
-                  <li>Natural flavors and colors with zero added sugar</li>
-                  <li>Clinically-tested ingredients at effective dosages</li>
-                  <li>No artificial preservatives or fillers</li>
+            <div className="grid md:grid-cols-2 gap-4 w-full">
+              <Card className="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
+                <h3 className="text-lg font-semibold mb-4">Outer Protective Layer</h3>
+                <ul className="space-y-2 text-sm">
+                  <li>Fast-acting caffeine + L-theanine</li>
+                  <li>Immediate energy, no jitters</li>
+                  <li>Increased steady focus for 2-3 hours</li>
                 </ul>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="ingredients" className="mt-8">
-              <div className="prose max-w-none">
-                <h3 className="text-xl font-semibold mb-4">Ingredients</h3>
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div>
-                    <h4 className="font-medium mb-2">Active Ingredients</h4>
-                    <ul className="space-y-1 text-gray-700">
-                      <li>• CBD (25mg per serving)</li>
-                      <li>• L-Theanine (100mg)</li>
-                      <li>• Caffeine (50mg)</li>
-                      <li>• Ashwagandha Extract (300mg)</li>
-                      <li>• Bacopa Monnieri (250mg)</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2">Other Ingredients</h4>
-                    <ul className="space-y-1 text-gray-700">
-                      <li>• Organic Cane Sugar</li>
-                      <li>• Organic Tapioca Syrup</li>
-                      <li>• Natural Flavors</li>
-                      <li>• Pectin</li>
-                      <li>• Citric Acid</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="reviews" className="mt-8">
-              <div className="space-y-8">
-                {/* Review Form */}
-                {canReview && !hasReviewed && user && (
-                  <form onSubmit={handleReviewSubmit} className="bg-white p-6 rounded-lg border">
-                    <h3 className="text-lg font-semibold mb-4">Write a Review</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Rating</label>
-                        <div className="flex gap-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <button
-                              key={star}
-                              type="button"
-                              onClick={() => setReview({ ...review, rating: star })}
-                              className="text-2xl"
-                            >
-                              {star <= review.rating ? (
-                                <FaStar className="text-yellow-400" />
-                              ) : (
-                                <FaRegStar className="text-gray-300" />
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Comment</label>
-                        <Textarea
-                          value={review.comment}
-                          onChange={(e) => setReview({ ...review, comment: e.target.value })}
-                          placeholder="Share your experience with this product..."
-                          rows={4}
-                        />
-                      </div>
-                      <Button type="submit" className="bg-black text-white hover:bg-gray-800">
-                        Submit Review
-                      </Button>
-                    </div>
-                  </form>
-                )}
-
-                {/* Reviews List */}
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold">Customer Reviews</h3>
-                  {reviews.length > 0 ? (
-                    <div className="space-y-6">
-                      {reviews.map((review) => (
-                        <ReviewCard
-                          key={review.id}
-                          review={review}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-gray-600 mb-2">No reviews yet</h3>
-                      <p className="text-gray-500">Be the first to review this product and help others make informed decisions!</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="faq" className="mt-8">
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold mb-6">Frequently Asked Questions</h3>
-                <Collapsible>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white rounded-lg border hover:bg-gray-50">
-                    <span className="font-medium text-left">How do NOON FOCUS gummy delights work?</span>
-                    <ChevronDown className="h-5 w-5" />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="p-4 border-l border-r border-b rounded-b-lg bg-white">
-                    <p className="text-gray-700">
-                      Our FOCUS gummies contain a carefully crafted blend of CBD, L-theanine, caffeine, and adaptogenic herbs
-                      that work synergistically to enhance cognitive function, promote focus, and provide sustained energy.
-                    </p>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                <Collapsible>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white rounded-lg border hover:bg-gray-50">
-                    <span className="font-medium text-left">How do NOON gummy delights provide energy without added caffeine?</span>
-                    <ChevronDown className="h-5 w-5" />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="p-4 border-l border-r border-b rounded-b-lg bg-white">
-                    <p className="text-gray-700">
-                      While our FOCUS gummies do contain natural caffeine (50mg per serving), our formulation includes L-theanine
-                      which helps promote calm alertness and reduces jitters often associated with caffeine consumption.
-                    </p>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                <Collapsible>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white rounded-lg border hover:bg-gray-50">
-                    <span className="font-medium text-left">How quickly will I start feeling the benefits? How long do they last?</span>
-                    <ChevronDown className="h-5 w-5" />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="p-4 border-l border-r border-b rounded-b-lg bg-white">
-                    <p className="text-gray-700">
-                      Most users report feeling effects within 45 minutes of consumption. The benefits typically last 4-6 hours,
-                      providing sustained focus and energy throughout your day.
-                    </p>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                <Collapsible>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white rounded-lg border hover:bg-gray-50">
-                    <span className="font-medium text-left">Can I take them daily? How many can I have?</span>
-                    <ChevronDown className="h-5 w-5" />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="p-4 border-l border-r border-b rounded-b-lg bg-white">
-                    <p className="text-gray-700">
-                      Yes, our gummies are designed for daily use. We recommend starting with 1-2 gummies per day and adjusting
-                      based on your individual needs. Do not exceed 4 gummies in a 24-hour period.
-                    </p>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                <Collapsible>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white rounded-lg border hover:bg-gray-50">
-                    <span className="font-medium text-left">Can I take them with other supplements?</span>
-                    <ChevronDown className="h-5 w-5" />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="p-4 border-l border-r border-b rounded-b-lg bg-white">
-                    <p className="text-gray-700">
-                      While our gummies are made with natural ingredients, we recommend consulting with your healthcare provider
-                      before combining with other supplements, especially if you're taking medication or have any health conditions.
-                    </p>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
-            </TabsContent>
-          </Tabs>
-
-          {/* Related Products */}
-          <div className="mt-16">
-            <h3 className="text-2xl font-bold text-center mb-8">Goes well with</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-white rounded-lg p-6 text-center">
-                <div className="w-32 h-32 bg-green-100 rounded-lg mx-auto mb-4"></div>
-                <h4 className="font-semibold text-lg mb-2">CHILL</h4>
-                <p className="text-gray-600 text-sm mb-4">Magnesium & Botanical For Easier Rest</p>
-                <Button variant="outline" className="w-full">View Product</Button>
-              </div>
-              <div className="bg-white rounded-lg p-6 text-center">
-                <div className="w-32 h-32 bg-blue-100 rounded-lg mx-auto mb-4"></div>
-                <h4 className="font-semibold text-lg mb-2">SLEEP</h4>
-                <p className="text-gray-600 text-sm mb-4">Melatonin For Deep Sleep And Recovery</p>
-                <Button variant="outline" className="w-full">View Product</Button>
-              </div>
+              </Card>
+              <Card className="p-6 bg-[#B5B090] text-white rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold mb-4">NOON</h3>
+                <ul className="space-y-2 text-sm">
+                  <li>&#10003; Immediate energy, no jitters</li>
+                  <li>&#10003; Increased steady focus for 2-3 hours</li>
+                  <li>&#10003; Sugar-free</li>
+                  <li>&#10003; Natural flavors & colors, no additives</li>
+                  <li>&#10003; Vegan/plant-based</li>
+                  <li>&#10003; Made by neuroscience and clinical team</li>
+                  <li>&#10003; Affordable</li>
+                </ul>
+                <Button variant="ghost" className="mt-4 w-full bg-white text-[#B5B090] hover:bg-gray-100">
+                  Better
+                </Button>
+              </Card>
+              <Card className="p-6 bg-white rounded-lg shadow-sm border border-gray-200 md:col-span-2">
+                <h3 className="text-lg font-semibold mb-4">Other Gummies</h3>
+                <ul className="grid grid-cols-2 gap-y-2 text-sm">
+                  <li>&#10006; Immediate energy, no jitters</li>
+                  <li>&#10006; Increased steady focus for 2-3 hours</li>
+                  <li>&#10006; Sugar-free</li>
+                  <li>&#10006; Natural flavors & colors, no additives</li>
+                  <li>&#10006; Vegan/plant-based</li>
+                  <li>&#10006; Made by neuroscience and clinical team</li>
+                  <li>&#10006; Affordable</li>
+                </ul>
+                <Button variant="ghost" className="mt-4 w-full border border-gray-300 text-gray-600 hover:bg-gray-100">
+                  Worse
+                </Button>
+              </Card>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="container mx-auto grid md:grid-cols-3 gap-8 py-12 px-4 md:px-6 lg:px-8">
+        <Card className="p-6 bg-[#7A6F7A] text-white rounded-lg shadow-sm">
+          <p className="italic mb-4">
+            &quot;If I&apos;m more focused I think noticeably within an hour of taking them and I didn&apos;t have any
+            crash. I also don&apos;t hyper focus so it was just taking and made me a calmer drug but with just a little
+            boost.&quot;
+          </p>
+          <p className="font-semibold">- Ryan M., New York</p>
+        </Card>
+        <Card className="p-6 bg-[#8B7B6B] text-white rounded-lg shadow-sm">
+          <p className="italic mb-4">
+            &quot;Loved how clear-headed the focus gummies made me feel. The &apos;outer layer&apos; which I felt gave
+            me would kick in my workflow about 1 hour straight. Clear mind, less brain fog, less mental chatter.&quot;
+          </p>
+          <p className="font-semibold">- Ben M., California</p>
+        </Card>
+        <Card className="p-6 bg-[#7A6F7A] text-white rounded-lg shadow-sm">
+          <p className="italic mb-4">
+            &quot;They definitely made my morning tasks and routines more enjoyable, and morning focus was great. In the
+            morning I noticed a direct benefit on my attention mode, I also noticed better creative participation in the
+            morning, which usually happens later in the afternoon.&quot;
+          </p>
+          <p className="font-semibold">- Marcus V., New York</p>
+        </Card>
+      </section>
+
+      {/* Ingredients Section */}
+      <section className="container mx-auto py-12 px-4 md:px-6 lg:px-8 text-center">
+        <p className="text-lg leading-relaxed mb-8 max-w-3xl mx-auto">
+          Delights backed by neuroscience and clinically researched ingredients for proven results
+        </p>
+        <p className="text-base leading-relaxed mb-12 max-w-4xl mx-auto">
+          Each gummy is built with natural ingredients carefully selected using clinical research. No additives, no
+          sugar. While harnessing the best of plant technology, these work together to keep you mentally & fully alert,
+          while also stabilizing your nervous mental clarity, higher cognition, and better mood.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-12">
+          <Card className="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+            <h3 className="font-semibold mb-2">Lion&apos;s Mane Mushroom</h3>
+            <p className="text-sm text-gray-600">
+              Supports brain function, focus, memory, response time and cognitive health.
+            </p>
+          </Card>
+          <Card className="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+            <h3 className="font-semibold mb-2">Cordyceps Mushroom</h3>
+            <p className="text-sm text-gray-600">A natural adaptogen that supports energy, focus, and endurance.</p>
+          </Card>
+          <Card className="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+            <h3 className="font-semibold mb-2">Green Tea Leaf</h3>
+            <p className="text-sm text-gray-600">
+              An antioxidant-rich leaf with caffeine and L-theanine to support attention & calm.
+            </p>
+          </Card>
+          <Card className="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+            <h3 className="font-semibold mb-2">L-Theanine</h3>
+            <p className="text-sm text-gray-600">
+              A natural amino acid that supports relaxation and focus without drowsiness.
+            </p>
+          </Card>
+          <Card className="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+            <h3 className="font-semibold mb-2">Goji Berry</h3>
+            <p className="text-sm text-gray-600">
+              A nutrient-rich berry with antioxidants that supports focus and brain health.
+            </p>
+          </Card>
+          <Card className="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+            <h3 className="font-semibold mb-2">Rhodiola</h3>
+            <p className="text-sm text-gray-600">
+              An adaptogen that helps reduce stress and improve mental performance.
+            </p>
+          </Card>
+        </div>
+
+        <Button
+          variant="outline"
+          className="px-8 py-3 rounded-full border-[#B5B090] text-[#B5B090] hover:bg-[#B5B090] hover:text-white bg-transparent"
+        >
+          Explore the Science
+        </Button>
+      </section>
+
+      {/* FAQs Section */}
+      <section className="container mx-auto py-12 px-4 md:px-6 lg:px-8 grid md:grid-cols-2 gap-12">
+        <div>
+          <h2 className="text-2xl font-bold mb-6">FAQs</h2>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="faq-1" className="border-b border-gray-300">
+              <AccordionTrigger className="text-base font-medium text-left">
+                How do NOON FOCUS gummy delights work?
+              </AccordionTrigger>
+              <AccordionContent className="text-sm text-gray-600">
+                NOON FOCUS gummies are dual-layered. The outer layer provides fast-acting energy with caffeine and
+                L-theanine, while the inner layer offers sustained focus and calm from ingredients like Bacopa, Ginkgo,
+                and Panax Ginseng.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="faq-2" className="border-b border-gray-300">
+              <AccordionTrigger className="text-base font-medium text-left">
+                How do NOON gummy delights provide energy without added caffeine?
+              </AccordionTrigger>
+              <AccordionContent className="text-sm text-gray-600">
+                Some NOON gummy delights are formulated with natural adaptogens and botanicals that support energy
+                production and mental clarity without relying on caffeine. Please check the specific product details for
+                ingredient information.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="faq-3" className="border-b border-gray-300">
+              <AccordionTrigger className="text-base font-medium text-left">
+                How quickly will I start feeling the benefits? How long do they last?
+              </AccordionTrigger>
+              <AccordionContent className="text-sm text-gray-600">
+                Many users report feeling the fast-acting benefits within 20-40 minutes, with sustained effects lasting
+                up to 6 hours, depending on individual metabolism and dosage.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="faq-4" className="border-b border-gray-300">
+              <AccordionTrigger className="text-base font-medium text-left">
+                Can I take them daily? How many can I take?
+              </AccordionTrigger>
+              <AccordionContent className="text-sm text-gray-600">
+                Yes, NOON FOCUS gummies are designed for daily use. We recommend taking 2 gummies per day, or as advised
+                by your healthcare professional. Do not exceed the recommended dosage.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="faq-5" className="border-b border-gray-300">
+              <AccordionTrigger className="text-base font-medium text-left">
+                Can I take them with other supplements?
+              </AccordionTrigger>
+              <AccordionContent className="text-sm text-gray-600">
+                While NOON FOCUS gummies are generally safe to combine with most supplements, we recommend consulting
+                with your doctor or a healthcare professional if you are taking other medications or supplements to
+                ensure there are no contraindications.
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+
+        {/* Goes Well With Section */}
+        <div>
+          <h2 className="text-2xl font-bold mb-6">GOES WELL WITH</h2>
+          <div className="grid grid-cols-2 gap-6">
+            <Card className="p-4 bg-white rounded-lg shadow-sm border border-gray-200 text-center">
+              <Image
+                src="/images/goes-well-chill.png"
+                alt="NOON Chill Gummy"
+                width={150}
+                height={150}
+                className="object-contain mx-auto mb-4"
+              />
+              <h3 className="font-semibold mb-1">Chill</h3>
+              <p className="text-sm text-gray-600">Relaxation & Anxiety, Calming & Rest</p>
+            </Card>
+            <Card className="p-4 bg-white rounded-lg shadow-sm border border-gray-200 text-center">
+              <Image
+                src="/images/goes-well-sleep.png"
+                alt="NOON Sleep Gummy"
+                width={150}
+                height={150}
+                className="object-contain mx-auto mb-4"
+              />
+              <h3 className="font-semibold mb-1">Sleep</h3>
+              <p className="text-sm text-gray-600">Pre-Sleep, Deep Rest & Recovery</p>
+            </Card>
+          </div>
+        </div>
+      </section>
     </div>
-  );
-};
+  )
+}
 
 export default ProductPage;
