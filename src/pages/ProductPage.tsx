@@ -7,7 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FaMinus, FaPlus, FaStar, FaStarHalfAlt, FaRegStar, FaShoppingCart, FaHeart, FaShare } from "react-icons/fa";
@@ -57,6 +61,7 @@ const ProductPage = () => {
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
   const { user } = useAuth();
   const { addToCart } = useCart();
@@ -94,7 +99,7 @@ const ProductPage = () => {
         setIsInWishlist(true);
       }
     };
-    
+
     const fetchReviews = async () => {
       if (!id) return;
       try {
@@ -137,33 +142,34 @@ const ProductPage = () => {
 
     const checkReviewEligibility = async () => {
       if (!user || !id) return;
-      
       const { data: existingReview } = await supabase
         .from("reviews")
         .select("id")
         .eq("user_id", user.id)
         .eq("product_id", id)
         .maybeSingle();
-      
+
       if (existingReview) {
         setHasReviewed(true);
         setCanReview(false);
         return;
       }
-      
+
       const { data: deliveredOrders } = await supabase
         .from("orders")
-        .select(`
+        .select(
+          `
           id,
           status,
           order_items!inner(
             product_id
           )
-        `)
+        `
+        )
         .eq("user_id", user.id)
         .eq("status", "delivered")
         .eq("order_items.product_id", id);
-      
+
       setCanReview(deliveredOrders && deliveredOrders.length > 0);
     };
 
@@ -272,28 +278,46 @@ const ProductPage = () => {
 
   const getAverageRating = () => {
     if (reviews.length === 0) return 0;
-    return reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+    return (
+      reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+    );
   };
 
   const renderStars = (rating: number, size = "text-sm") => {
     const stars = [];
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 !== 0;
-    
+
     for (let i = 0; i < fullStars; i++) {
       stars.push(<FaStar key={i} className={`text-yellow-400 ${size}`} />);
     }
-    
+
     if (hasHalfStar) {
-      stars.push(<FaStarHalfAlt key="half" className={`text-yellow-400 ${size}`} />);
+      stars.push(
+        <FaStarHalfAlt key="half" className={`text-yellow-400 ${size}`} />
+      );
     }
-    
+
     const emptyStars = 5 - Math.ceil(rating);
     for (let i = 0; i < emptyStars; i++) {
-      stars.push(<FaRegStar key={`empty-${i}`} className={`text-gray-300 ${size}`} />);
+      stars.push(
+        <FaRegStar key={`empty-${i}`} className={`text-gray-300 ${size}`} />
+      );
     }
-    
+
     return stars;
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMonths = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24 * 30)
+    );
+
+    if (diffInMonths === 0) return "Recently";
+    if (diffInMonths === 1) return "1 month ago";
+    return `${diffInMonths} months ago`;
   };
 
   if (loading) {
@@ -310,7 +334,9 @@ const ProductPage = () => {
     return (
       <div className="min-h-screen bg-white">
         <div className="text-center py-24">
-          <h2 className="text-3xl font-bold text-black mb-4">Product not found</h2>
+          <h2 className="text-3xl font-bold text-black mb-4">
+            Product not found
+          </h2>
           <p className="text-gray-600 mb-8">
             The product you're looking for doesn't exist or has been removed.
           </p>
@@ -326,10 +352,10 @@ const ProductPage = () => {
   }
 
   const productImages = [
-    "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=500&h=500&fit=crop",
+    product.image_url,
+    "https://framerusercontent.com/images/7PrGzN5G7FNOl4aIONdYwfdZEjI.jpg",
+    "https://framerusercontent.com/images/fC1GN0dWOebGJtoNP7yCPwHf654.png",
+    "https://framerusercontent.com/images/7PrGzN5G7FNOl4aIONdYwfdZEjI.jpg",
   ];
 
   const basePrice = servings === "30" ? 100 : 180;
@@ -355,7 +381,6 @@ const ProductPage = () => {
                 />
               </div>
             </div>
-
             {/* Thumbnail Images */}
             <div className="flex gap-2">
               {productImages.map((image, index) => (
@@ -451,7 +476,6 @@ const ProductPage = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="10">Bottle - 10</SelectItem>
                     <SelectItem value="30">Bottle - 30</SelectItem>
                     <SelectItem value="60">Bottle - 60</SelectItem>
                   </SelectContent>
