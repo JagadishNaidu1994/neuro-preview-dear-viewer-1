@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ReviewCard from "@/components/ReviewCard";
 import { useToast } from "@/hooks/use-toast";
 
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 interface Product {
   id: string;
   name: string;
@@ -325,9 +326,10 @@ const ProductPage = () => {
     return stars;
   };
 
-  const formatTimeAgo = (dateString: string) => {
+  // Keeping formatTimeAgo for the review section, though not used in the product details redesign
+   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
-    const now = new Date();
+    const now = new Date(); // Corrected to use 'now' for the current date
     const diffInMonths = Math.floor(
       (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24 * 30)
     );
