@@ -1,5 +1,4 @@
-import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
-import { ThumbsUp, ThumbsDown, MessageCircle } from "react-icons/fa6";
+import { FaStar, FaStarHalfAlt, FaRegStar, FaThumbsUp, FaThumbsDown, FaRegComment } from "react-icons/fa";
 
 interface Review {
   id: string;
@@ -63,9 +62,9 @@ const ReviewCard = ({ review }: { review: Review }) => {
         </div>
       )}
       <div className="flex items-center gap-4 text-sm text-gray-500 mt-4">
-        <button className="flex items-center gap-1 hover:text-gray-800"><ThumbsUp className="w-4 h-4" />Helpful</button>
-        <button className="flex items-center gap-1 hover:text-gray-800"><ThumbsDown className="w-4 h-4" /></button>
-        <button className="flex items-center gap-1 hover:text-gray-800"><MessageCircle className="w-4 h-4" />Comment</button>
+        <button className="flex items-center gap-1 hover:text-gray-800"><FaThumbsUp className="w-4 h-4" />Helpful</button>
+        <button className="flex items-center gap-1 hover:text-gray-800"><FaThumbsDown className="w-4 h-4" /></button>
+        <button className="flex items-center gap-1 hover:text-gray-800"><FaRegComment className="w-4 h-4" />Comment</button>
       </div>
     </div>
   );
