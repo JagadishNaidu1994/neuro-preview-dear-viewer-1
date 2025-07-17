@@ -6,16 +6,15 @@ import { useAuth } from "@/context/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label"; // <-- This was the missing import
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FaMinus, FaPlus, FaStar, FaStarHalfAlt, FaRegStar, FaShoppingCart, FaHeart, FaShare } from "react-icons/fa";
-import { ChevronDown, Package, Clock, Heart, ThumbsUp, ThumbsDown, MessageCircle, CheckCircle, Star, Shield, Truck, RotateCcw } from "lucide-react";
+import { FaMinus, FaPlus, FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
+import { ChevronDown, Heart, Star, Minus, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReviewCard from "@/components/ReviewCard";
 import { useToast } from "@/hooks/use-toast";
@@ -51,122 +50,67 @@ const ProductPage = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [servings, setServings] = useState("30");
   const [purchaseType, setPurchaseType] = useState("subscribe");
-  const [subscriptionFrequency, setSubscriptionFrequency] = useState("4");
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const cartRef = useRef<HTMLButtonElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const [review, setReview] = useState({ rating: 5, comment: "" });
   const [reviews, setReviews] = useState<Review[]>([]);
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
-  const [activeTab, setActiveTab] = useState("details");
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
   const { user } = useAuth();
   const { addToCart } = useCart();
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      if (!id) return;
-      try {
-        const { data, error } = await supabase
-          .from("products")
-          .select("*")
-          .eq("id", id)
-          .eq("is_active", true)
-          .single();
-        if (error) throw error;
-        setProduct(data);
-      } catch (error) {
-        console.error("Error fetching product:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const fetchProductData = async () => {
+        if (!id) {
+            setLoading(false);
+            return;
+        }
 
-    const checkWishlist = async () => {
-      if (!user || !id) return;
-      const { data, error } = await supabase
-        .from("wishlist_items")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("product_id", id);
-      if (error) {
-        console.error("Error checking wishlist:", error);
-      } else if (data && data.length > 0) {
-        setIsInWishlist(true);
-      }
-    };
+        setLoading(true);
 
-    const fetchReviews = async () => {
-      if (!id) return;
-      try {
-        const { data: reviewsData, error: reviewsError } = await supabase
-          .from("reviews")
-          .select(`
-            *,
-            users (
-              email
-            )
-          `)
-          .eq("product_id", id)
-          .eq("is_approved", true)
-          .order("created_at", { ascending: false });
-          
-        if (reviewsError) {
-          console.error("Reviews fetch error:", reviewsError);
-          throw reviewsError;
+        // Define all async functions
+        const fetchProduct = supabase.from("products").select("*").eq("id", id).eq("is_active", true).single();
+        const fetchReviewsForProduct = supabase.from("reviews").select(`*, users (email)`).eq("product_id", id).eq("is_approved", true).order("created_at", { ascending: false });
+
+        let checkWishlist = null;
+        let checkReviewEligibility = null;
+        if (user) {
+            checkWishlist = supabase.from("wishlist_items").select("*").eq("user_id", user.id).eq("product_id", id).maybeSingle();
+            checkReviewEligibility = supabase.rpc('check_user_can_review', { p_user_id: user.id, p_product_id: id });
+        }
+
+        // Await all promises
+        const [productResult, reviewsResult, wishlistResult, reviewEligibilityResult] = await Promise.all([
+            fetchProduct,
+            fetchReviewsForProduct,
+            checkWishlist,
+            checkReviewEligibility
+        ]);
+
+        // Process results
+        if (productResult.error) console.error("Error fetching product:", productResult.error);
+        else setProduct(productResult.data);
+
+        if (reviewsResult.error) console.error("Error fetching reviews:", reviewsResult.error);
+        else setReviews(reviewsResult.data || []);
+
+        if (wishlistResult && wishlistResult.data) setIsInWishlist(true);
+
+        if (reviewEligibilityResult) {
+            setCanReview(reviewEligibilityResult.data);
+            if (!reviewEligibilityResult.data) {
+                const { data: existingReview } = await supabase.from("reviews").select("id").eq("user_id", user!.id).eq("product_id", id).maybeSingle();
+                if(existingReview) setHasReviewed(true);
+            }
         }
         
-        setReviews(reviewsData || []);
-
-      } catch (error) {
-        console.error("Error fetching reviews:", error);
-        setReviews([]);
-      }
+        setLoading(false);
     };
 
-    const checkReviewEligibility = async () => {
-      if (!user || !id) return;
-      const { data: existingReview } = await supabase
-        .from("reviews")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("product_id", id)
-        .maybeSingle();
-
-      if (existingReview) {
-        setHasReviewed(true);
-        setCanReview(false);
-        return;
-      }
-
-      const { data: deliveredOrders } = await supabase
-        .from("orders")
-        .select(
-          `
-          id,
-          status,
-          order_items!inner(
-            product_id
-          )
-        `
-        )
-        .eq("user_id", user.id)
-        .eq("status", "delivered")
-        .eq("order_items.product_id", id);
-
-      setCanReview(deliveredOrders && deliveredOrders.length > 0);
-    };
-
-    fetchProduct();
-    if (user) {
-      checkWishlist();
-      checkReviewEligibility();
-    }
-    fetchReviews();
+    fetchProductData();
   }, [id, user]);
 
   const handleAddToCart = async () => {
@@ -223,35 +167,8 @@ const ProductPage = () => {
         },
       ]);
       if (reviewError) throw reviewError;
-
-      const { data: existingRewards } = await supabase
-        .from("user_rewards")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (existingRewards) {
-        const { error: updateError } = await supabase
-          .from("user_rewards")
-          .update({
-            points_balance: existingRewards.points_balance + 25,
-            total_earned: existingRewards.total_earned + 25,
-          })
-          .eq("user_id", user.id);
-        if (updateError) throw updateError;
-      } else {
-        const { error: insertError } = await supabase
-          .from("user_rewards")
-          .insert([
-            {
-              user_id: user.id,
-              points_balance: 25,
-              total_earned: 25,
-              total_redeemed: 0,
-            },
-          ]);
-        if (insertError) throw insertError;
-      }
+      
+      await supabase.rpc('award_review_points', {p_user_id: user.id});
 
       setReview({ rating: 5, comment: "" });
       setHasReviewed(true);
@@ -329,7 +246,7 @@ const ProductPage = () => {
           {/* Left Side: Image Gallery */}
           <div className="space-y-4">
             <div className="relative aspect-square bg-gray-50 rounded-lg overflow-hidden">
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 <motion.img
                   key={selectedImage}
                   ref={imageRef}
@@ -371,14 +288,14 @@ const ProductPage = () => {
             
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               <RadioGroup value={purchaseType} onValueChange={setPurchaseType} className="grid grid-cols-2 gap-4">
-                <RadioGroupItem value="one-time" id="one-time" className="hidden" />
-                <Label htmlFor="one-time" className={`p-4 border-2 rounded-lg cursor-pointer text-center transition-all ${purchaseType === "one-time" ? 'bg-black text-white border-black' : 'border-gray-200 hover:border-gray-400'}`}>
+                <RadioGroupItem value="one-time" id="one-time" className="peer sr-only" />
+                <Label htmlFor="one-time" className="p-4 border-2 rounded-lg cursor-pointer text-center transition-all peer-data-[state=checked]:bg-black peer-data-[state=checked]:text-white peer-data-[state=checked]:border-black border-gray-200 hover:border-gray-400">
                   <span className="font-semibold block">One-time purchase</span>
                   <span className="text-sm">${basePrice.toFixed(2)}</span>
                 </Label>
                 
-                <RadioGroupItem value="subscribe" id="subscribe" className="hidden" />
-                <Label htmlFor="subscribe" className={`p-4 border-2 rounded-lg cursor-pointer text-center transition-all ${purchaseType === "subscribe" ? 'bg-black text-white border-black' : 'border-gray-200 hover:border-gray-400'}`}>
+                <RadioGroupItem value="subscribe" id="subscribe" className="peer sr-only" />
+                <Label htmlFor="subscribe" className="p-4 border-2 rounded-lg cursor-pointer text-center transition-all peer-data-[state=checked]:bg-black peer-data-[state=checked]:text-white peer-data-[state=checked]:border-black border-gray-200 hover:border-gray-400">
                   <span className="font-semibold block">Subscribe & Save 20%</span>
                   <span className="text-sm">${finalPrice.toFixed(2)}</span>
                 </Label>
@@ -403,7 +320,7 @@ const ProductPage = () => {
                 <Collapsible>
                     <CollapsibleTrigger className="flex justify-between w-full font-semibold text-lg text-gray-800">
                         Product Details
-                        <ChevronDown />
+                        <ChevronDown className="h-5 w-5 transition-transform data-[state=open]:rotate-180" />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pt-2 text-gray-600">
                     Our premium focus gummies are crafted with clinically-studied ingredients to help enhance cognitive performance and provide sustained energy without the crash. Made with natural flavors and colors, and zero added sugar.
@@ -412,7 +329,7 @@ const ProductPage = () => {
                 <Collapsible>
                     <CollapsibleTrigger className="flex justify-between w-full font-semibold text-lg text-gray-800">
                         Ingredients
-                        <ChevronDown />
+                        <ChevronDown className="h-5 w-5 transition-transform data-[state=open]:rotate-180" />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pt-2 text-gray-600">
                         Active Ingredients: CBD (25mg per serving), L-Theanine (100mg), Caffeine (50mg), Ashwagandha Extract (300mg), Bacopa Monnieri (250mg). Other Ingredients: Organic Cane Sugar, Organic Tapioca Syrup, Natural Flavors, Pectin, Citric Acid.
