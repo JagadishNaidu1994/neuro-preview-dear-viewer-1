@@ -20,7 +20,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import ReviewCard from "@/components/ReviewCard";
 import { useToast } from "@/hooks/use-toast";
 
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 interface Product {
   id: string;
   name: string;
@@ -173,22 +172,6 @@ const ProductPage = () => {
 
       setCanReview(deliveredOrders && deliveredOrders.length > 0);
     };
-    
-    const fetchRelatedProducts = async () => {
-      if (!product) return;
-      try {
-        const { data, error } = await supabase
-          .from("products")
-          .select("*")
-          .eq("category", product.category)
-          .neq("id", product.id)
-          .limit(3);
-        if (error) throw error;
-        setRelatedProducts(data || []);
-      } catch (error) {
-        console.error("Error fetching related products:", error);
-      }
-    };
 
     fetchProduct();
     if (user) {
@@ -196,8 +179,7 @@ const ProductPage = () => {
       checkReviewEligibility();
     }
     fetchReviews();
-    fetchRelatedProducts();
-  }, [id, user, product]);
+  }, [id, user]);
 
   const handleAddToCart = async () => {
     if (!product) return;
@@ -326,10 +308,9 @@ const ProductPage = () => {
     return stars;
   };
 
-  // Keeping formatTimeAgo for the review section, though not used in the product details redesign
-   const formatTimeAgo = (dateString: string) => {
+  const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
-    const now = new Date(); // Corrected to use 'now' for the current date
+    const now = new Date();
     const diffInMonths = Math.floor(
       (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24 * 30)
     );
@@ -377,7 +358,7 @@ const ProductPage = () => {
     "https://framerusercontent.com/images/7PrGzN5G7FNOl4aIONdYwfdZEjI.jpg",
   ];
 
-  const basePrice = servings === "30" ? product.price : product.price * 1.8;
+  const basePrice = servings === "30" ? 100 : 180;
   const subscriptionDiscount = purchaseType === "subscribe" ? 0.8 : 1;
   const finalPrice = basePrice * subscriptionDiscount;
   const averageRating = getAverageRating();
@@ -386,10 +367,10 @@ const ProductPage = () => {
     <div className="min-h-screen bg-white">
       {/* Main Product Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-20 gap-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
           {/* Product Images - Left Side */}
-          <div className=\"w-full max-w-lg mx-auto lg:mx-0\">
- <div className="w-full max-w-lg mx-auto lg:mx-0">
+          <div className="space-y-4">
+            {/* Main Product Image */}
             <div className="relative">
               <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
                 <img
@@ -822,16 +803,18 @@ const ProductPage = () => {
           <div className="mt-16">
             <h3 className="text-2xl font-bold text-center mb-8">Goes well with</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {relatedProducts.map((relatedProduct) => (
-                <div key={relatedProduct.id} className="bg-white rounded-lg p-6 text-center">
-                  <div className="w-32 h-32 bg-green-100 rounded-lg mx-auto mb-4">
-                    <img src={relatedProduct.image_url} alt={relatedProduct.name} className="w-full h-full object-cover rounded-lg" />
-                  </div>
-                  <h4 className="font-semibold text-lg mb-2">{relatedProduct.name}</h4>
-                  <p className="text-gray-600 text-sm mb-4">{relatedProduct.description}</p>
-                  <Button variant="outline" className="w-full" onClick={() => window.location.href = `/product?id=${relatedProduct.id}`}>View Product</Button>
-                </div>
-              ))}
+              <div className="bg-white rounded-lg p-6 text-center">
+                <div className="w-32 h-32 bg-green-100 rounded-lg mx-auto mb-4"></div>
+                <h4 className="font-semibold text-lg mb-2">CHILL</h4>
+                <p className="text-gray-600 text-sm mb-4">Magnesium & Botanical For Easier Rest</p>
+                <Button variant="outline" className="w-full">View Product</Button>
+              </div>
+              <div className="bg-white rounded-lg p-6 text-center">
+                <div className="w-32 h-32 bg-blue-100 rounded-lg mx-auto mb-4"></div>
+                <h4 className="font-semibold text-lg mb-2">SLEEP</h4>
+                <p className="text-gray-600 text-sm mb-4">Melatonin For Deep Sleep And Recovery</p>
+                <Button variant="outline" className="w-full">View Product</Button>
+              </div>
             </div>
           </div>
         </div>
