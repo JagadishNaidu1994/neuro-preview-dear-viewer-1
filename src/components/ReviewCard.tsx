@@ -1,4 +1,5 @@
-import { FaStar, FaStarHalfAlt, FaRegStar, ThumbsUp, ThumbsDown, MessageCircle } from "react-icons/fa";
+import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
+import { ThumbsUp, ThumbsDown, MessageCircle } from "react-icons/fa6";
 
 interface Review {
   id: string;
