@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FaPlus, FaEdit, FaTrash, FaEye } from "react-icons/fa";
 import { useToast } from "@/hooks/use-toast";
+import Papa from "papaparse";
 
 interface Product {
   id: string;
@@ -681,6 +682,73 @@ const AdminDashboard = () => {
     setSelectedOrder(order);
     setIsOrderDialogOpen(true);
   };
+
+  const handleExportOrders = () => {
+    const csv = [
+      ["Order ID", "Customer Name", "Email", "Total Amount", "Status", "Date"],
+      ...orders.map((order) => [
+        order.id,
+        order.users ? `${order.users.first_name} ${order.users.last_name}` : "Guest",
+        order.users ? order.users.email : "N/A",
+        order.total_amount,
+        order.status,
+        new Date(order.created_at).toLocaleDateString(),
+      ]),
+    ]
+      .map((e) => e.join(","))
+      .join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    if (link.href) {
+      URL.revokeObjectURL(link.href);
+    }
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute("download", "orders.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleProductCsvUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    Papa.parse(file, {
+      header: true,
+      complete: async (results) => {
+        const productsToInsert = results.data.map((row: any) => ({
+          name: row.name,
+          description: row.description,
+          price: parseFloat(row.price),
+          image_url: row.image_url,
+          category: row.category,
+          stock_quantity: parseInt(row.stock_quantity),
+          is_active: parseInt(row.stock_quantity) > 0,
+        }));
+
+        try {
+          const { error } = await supabase.from("products").insert(productsToInsert);
+          if (error) throw error;
+          toast({
+            title: "Success",
+            description: "Products imported successfully",
+          });
+          await fetchProducts();
+        } catch (error) {
+          console.error("Error importing products:", error);
+          toast({
+            title: "Error",
+            description: "Failed to import products",
+            variant: "destructive",
+          });
+        }
+      },
+    });
+  };
   if (adminLoading) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-xl">Loading...</div>
@@ -731,6 +799,16 @@ const AdminDashboard = () => {
                       Add Product
                     </Button>
                   </DialogTrigger>
+                  <Button onClick={() => document.getElementById('csv-upload').click()}>
+                    Import from CSV
+                  </Button>
+                  <input
+                    type="file"
+                    id="csv-upload"
+                    style={{ display: 'none' }}
+                    accept=".csv"
+                    onChange={handleProductCsvUpload}
+                  />
                   <DialogContent className="max-w-2xl">
                     <DialogHeader>
                       <DialogTitle>
@@ -862,6 +940,7 @@ const AdminDashboard = () => {
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
+                  <Button onClick={handleExportOrders}>Export to CSV</Button>
                 </div>
               </CardHeader>
               <CardContent className="overflow-x-auto">
