@@ -275,27 +275,39 @@ const ProductPage = () => {
   const averageRating = getAverageRating();
 
   return (
-    <div className="min-h-screen bg-neutral-100 font-sans">
+    <div className="min-h-screen bg-[#f8f7f3] font-sans">
       {/* Main Product Section */}
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-16 lg:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
 
           {/* Left Side: Image Gallery */}
           <div className="flex flex-col items-center">
-            <div className="relative w-full max-w-lg rounded-lg overflow-hidden mb-6 lg:h-[600px]">
+            <div className="relative w-full max-w-lg rounded-lg overflow-hidden mb-6 lg:sticky lg:top-8">
               <AnimatePresence mode="wait">
                 <motion.img
                   key={selectedImage}
                   ref={imageRef}
                   src={productImages[selectedImage]}
                   alt={product.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-auto object-cover"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
                 />
               </AnimatePresence>
+               {/* Wishlist button */}
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleToggleWishlist}
+                    className={cn(
+                        "absolute top-4 right-4 rounded-full w-10 h-10 bg-white/80 backdrop-blur-sm border-neutral-200 hover:bg-white",
+                        isInWishlist && "border-red-500 text-red-500 hover:bg-red-50"
+                    )}
+                    >
+                    <Heart className={`w-5 h-5 ${isInWishlist ? 'fill-current' : 'text-neutral-600'}`} />
+                </Button>
             </div>
             <div className="grid grid-cols-4 gap-3 w-full max-w-lg">
               {productImages.map((image, index) => (
@@ -314,51 +326,56 @@ const ProductPage = () => {
           </div>
 
           {/* Right Side: Product Details */}
-          <div className="lg:sticky lg:top-8 space-y-8">
+          <div className="lg:sticky lg:top-8 space-y-6">
             {/* Product Header */}
             <div>
-              <h1 className="text-4xl font-bold text-neutral-900 mb-3">{product.name}</h1>
-              <p className="text-neutral-600 text-lg leading-relaxed mb-4">{product.description}</p>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center">{renderStars(averageRating, "text-base")}</div>
-                <span className="text-sm text-neutral-600">({reviews.length} reviews)</span>
+              <h1 className="text-3xl font-bold text-neutral-900 mb-2">{product.name}</h1>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center text-sm">{renderStars(averageRating, "text-sm")}</div>
+                <span className="text-sm text-neutral-600">({reviews.length} customer review)</span>
               </div>
+               <div className="text-2xl font-semibold text-neutral-900 mb-4">
+                ${finalPrice.toFixed(2)}
+                {purchaseType === "subscribe" && (
+                  <span className="text-base text-neutral-500 line-through ml-2">${basePrice.toFixed(2)}</span>
+                )}
+              </div>
+              <p className="text-neutral-700 text-base leading-relaxed">{product.description}</p>
             </div>
 
-            {/* Price Display */}
-            <div className="flex items-baseline gap-3">
-              <span className="text-4xl font-bold text-neutral-900">${finalPrice.toFixed(2)}</span>
-              {purchaseType === "subscribe" && (
-                <span className="text-xl text-neutral-500 line-through">${basePrice.toFixed(2)}</span>
-              )}
-            </div>
 
             {/* Purchase Options */}
-            <div className="space-y-6">
+            <div className="space-y-4">
+
+              {/* Servings */}
               <div>
-                <h3 className="text-lg font-semibold text-neutral-900 mb-4">Servings</h3>
-                <RadioGroup value={servings} onValueChange={setServings} className="grid grid-cols-1 gap-4">
+                <h3 className="text-sm font-semibold text-neutral-700 mb-2">Servings</h3>
+                <RadioGroup value={servings} onValueChange={setServings} className="grid grid-cols-1 gap-3">
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="30" id="30-servings" className="peer sr-only" />
                     <Label
                       htmlFor="30-servings"
-                      className="flex flex-col items-center justify-between rounded-md border-2 border-neutral-200 bg-white p-4 hover:bg-neutral-100 hover:text-neutral-900 peer-data-[state=checked]:border-neutral-900 [&:has([data-state=checked])]:border-neutral-900 cursor-pointer flex-1"
+                      className={cn(
+                          "flex items-center justify-between rounded-md border border-neutral-200 bg-white p-3 hover:bg-neutral-50 cursor-pointer flex-1 text-sm",
+                          servings === '30' && 'border-neutral-900 bg-neutral-50'
+                      )}
                     >
-                      <span className="text-lg font-semibold">30 Servings</span>
-                      <span className="text-sm text-neutral-600">${product.price.toFixed(2)}</span>
+                      <span className="font-medium text-neutral-900">30 Servings</span>
+                      <span className="text-neutral-700">${product.price.toFixed(2)}</span>
                     </Label>
                   </div>
                 </RadioGroup>
               </div>
 
+               {/* Delivery Options */}
               <div>
-                <h3 className="text-lg font-semibold text-neutral-900 mb-4">Delivery Options</h3>
-                <RadioGroup value={purchaseType} onValueChange={setPurchaseType} className="space-y-4">
+                <h3 className="text-sm font-semibold text-neutral-700 mb-2">Delivery Options</h3>
+                <RadioGroup value={purchaseType} onValueChange={setPurchaseType} className="space-y-3">
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="one-time" id="one-time" className="peer sr-only"/>
                     <Label htmlFor="one-time" className={cn(
-                      "flex-1 cursor-pointer p-4 border border-neutral-200 rounded-lg hover:border-neutral-300 transition-colors",
-                      purchaseType === 'one-time' && 'border-neutral-900'
+                      "flex-1 cursor-pointer p-3 border border-neutral-200 rounded-md hover:border-neutral-300 transition-colors text-sm",
+                      purchaseType === 'one-time' && 'border-neutral-900 bg-neutral-50'
                     )}>
                       <div className="flex justify-between items-center">
                         <span className="font-medium text-neutral-900">One-time Purchase</span>
@@ -369,108 +386,126 @@ const ProductPage = () => {
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="subscribe" id="subscribe" className="peer sr-only"/>
                     <Label htmlFor="subscribe" className={cn(
-                      "flex-1 cursor-pointer p-4 border border-neutral-200 rounded-lg hover:border-neutral-300 transition-colors relative",
-                      purchaseType === 'subscribe' && 'border-neutral-900'
+                      "flex-1 cursor-pointer p-3 border border-neutral-200 rounded-md hover:border-neutral-300 transition-colors relative text-sm",
+                      purchaseType === 'subscribe' && 'border-neutral-900 bg-neutral-50'
                     )}>
                       <div className="flex justify-between items-center">
                         <div>
                           <span className="font-medium text-neutral-900">Subscribe & Save</span>
-                          <div className="text-sm text-emerald-600">Save 20% • Free shipping</div>
+                          <div className="text-xs text-emerald-600">Save 20% • Free shipping</div>
                         </div>
                         <span className="font-semibold text-neutral-900">${finalPrice.toFixed(2)}</span>
                       </div>
-                      <div className="absolute -top-2 -right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full">Best Value</div>
+                      <div className="absolute -top-2 right-2 bg-emerald-500 text-white text-xs px-1.5 py-0.5 rounded-full">Best Value</div>
                     </Label>
                   </div>
                 </RadioGroup>
               </div>
 
               {/* Quantity and Add to Cart */}
-              <div className="flex items-center gap-4">
-                <label className="text-sm font-medium text-neutral-700">Quantity:</label>
-                <div className="flex items-center border border-neutral-300 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center border border-neutral-300 rounded-md">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="h-10 w-10 rounded-l-lg rounded-r-none border-0"
+                    className="h-9 w-9 rounded-l-md rounded-r-none border-0"
                   >
                     <Minus className="w-4 h-4" />
                   </Button>
-                  <span className="px-4 py-2 font-medium min-w-[3rem] text-center text-neutral-900">{quantity}</span>
+                  <span className="px-3 py-1.5 font-medium min-w-[2rem] text-center text-neutral-900">{quantity}</span>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setQuantity(quantity + 1)}
-                    className="h-10 w-10 rounded-r-lg rounded-l-none border-0"
+                    className="h-9 w-9 rounded-r-md rounded-l-none border-0"
                   >
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
                  <Button
                   onClick={handleAddToCart}
-                  className="flex-1 bg-neutral-900 hover:bg-neutral-800 text-white py-3 text-base font-semibold rounded-lg"
+                  className="flex-1 bg-neutral-900 hover:bg-neutral-800 text-white py-2.5 text-base font-semibold rounded-md"
                   disabled={isAnimating || product.stock_quantity === 0}
                 >
                   {isAnimating ? "Adding..." : (product.stock_quantity > 0 ? "Add to Cart" : "Out of Stock")}
                 </Button>
               </div>
 
-                <div className="flex gap-4">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleToggleWishlist}
-                    className={cn(
-                      "rounded-lg w-12 h-12 border-neutral-300 hover:bg-neutral-100",
-                      isInWishlist && "border-red-500 text-red-500 hover:bg-red-50"
-                    )}
-                  >
-                    <Heart className={`w-5 h-5 ${isInWishlist ? 'fill-current' : 'text-neutral-600'}`} />
-                  </Button>
+               {/* Browse Wishlist and Add to compare placeholder */}
+                <div className="flex items-center gap-6 text-sm text-neutral-700">
+                    <button className="flex items-center gap-1 hover:text-neutral-900 transition-colors">
+                        <Heart className="w-4 h-4" />
+                        <span>Browse Wishlist</span>
+                    </button>
+                     <button className="flex items-center gap-1 hover:text-neutral-900 transition-colors">
+                        <Plus className="w-4 h-4" />
+                        <span>Add to compare (placeholder)</span>
+                    </button>
                 </div>
+
+                 {/* Categories and Tags */}
+                <div className="space-y-2 text-sm">
+                    <p className="text-neutral-700"><span className="font-medium">Categories:</span> Clothing, Laptops & Desktops (placeholder)</p>
+                    <p className="text-neutral-700"><span className="font-medium">Tag:</span> blouse (placeholder)</p>
+                </div>
+
+                 {/* Share Section placeholder */}
+                <div className="flex items-center gap-4 text-sm text-neutral-700 pt-4 border-t border-neutral-200">
+                    <span className="font-medium">Share this product:</span>
+                    <div className="flex items-center gap-2">
+                        <a href="#" className="hover:text-neutral-900"><FaStar className="w-4 h-4" /></a>
+                        <a href="#" className="hover:text-neutral-900"><FaStar className="w-4 h-4" /></a>
+                        <a href="#" className="hover:text-neutral-900"><FaStar className="w-4 h-4" /></a>
+                        <a href="#" className="hover:text-neutral-900"><FaStar className="w-4 h-4" /></a>
+                        <a href="#" className="hover:text-neutral-900"><FaStar className="w-4 h-4" /></a>
+                    </div>
+                </div>
+
+
+
+
+
             </div>
           </div>
         </div>
       </div>
 
-      {/* Product Information Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-3xl mx-auto space-y-8">
-          <Collapsible>
-            <CollapsibleTrigger className="flex justify-between w-full py-4 text-left font-semibold text-lg text-neutral-900 border-b border-neutral-200 hover:border-neutral-300 transition-colors">
-              Product Details
-              <ChevronDown className="h-5 w-5 transition-transform data-[state=open]:rotate-180" />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pb-4 text-neutral-700 leading-relaxed">
-              Our premium focus gummies are crafted with clinically-studied ingredients to help enhance cognitive performance and provide sustained energy without the crash. Made with natural flavors and colors, and zero added sugar.
-            </CollapsibleContent>
-          </Collapsible>
+       {/* Three Image Section */}
+       <div className="container mx-auto px-4 py-16 lg:py-24">
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+           <img src="https://framerusercontent.com/images/n0o4D1JzX2a391N8m1tV6F8c.jpg" alt="Product related image 1" className="w-full h-auto object-cover rounded-lg" />
+           <img src="https://framerusercontent.com/images/M6Q1S2q63R3K3X3n3l9F10c.jpg" alt="Product related image 2" className="w-full h-auto object-cover rounded-lg" />
+           <img src="https://framerusercontent.com/images/F6Q4C1H3G6T3v2k8L7c.jpg" alt="Product related image 3" className="w-full h-auto object-cover rounded-lg" />
+         </div>
+       </div>
 
-          <Collapsible>
-            <CollapsibleTrigger className="flex justify-between w-full py-4 text-left font-semibold text-lg text-neutral-900 border-b border-neutral-200 hover:border-neutral-300 transition-colors">
-              Ingredients
-              <ChevronDown className="h-5 w-5 transition-transform data-[state=open]:rotate-180" />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pb-4 text-neutral-700 leading-relaxed">
-              Active Ingredients: CBD (25mg per serving), L-Theanine (100mg), Caffeine (50mg), Ashwagandha Extract (300mg), Bacopa Monnieri (250mg). Other Ingredients: Organic Cane Sugar, Organic Tapioca Syrup, Natural Flavors, Pectin, Citric Acid.
-            </CollapsibleContent>
-          </Collapsible>
+       {/* How to use Section Placeholder */}
+      <div className="bg-white py-16 lg:py-24">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-neutral-900 mb-12">How to use (placeholder)</h2>
+          {/* Add content for how to use */}
+        </div>
+      </div>
 
-          <Collapsible>
-            <CollapsibleTrigger className="flex justify-between w-full py-4 text-left font-semibold text-lg text-neutral-900 border-b border-neutral-200 hover:border-neutral-300 transition-colors">
-              Shipping & Returns
-              <ChevronDown className="h-5 w-5 transition-transform data-[state=open]:rotate-180" />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pb-4 text-neutral-700 leading-relaxed">
-              Free shipping on all orders over $50. Standard delivery takes 3-5 business days. We offer a 30-day money-back guarantee on all products.
-            </CollapsibleContent>
-          </Collapsible>
+      {/* Key Ingredients Section Placeholder */}
+       <div className="bg-[#f8f7f3] py-16 lg:py-24">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-neutral-900 mb-12">Key Ingredients (placeholder)</h2>
+          {/* Add content for key ingredients */}
+        </div>
+      </div>
+
+       {/* What to Expect Section Placeholder */}
+       <div className="bg-white py-16 lg:py-24">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-neutral-900 mb-12">What to Expect (placeholder)</h2>
+          {/* Add content for what to expect */}
         </div>
       </div>
 
       {/* Reviews Section */}
-      <div className="bg-white py-16">
+      <div className="bg-[#f8f7f3] py-16 lg:py-24">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
@@ -495,7 +530,7 @@ const ProductPage = () => {
             </div>
 
             {user && canReview && !hasReviewed && (
-              <div className="bg-neutral-50 p-8 rounded-lg border border-neutral-200">
+              <div className="bg-white p-8 rounded-lg border border-neutral-200">
                   <h3 className="text-xl font-semibold mb-6 text-neutral-900">Write a Review</h3>
                   <form onSubmit={handleReviewSubmit} className="space-y-6">
                       <div>
@@ -536,6 +571,33 @@ const ProductPage = () => {
           </div>
         </div>
       </div>
+
+       {/* FAQ Section Placeholder */}
+       <div className="bg-white py-16 lg:py-24">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-neutral-900 mb-12">FAQ (placeholder)</h2>
+          {/* Add content for FAQ */}
+        </div>
+      </div>
+
+       {/* You Might Also Like Section Placeholder */}
+       <div className="bg-[#f8f7f3] py-16 lg:py-24">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-neutral-900 mb-12">You might also like (placeholder)</h2>
+          {/* Add content for you might also like */}
+        </div>
+      </div>
+
+       {/* Instagram Feed Section Placeholder */}
+       <div className="bg-white py-16 lg:py-24">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-neutral-900 mb-12">Instagram Feed (placeholder)</h2>
+          {/* Add content for Instagram Feed */}
+        </div>
+      </div>
+
+
+
     </div>
   );
 };
