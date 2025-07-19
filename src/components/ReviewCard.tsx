@@ -1,3 +1,4 @@
+
 import { FaStar, FaStarHalfAlt, FaRegStar, FaThumbsUp, FaThumbsDown, FaRegComment } from "react-icons/fa";
 
 interface Review {
@@ -11,7 +12,14 @@ interface Review {
   users?: { email: string } | null;
 }
 
-const ReviewCard = ({ review }: { review: Review }) => {
+interface ReviewCardProps {
+  review: Review;
+  userEmail?: string;
+  onReplySubmitted?: () => Promise<void>;
+  showAdminActions?: boolean;
+}
+
+const ReviewCard = ({ review, userEmail, onReplySubmitted, showAdminActions }: ReviewCardProps) => {
     
   const renderStars = (rating: number, size = "text-sm") => {
     const stars = [];
@@ -46,11 +54,14 @@ const ReviewCard = ({ review }: { review: Review }) => {
     return `${diffInMonths} months ago`;
   };
 
+  // Use userEmail prop if provided, otherwise fall back to review.users?.email
+  const displayEmail = userEmail || review.users?.email;
+
   return (
     <div className="border-b border-gray-200 pb-6 mb-6">
       <div className="flex items-center mb-2">
         <div className="flex items-center gap-1">{renderStars(review.rating)}</div>
-        <span className="ml-3 text-sm font-medium text-gray-800">{review.users?.email.split('@')[0] ?? 'Anonymous'}</span>
+        <span className="ml-3 text-sm font-medium text-gray-800">{displayEmail?.split('@')[0] ?? 'Anonymous'}</span>
         <span className="text-sm text-gray-500 mx-2">•</span>
         <span className="text-sm text-gray-500">{formatTimeAgo(review.created_at)}</span>
       </div>
